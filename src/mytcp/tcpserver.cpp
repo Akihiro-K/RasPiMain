@@ -61,7 +61,7 @@ bool tcp_server::send_data(const char * src, size_t len)
     return true;
 }
 
-bool tcp_server::recv_data(function<void (const char *, size_t)> handler)
+bool tcp_server::recv_data(function<void (const char *)> handler)
 {
     if( recv(new_socket , buffer , sizeof(buffer) , 0) < 0)
     {

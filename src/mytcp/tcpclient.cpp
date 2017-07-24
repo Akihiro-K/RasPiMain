@@ -37,7 +37,7 @@ bool tcp_client::send_data(const char * src, size_t len)
     return true;
 }
 
-bool tcp_client::recv_data(function<void (const char *, size_t)> handler)
+bool tcp_client::recv_data(function<void (const char *)> handler)
 {
     if( recv(sock , buffer , sizeof(buffer) , 0) < 0)
     {
@@ -45,6 +45,6 @@ bool tcp_client::recv_data(function<void (const char *, size_t)> handler)
         return false;
     }
 
-    handler((const char *)&buffer, sizeof(buffer));
+    handler((const char *)&buffer);
     return true;
 }

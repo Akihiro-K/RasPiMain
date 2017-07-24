@@ -1,4 +1,4 @@
-#include "myserial/myserial.cpp"
+#include "utserial/utserial.h"
 #include "mytcp/tcpserver.h"
 #include "mytcp/tcpclient.h"
 #include "shared/shared.h"
@@ -14,28 +14,33 @@
 
 std::mutex m; // for lock
 
+void FChandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer);
+
 void RecvFromMarker();
-void MarkerHandler(const char * src, size_t len);
+void MarkerHandler(const char * src);
 
 void RecvFromGPS();
-void GPSHandler(const char * src, size_t len);
+void GPSHandler(const char * src);
 
 void RevFromLSM();
-void LSMHandler(const char * src, size_t len);
+void LSMHandler(const char * src);
 
 void RecvFromDP();
-void DPHandler(const char * src, size_t len);
+void DPHandler(const char * src);
 
 int main(int argc, char const *argv[])
 {    
     InitLogging();
+
+	ut_serial FC_comm("/dev/ttyAMA0", 57600);
+
 	std::thread marker_comm(&RecvFromMarker);
 	//std::thread gps_comm(&RecvFromGPS);
 	//std::thread lsm_comm(&RecvFromLSM);
 	//std::thread dp_comm(&RecvFromDP);
 	
     for(;;) {
-		if (ReadFromFC()){
+		if (FC_comm.recv_data(FChandler)){
 			// at 128Hz
 
 			m.lock();
@@ -44,7 +49,7 @@ int main(int argc, char const *argv[])
 			ToFCLogging();
 			PositionTimeUpdate();
 			UpdateNavigation();
-			UTSerialTx(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
+			FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
 			m.unlock();
 		}
 	}
@@ -55,6 +60,24 @@ int main(int argc, char const *argv[])
 	//dp_comm.join();
     
     return 0;
+}
+
+void FChandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer)
+{    
+    m.lock();
+	struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)data_buffer;
+	
+	from_fc.timestamp = struct_ptr->timestamp;
+	from_fc.nav_mode_request = struct_ptr->nav_mode_request;
+	from_fc.pressure_alt = struct_ptr->pressure_alt;
+	for (int i = 0; i < 3; i++) {
+		from_fc.accelerometer[i] = struct_ptr->accelerometer[i];
+		from_fc.gyro[i] = struct_ptr->gyro[i];
+	}
+	for (int i = 0; i < 4; i++) {
+		from_fc.quaternion[i] = struct_ptr->quaternion[i];
+	}
+	m.unlock();
 }
 
 void RecvFromMarker()
@@ -68,12 +91,10 @@ void RecvFromMarker()
     }
 }
 
-void MarkerHandler(const char * src, size_t len)
+void MarkerHandler(const char * src)
 {    
     m.lock();
-    char temp[CLIENT_BUF_SIZE];
-    memcpy(temp, src, len);
-	struct FromMarker * struct_ptr = (struct FromMarker *)temp;
+	struct FromMarker * struct_ptr = (struct FromMarker *)src;
 	
 	from_marker.timestamp = struct_ptr->timestamp;
 	from_marker.status = struct_ptr->status;
@@ -102,12 +123,10 @@ void RecvFromGPS()
     }
 }
 
-void GPSHandler(const char * src, size_t len)
+void GPSHandler(const char * src)
 {
     m.lock();
-    char temp[CLIENT_BUF_SIZE];
-    memcpy(temp, src, len);
-	struct FromGPS * struct_ptr = (struct FromGPS *)temp;
+	struct FromGPS * struct_ptr = (struct FromGPS *)src;
 
 	from_gps.status = struct_ptr->status;
 	
@@ -135,12 +154,10 @@ void RevFromLSM()
     }	
 }
 
-void LSMHandler(const char * src, size_t len)
+void LSMHandler(const char * src)
 {
     m.lock();
-    char temp[CLIENT_BUF_SIZE];
-    memcpy(temp, src, len);
-	struct FromLSM * struct_ptr = (struct FromLSM *)temp;
+	struct FromLSM * struct_ptr = (struct FromLSM *)src;
 
 	from_lsm.status = struct_ptr->status;
 	

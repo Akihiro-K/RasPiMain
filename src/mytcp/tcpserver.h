@@ -30,7 +30,7 @@ class tcp_server
         bool start_listen(int);
         bool start_accept();
         bool send_data(const char *, size_t);
-        bool recv_data(function<void (const char *, size_t)>);           
+        bool recv_data(function<void (const char *)>);           
 };
 
 #endif // MYTCPSERVER_H_
