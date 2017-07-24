@@ -28,7 +28,7 @@ class tcp_client
         ~tcp_client() {close(sock);};
         bool start_connect(string, int);
         bool send_data(const char *, size_t);
-        bool recv_data(function<void (const char *)>);
+        bool recv_data(function<void (const char *, size_t)>);   
 };
 
 #endif // MYTCPCLIENT_H_

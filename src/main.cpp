@@ -14,19 +14,19 @@
 
 std::mutex m; // for lock
 
-void FChandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer);
+void FChandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);
 
 void RecvFromMarker();
-void MarkerHandler(const char * src);
+void MarkerHandler(const char * src, size_t len);
 
 void RecvFromGPS();
-void GPSHandler(const char * src);
+void GPSHandler(const char * src, size_t len);
 
 void RevFromLSM();
-void LSMHandler(const char * src);
+void LSMHandler(const char * src, size_t len);
 
 void RecvFromDP();
-void DPHandler(const char * src);
+void DPHandler(const char * src, size_t len);
 
 int main(int argc, char const *argv[])
 {    
@@ -62,10 +62,12 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
-void FChandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer)
+void FChandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len)
 {    
     m.lock();
-	struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)data_buffer;
+    char temp[UART_DATA_BUFFER_LENGTH];
+    memcpy(temp, src, len);
+	struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)temp;
 	
 	from_fc.timestamp = struct_ptr->timestamp;
 	from_fc.nav_mode_request = struct_ptr->nav_mode_request;
@@ -91,10 +93,12 @@ void RecvFromMarker()
     }
 }
 
-void MarkerHandler(const char * src)
+void MarkerHandler(const char * src, size_t len)
 {    
     m.lock();
-	struct FromMarker * struct_ptr = (struct FromMarker *)src;
+    char temp[CLIENT_BUF_SIZE];
+    memcpy(temp, src, len);
+	struct FromMarker * struct_ptr = (struct FromMarker *)temp;
 	
 	from_marker.timestamp = struct_ptr->timestamp;
 	from_marker.status = struct_ptr->status;
@@ -123,10 +127,12 @@ void RecvFromGPS()
     }
 }
 
-void GPSHandler(const char * src)
+void GPSHandler(const char * src, size_t len)
 {
     m.lock();
-	struct FromGPS * struct_ptr = (struct FromGPS *)src;
+    char temp[CLIENT_BUF_SIZE];
+    memcpy(temp, src, len);
+	struct FromGPS * struct_ptr = (struct FromGPS *)temp;
 
 	from_gps.status = struct_ptr->status;
 	
@@ -154,10 +160,12 @@ void RevFromLSM()
     }	
 }
 
-void LSMHandler(const char * src)
+void LSMHandler(const char * src, size_t len)
 {
     m.lock();
-	struct FromLSM * struct_ptr = (struct FromLSM *)src;
+    char temp[CLIENT_BUF_SIZE];
+    memcpy(temp, src, len);
+	struct FromLSM * struct_ptr = (struct FromLSM *)temp;
 
 	from_lsm.status = struct_ptr->status;
 	
@@ -181,7 +189,7 @@ void RecvFromDP()
     }	
 }
 
-void DPHandler(const char * src)
+void DPHandler(const char * src, size_t len)
 {
 
 }

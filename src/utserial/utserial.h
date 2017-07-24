@@ -46,7 +46,7 @@ class ut_serial
           {serial.Open(dev.c_str(), baud);};
         ~ut_serial() {serial.Close();};
         bool send_data(uint8_t, uint8_t, const uint8_t *, size_t);
-        bool recv_data(function<void (uint8_t, uint8_t, const uint8_t *)>);
+        bool recv_data(function<void (uint8_t, uint8_t, const uint8_t *, size_t)>);
 };
 
 #endif //UTSERIAL_H_
