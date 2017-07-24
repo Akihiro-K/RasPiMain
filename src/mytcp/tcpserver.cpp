@@ -69,6 +69,6 @@ bool tcp_server::recv_data(function<void (const char *)> handler)
         return false;
     }
 
-    handler((const char *)&buffer, sizeof(buffer));
+    handler((const char *)&buffer);
     return true;
 }
