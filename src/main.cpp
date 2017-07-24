@@ -181,7 +181,7 @@ void RecvFromDP()
     }	
 }
 
-void DPHandler(const char * src, size_t len)
+void DPHandler(const char * src)
 {
 
 }
