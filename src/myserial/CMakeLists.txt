@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
-add_library(UTSerial STATIC
-	utserial.cpp
+add_library(MySerial STATIC
+	myserial.cpp
 	serial.cpp
 )
 include(CheckCXXCompilerFlag)

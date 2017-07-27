@@ -1,22 +1,68 @@
 #include "navigator.h"
 
 void UpdateNavigation()
-{	
-	UpdateNavFromMarker();
+{
+	/* Heading part */
+	// if (marker_flag||lsm_flag) {
+	// 	to_fc.navigation_status |= HeadingOK;
+	// } else {
+	// 	to_fc.navigation_status &= ~HeadingOK;
+	// }
+
+	/* Position part */
+	if (marker_flag||gps_pos_flag) {
+		to_fc.navigation_status |= PositionOK;
+	} else {
+		to_fc.navigation_status &= ~PositionOK;
+	}
+
+	/* Velocity part */
+	// if (marker_flag||gps_vel_flag) {
+	// 	to_fc.navigation_status |= VelocityOK;
+	// } else {
+	// 	to_fc.navigation_status &= ~VelocityOK;
+	// }
 }
 
 
-void UpdateNavFromMarker()
+void UpdateMarkerFlag()
 {
 	static uint8_t marker_notdetected_count = 0;
-	if (marker_flag) {
+	if (from_marker.status) {
 		marker_notdetected_count = 0;
-		to_fc.navigation_status |= PositionOK;
+		marker_flag = 1;
 	} else {
 		marker_notdetected_count += 1;
-		if (marker_notdetected_count > 20) {
-			to_fc.navigation_status &= ~PositionOK;
-			marker_notdetected_count = 21;
+		if (marker_notdetected_count > 4) {
+			marker_flag = 0;
+			marker_notdetected_count = 5;
 		}		
+	}
+}
+
+void UpdateGPSPosFlag()
+{
+	if (from_gps.status&0x01) {
+		gps_pos_flag = 1;
+	} else {
+		gps_pos_flag = 0;
+	}
+}
+
+void UpdateGPSVelFlag()
+{
+	if (from_gps.status&0x02) {
+		gps_vel_flag = 1;
+	} else {
+		gps_vel_flag = 0;
+	}
+}
+
+void UpdateLSMFlag()
+{
+	if (from_lsm.status) {
+		lsm_flag = 1;
+	} else {
+		lsm_flag = 0;
 	}
 }

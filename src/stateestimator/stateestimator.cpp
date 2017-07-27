@@ -30,11 +30,21 @@ void PositionTimeUpdate()
 
     x = A * x + B * u;
     P_pos = A * P_pos * A.transpose() + Q;
+
+    for (int i = 0; i < 3; i++) {
+        to_fc.position[i] = x(i);
+        to_fc.velocity[i] = x(i+3);
+    }
+
+    if (!(to_fc.navigation_status&PositionOK)) {
+        for (int i = 0; i < 3; i++) {
+            x(i+3) = 0;
+        }
+    }
 }
 
 void PositionMeasurementUpdateWithMarker()
 {
-    marker_flag = from_marker.status;
 	static uint8_t init_marker_flag = 0;
 
     if (marker_flag) {
@@ -68,17 +78,11 @@ void PositionMeasurementUpdateWithMarker()
             to_fc.position[i] = x(i);
             to_fc.velocity[i] = x(i+3);
         }
-    }    
+    }   
 }
 
 void PositionMeasurementUpdateWithGPSPos()
 {
-    if (from_gps.status==3||from_gps.status==2) {
-        gps_pos_flag = 1;
-    } else {
-        gps_pos_flag = 0;
-    }
-
     if (gps_pos_flag) {
         Vector2f z(from_gps.position[0], from_gps.position[1]);
         MatrixXf H(2,6);
@@ -104,12 +108,6 @@ void PositionMeasurementUpdateWithGPSPos()
 
 void PositionMeasurementUpdateWithGPSVel()
 {
-    if (from_gps.status==3||from_gps.status==1) {
-        gps_vel_flag = 1;
-    } else {
-        gps_vel_flag = 0;
-    }
-
     if (gps_vel_flag) {
         Vector3f z(from_gps.velocity[0], from_gps.velocity[1],from_gps.velocity[2]);
         MatrixXf H(3,6);
@@ -173,17 +171,12 @@ void AttitudeTimeUpdate()
     P_att = A * P_att * A.transpose() + Q;
 
     for (int i = 0; i < 3; i++) {
-        quat[0] = from_fc.quaternion[0];
-        quat[1] = from_fc.quaternion[1];
-        quat[2] = from_fc.quaternion[2];
-        quat[3] = from_fc.quaternion[3];
+        quat[i] = from_fc.quaternion[i];
     }
 }
 
 void AttitudeMeasurementUpdateWithMarker()
 {
-    marker_flag = from_marker.status;
- 
     if (marker_flag) {
         
         Quaternionf q_marker(sqrt(1-from_marker.quaternion[0]*from_marker.quaternion[0]-from_marker.quaternion[1]*from_marker.quaternion[1]-from_marker.quaternion[2]*from_marker.quaternion[2]),
@@ -221,8 +214,13 @@ void AttitudeMeasurementUpdateWithMarker()
         to_fc.quat0 = dq(0);
         to_fc.quatz = dq(3);
 
+        float norm = 0;
         for (int i = 0; i < 4; i++) {
             quat[i] += dq[i];
+            norm += quat[i]*quat[i];
+        }
+        for (int i = 0; i < 4; i++) {
+            quat[i] /= norm;
         }
         
         Vector3f a_b(from_fc.accelerometer[0],from_fc.accelerometer[1],from_fc.accelerometer[2]);
@@ -236,8 +234,6 @@ void AttitudeMeasurementUpdateWithMarker()
 
 void AttitudeMeasurementUpdateWithLSM()
 {
-    lsm_flag = from_lsm.status;
- 
     if (lsm_flag) {
         Vector3f z_meas(from_lsm.mag[0], from_lsm.mag[1], from_lsm.mag[2]);
  
@@ -278,8 +274,13 @@ void AttitudeMeasurementUpdateWithLSM()
         to_fc.quat0 = dq(0);
         to_fc.quatz = dq(3);
 
+        float norm = 0;
         for (int i = 0; i < 4; i++) {
             quat[i] += dq[i];
+            norm += quat[i]*quat[i];
+        }
+        for (int i = 0; i < 4; i++) {
+            quat[i] /= norm;
         }
 
         Vector3f a_b(from_fc.accelerometer[0],from_fc.accelerometer[1],from_fc.accelerometer[2]);

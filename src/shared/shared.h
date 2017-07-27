@@ -5,6 +5,10 @@
 #include <eigen3/Eigen/Geometry>
 #include <iostream>
 
+#define HeadingOK 0x01
+#define PositionOK 0x02
+#define VelocityOK 0x04
+
 using namespace std;
 using namespace Eigen;
 
@@ -22,7 +26,7 @@ struct FromGPS {
 	float velocity[3];
 	float r_var[3];
 	float v_var[3];
-	uint8_t status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
+	uint8_t status; // 0x01: pos OK 0x02: vel OK
 } __attribute__((packed));
 
 struct FromLSM {

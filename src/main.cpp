@@ -1,4 +1,4 @@
-#include "utserial/utserial.h"
+#include "myserial/myserial.cpp"
 #include "mytcp/tcpserver.h"
 #include "mytcp/tcpclient.h"
 #include "shared/shared.h"
@@ -13,8 +13,6 @@
 #define UT_SERIAL_COMPONENT_ID_RASPI (2)
 
 std::mutex m; // for lock
-
-void FChandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);
 
 void RecvFromMarker();
 void MarkerHandler(const char * src, size_t len);
@@ -31,16 +29,13 @@ void DPHandler(const char * src, size_t len);
 int main(int argc, char const *argv[])
 {    
     InitLogging();
-
-	ut_serial FC_comm("/dev/ttyAMA0", 57600);
-
 	std::thread marker_comm(&RecvFromMarker);
 	//std::thread gps_comm(&RecvFromGPS);
 	//std::thread lsm_comm(&RecvFromLSM);
 	//std::thread dp_comm(&RecvFromDP);
 	
     for(;;) {
-		if (FC_comm.recv_data(FChandler)){
+		if (ReadFromFC()){
 			// at 128Hz
 
 			m.lock();
@@ -49,7 +44,7 @@ int main(int argc, char const *argv[])
 			ToFCLogging();
 			PositionTimeUpdate();
 			UpdateNavigation();
-			FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
+			UTSerialTx(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
 			m.unlock();
 		}
 	}
@@ -60,26 +55,6 @@ int main(int argc, char const *argv[])
 	//dp_comm.join();
     
     return 0;
-}
-
-void FChandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len)
-{    
-    m.lock();
-    char temp[UART_DATA_BUFFER_LENGTH];
-    memcpy(temp, src, len);
-	struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)temp;
-	
-	from_fc.timestamp = struct_ptr->timestamp;
-	from_fc.nav_mode_request = struct_ptr->nav_mode_request;
-	from_fc.pressure_alt = struct_ptr->pressure_alt;
-	for (int i = 0; i < 3; i++) {
-		from_fc.accelerometer[i] = struct_ptr->accelerometer[i];
-		from_fc.gyro[i] = struct_ptr->gyro[i];
-	}
-	for (int i = 0; i < 4; i++) {
-		from_fc.quaternion[i] = struct_ptr->quaternion[i];
-	}
-	m.unlock();
 }
 
 void RecvFromMarker()
@@ -110,6 +85,7 @@ void MarkerHandler(const char * src, size_t len)
 		from_marker.r_var[i] = struct_ptr->r_var[i];
 	}
 	
+	UpdateMarkerFlag();
 	// AttitudeMeasurementUpdateWithMarker();
 	PositionMeasurementUpdateWithMarker();
 	VisionLogging();
@@ -143,6 +119,8 @@ void GPSHandler(const char * src, size_t len)
 		from_gps.v_var[i] = struct_ptr->v_var[i];
 	}
 	
+	UpdateGPSPosFlag();
+	UpdateGPSVelFlag();
 	PositionMeasurementUpdateWithGPSPos();
 	PositionMeasurementUpdateWithGPSVel();
 	GPSLogging();
@@ -173,6 +151,7 @@ void LSMHandler(const char * src, size_t len)
 		from_lsm.mag[i] = struct_ptr->mag[i];
 	}
 	
+	UpdateLSMFlag();
 	AttitudeMeasurementUpdateWithLSM();
 	LSMLogging();
 	m.unlock();
