@@ -48,6 +48,7 @@ int main(int argc, char const *argv[])
 			#endif
 			ToFCLogging();
 			PositionTimeUpdate();
+			// AttitudeTimeUpdate();
 			UpdateNavigation();
 			UTSerialTx(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
 			m.unlock();
