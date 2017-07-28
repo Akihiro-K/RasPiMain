@@ -7,7 +7,9 @@
 
 #define HeadingOK 0x01
 #define PositionOK 0x02
-#define VelocityOK 0x04
+#define VelocityOK 
+
+//#define FCDebug
 
 using namespace std;
 using namespace Eigen;
@@ -59,6 +61,7 @@ struct FromFlightCtrl {
 } __attribute__((packed));
 
 struct ForDebug{
+	uint16_t timestamp;
 	uint16_t version;
 }__attribute__((packed));
 
@@ -68,6 +71,7 @@ enum Sensor {
 	FC = 1,
 	GPS = 2,
 	LSM = 3,
+	FCDebug = 4,
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +80,11 @@ extern struct FromGPS from_gps;
 extern struct FromLSM from_lsm;
 
 extern struct ToFlightCtrl to_fc;
-extern struct FromFlightCtrl from_fc;
+#ifndef FCDebug
+	extern struct FromFlightCtrl from_fc;
+#else
+	extern struct ForDebug for_debug;
+#endif
 
 extern uint8_t marker_flag;
 extern uint8_t gps_pos_flag;

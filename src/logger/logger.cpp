@@ -63,3 +63,11 @@ void LSMLogging()
 	fout << from_lsm.mag[0] << "," << from_lsm.mag[1] << "," << from_lsm.mag[2] << ",";
 	fout << unsigned(from_lsm.status) << endl;
 }
+
+void FCDebugLogging()
+{
+	gettimeofday(&tv, NULL);
+	uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
+	fout << FCDebug << "," << timestamp << ",";
+	fout << endl;
+}

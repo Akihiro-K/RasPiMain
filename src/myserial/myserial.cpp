@@ -24,7 +24,7 @@ using namespace std;
 #define UT_HEADER_LENGTH (4)  // number of bytes prior to the payload
 
 #define UART_DATA_BUFFER_LENGTH (64)
-#define UART_TX_BUFFER_LENGTH (128)
+#define UART_TX_BUFFER_LENGTH (256)
 
 enum UARTRxMode {
     UART_RX_MODE_IDLE = 0,
@@ -34,7 +34,7 @@ enum UARTRxMode {
 ////////////////////////////////////////////////////////////////////////////////
 static Serial serial("/dev/ttyAMA0", 57600);
 uint8_t data_buffer[UART_DATA_BUFFER_LENGTH];
-uint8_t tx_buffer[256];
+uint8_t tx_buffer[UART_TX_BUFFER_LENGTH];
 
 static volatile int received_sigterm = 0;
 static volatile int received_nb_signals = 0;
@@ -58,18 +58,23 @@ static void TerminalSignalHandler(int sig)
 static void HandleUTRx(uint8_t component_id, uint8_t message_id,
   const uint8_t * data_buffer)
 {    
-    struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)data_buffer;
-	
-	from_fc.timestamp = struct_ptr->timestamp;
-	from_fc.nav_mode_request = struct_ptr->nav_mode_request;
-	from_fc.pressure_alt = struct_ptr->pressure_alt;
-	for (int i = 0; i < 3; i++) {
-		from_fc.accelerometer[i] = struct_ptr->accelerometer[i];
-		from_fc.gyro[i] = struct_ptr->gyro[i];
-	}
-	for (int i = 0; i < 4; i++) {
-		from_fc.quaternion[i] = struct_ptr->quaternion[i];
-	}
+    #ifndef FCDebug
+        struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)data_buffer;
+
+        from_fc.timestamp = struct_ptr->timestamp;
+        from_fc.nav_mode_request = struct_ptr->nav_mode_request;
+        from_fc.pressure_alt = struct_ptr->pressure_alt;
+        for (int i = 0; i < 3; i++) {
+            from_fc.accelerometer[i] = struct_ptr->accelerometer[i];
+            from_fc.gyro[i] = struct_ptr->gyro[i];
+        }
+        for (int i = 0; i < 4; i++) {
+            from_fc.quaternion[i] = struct_ptr->quaternion[i];
+        }
+    #else
+        struct ForDebug * struct_ptr = (struct ForDebug *)data_buffer;
+        for_debug.verion = struct_ptr->version;
+    #endif
 }
 
 // -----------------------------------------------------------------------------
@@ -175,19 +180,28 @@ int ReadFromFC(void)
 	  {
 		case UART_RX_MODE_IDLE:
 		default:
-		  if (rx_byte == UT_START_CHARACTER) rx_mode = UART_RX_MODE_UT_ONGOING;
-		  break;
+		    if (rx_byte == UT_START_CHARACTER) rx_mode = UART_RX_MODE_UT_ONGOING;
+		    break;
 		case UART_RX_MODE_UT_ONGOING:
-		  rx_mode = UTSerialRx(rx_byte, data_buffer);
-		  break;
+		    rx_mode = UTSerialRx(rx_byte, data_buffer);
+		    break;
 	  }
 	}
 	
-    static uint16_t timestamp_pv=0;
-	if (from_fc.timestamp-timestamp_pv) {
-		timestamp_pv = from_fc.timestamp;
-		return 1;
-	}
+    #ifndef FCDebug
+        static uint16_t timestamp_pv=0;
+        if (from_fc.timestamp-timestamp_pv) {
+            timestamp_pv = from_fc.timestamp;
+            return 1;
+        }
+    #else
+        static uint16_t timestamp_pv=0;
+        if (for_debug.timestamp-timestamp_pv) {
+            timestamp_pv = for_debug.timestamp;
+            return 1;
+        }        
+    #endif
+
 	return 0;
 }
 

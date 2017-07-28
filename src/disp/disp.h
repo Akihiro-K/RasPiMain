@@ -5,6 +5,8 @@
 
 using namespace std;
 
-void Disp();
+void DispfromFC();
+
+void DispfromFCforDebug();
 
 #endif

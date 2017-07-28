@@ -39,8 +39,13 @@ int main(int argc, char const *argv[])
 			// at 128Hz
 
 			m.lock();
-			Disp();
-			FCLogging();
+			#ifndef FCDebug
+				DispfromFC();
+				FCLogging();
+			#else
+				DispfromFCforDebug();
+				FCDebugLogging();
+			#endif
 			ToFCLogging();
 			PositionTimeUpdate();
 			UpdateNavigation();
