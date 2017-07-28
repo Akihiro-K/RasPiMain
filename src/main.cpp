@@ -78,7 +78,6 @@ void MarkerHandler(const char * src, size_t len)
 	from_marker.timestamp = struct_ptr->timestamp;
 	from_marker.status = struct_ptr->status;
 
-	
 	for (int i=0;i<3;i++){
 		from_marker.position[i] = struct_ptr->position[i];
 		from_marker.quaternion[i] = struct_ptr->quaternion[i];

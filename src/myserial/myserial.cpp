@@ -11,8 +11,8 @@
 
 extern "C"
 {
-  #include "crc16.h"
-  #include "union_types.h"
+    #include "crc16.h"
+    #include "union_types.h"
 }
 
 using namespace std;
@@ -27,8 +27,8 @@ using namespace std;
 #define UART_TX_BUFFER_LENGTH (128)
 
 enum UARTRxMode {
-  UART_RX_MODE_IDLE = 0,
-  UART_RX_MODE_UT_ONGOING,
+    UART_RX_MODE_IDLE = 0,
+    UART_RX_MODE_UT_ONGOING,
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,9 +47,9 @@ uint8_t rx_byte;
 
 static void TerminalSignalHandler(int sig)
 {
-	received_sigterm = sig;
-	received_nb_signals++;
-	if (received_nb_signals > 3) exit(123);
+    received_sigterm = sig;
+    received_nb_signals++;
+    if (received_nb_signals > 3) exit(123);
 }
 
 // -----------------------------------------------------------------------------
@@ -81,48 +81,48 @@ static void HandleUTRx(uint8_t component_id, uint8_t message_id,
 // this function.
 enum UARTRxMode UTSerialRx(uint8_t byte, uint8_t * data_buffer)
 {
-  static uint8_t * rx_ptr = 0;
-  static uint8_t bytes_processed = 0, length = 0;
-  static uint8_t component_id = 0, message_id = 0;
-  static union U16Bytes crc;
+    static uint8_t * rx_ptr = 0;
+    static uint8_t bytes_processed = 0, length = 0;
+    static uint8_t component_id = 0, message_id = 0;
+    static union U16Bytes crc;
 
-  if (bytes_processed == 0)  // First byte is payload length
-  {
-    if ((UT_HEADER_LENGTH + byte) > UART_DATA_BUFFER_LENGTH) goto RESET;
-    length = byte;
-    crc.u16 = CRCUpdateCCITT(0xFFFF, byte);
-    rx_ptr = data_buffer;
-  }
-  else if (bytes_processed == 1)  // Second byte is the message ID
-  {
-    message_id = byte;
-    crc.u16 = CRCUpdateCCITT(crc.u16, byte);
-  }
-  else if (bytes_processed == 2)  // Third byte is the component ID
-  {
-    component_id = byte;
-    crc.u16 = CRCUpdateCCITT(crc.u16, byte);
-  }
-  else if (bytes_processed < (UT_HEADER_LENGTH - 1 + length))  // Payload
-  {
-    crc.u16 = CRCUpdateCCITT(crc.u16, byte);
-    *rx_ptr++ = byte;
-  }
-  else if (bytes_processed == (UT_HEADER_LENGTH - 1 + length))  // CRC[0]
-  {
-    if (byte != crc.bytes[0]) goto RESET;
-  }
-  else  // CRC[1]
-  {
-    if (byte == crc.bytes[1]) HandleUTRx(component_id, message_id, data_buffer);
-    goto RESET;
-  }
-  bytes_processed++;
-  return UART_RX_MODE_UT_ONGOING;
+    if (bytes_processed == 0)  // First byte is payload length
+    {
+        if ((UT_HEADER_LENGTH + byte) > UART_DATA_BUFFER_LENGTH) goto RESET;
+        length = byte;
+        crc.u16 = CRCUpdateCCITT(0xFFFF, byte);
+        rx_ptr = data_buffer;
+    }
+    else if (bytes_processed == 1)  // Second byte is the message ID
+    {
+        message_id = byte;
+        crc.u16 = CRCUpdateCCITT(crc.u16, byte);
+    }
+    else if (bytes_processed == 2)  // Third byte is the component ID
+    {
+        component_id = byte;
+        crc.u16 = CRCUpdateCCITT(crc.u16, byte);
+    }
+    else if (bytes_processed < (UT_HEADER_LENGTH - 1 + length))  // Payload
+    {
+        crc.u16 = CRCUpdateCCITT(crc.u16, byte);
+        *rx_ptr++ = byte;
+    }
+    else if (bytes_processed == (UT_HEADER_LENGTH - 1 + length))  // CRC[0]
+    {
+        if (byte != crc.bytes[0]) goto RESET;
+    }
+    else  // CRC[1]
+    {
+        if (byte == crc.bytes[1]) HandleUTRx(component_id, message_id, data_buffer);
+        goto RESET;
+    }
+    bytes_processed++;
+    return UART_RX_MODE_UT_ONGOING;
 
-  RESET:
-  bytes_processed = 0;
-  return UART_RX_MODE_IDLE;
+    RESET:
+    bytes_processed = 0;
+    return UART_RX_MODE_IDLE;
 }
 
 // -----------------------------------------------------------------------------
@@ -133,38 +133,38 @@ enum UARTRxMode UTSerialRx(uint8_t byte, uint8_t * data_buffer)
 void UTSerialTx(uint8_t component_id, uint8_t message_id,
   const uint8_t * source, size_t length)
 {
-  if ((length + 1 + UT_HEADER_LENGTH + 2) > UART_TX_BUFFER_LENGTH) {
-	  cout << "data is too long!" << endl;
-	  return;
-  }
+    if ((length + 1 + UT_HEADER_LENGTH + 2) > UART_TX_BUFFER_LENGTH) {
+        cout << "data is too long!" << endl;
+        return;
+    }
 
-  uint8_t * tx_ptr = tx_buffer;
+    uint8_t * tx_ptr = tx_buffer;
 
-  // Copy the start character to the TX buffer;
-  *tx_ptr++ = UT_START_CHARACTER;
+    // Copy the start character to the TX buffer;
+    *tx_ptr++ = UT_START_CHARACTER;
 
-  // Copy the payload length to the TX buffer.
-  *tx_ptr++ = length;
+    // Copy the payload length to the TX buffer.
+    *tx_ptr++ = length;
 
-  // Copy the message ID to the TX buffer.
-  *tx_ptr++ = message_id;
+    // Copy the message ID to the TX buffer.
+    *tx_ptr++ = message_id;
 
-  // Copy the component ID to the TX buffer.
-  *tx_ptr++ = component_id;
+    // Copy the component ID to the TX buffer.
+    *tx_ptr++ = component_id;
 
-  // Copy the payload to the TX buffer.
-  memcpy(tx_ptr, source, length);
-  tx_ptr += length;
+    // Copy the payload to the TX buffer.
+    memcpy(tx_ptr, source, length);
+    tx_ptr += length;
 
-  // Compute the CRC (starting from payload length) and copy to the TX buffer.
-  union U16Bytes crc = { 0xFFFF };
-  for(size_t i = 1; i < length + UT_HEADER_LENGTH; ++i)
+    // Compute the CRC (starting from payload length) and copy to the TX buffer.
+    union U16Bytes crc = { 0xFFFF };
+    for(size_t i = 1; i < length + UT_HEADER_LENGTH; ++i)
     crc.u16 = CRCUpdateCCITT(crc.u16, tx_buffer[i]);
-  *tx_ptr++ = crc.bytes[0];
-  *tx_ptr = crc.bytes[1];
+    *tx_ptr++ = crc.bytes[0];
+    *tx_ptr = crc.bytes[1];
 
 ////////////////////////////////////////////////////////////////////////////////
-  serial.SendBuffer(tx_buffer, UT_HEADER_LENGTH + length + sizeof(crc));
+    serial.SendBuffer(tx_buffer, UT_HEADER_LENGTH + length + sizeof(crc));
 }
 
 int ReadFromFC(void)
@@ -183,7 +183,7 @@ int ReadFromFC(void)
 	  }
 	}
 	
-	static uint16_t timestamp_pv=0;
+    static uint16_t timestamp_pv=0;
 	if (from_fc.timestamp-timestamp_pv) {
 		timestamp_pv = from_fc.timestamp;
 		return 1;

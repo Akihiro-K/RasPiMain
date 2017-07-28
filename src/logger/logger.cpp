@@ -2,7 +2,7 @@
 
 void InitLogging()
 {
-    timerclear(&tv);
+	timerclear(&tv);
 }
 
 void FCLogging()
@@ -14,7 +14,7 @@ void FCLogging()
 	fout << from_fc.accelerometer[0] << "," << from_fc.accelerometer[1] << "," << from_fc.accelerometer[2] << ",";
 	fout << from_fc.gyro[0] << "," << from_fc.gyro[1] << "," << from_fc.gyro[2] <<",";
 	fout << from_fc.quaternion[0] << "," << from_fc.quaternion[1] << "," << from_fc.quaternion[2] << "," <<from_fc.quaternion[3] << ",";
-	fout << from_fc.pressure_alt << endl;	
+	fout << from_fc.pressure_alt << endl;
 }
 
 void ToFCLogging()
@@ -29,7 +29,7 @@ void ToFCLogging()
 	fout2 << to_fc.target_position[0] << "," << to_fc.target_position[1] << "," << to_fc.target_position[2] << ",";
 	fout2 << to_fc.transit_vel << ",";
 	fout2 << to_fc.target_heading << ",";
-	fout2 << to_fc.heading_rate << endl;	
+	fout2 << to_fc.heading_rate << endl;
 }
 
 void VisionLogging()
