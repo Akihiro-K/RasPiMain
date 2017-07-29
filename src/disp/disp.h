@@ -7,6 +7,4 @@ using namespace std;
 
 void DispfromFC();
 
-void DispfromFCforDebug();
-
 #endif

@@ -3,6 +3,11 @@ project(main)
 SET(CMAKE_MODULE_PATH ${CMAKE_INSTALL_PREFIX}/lib/cmake/ )
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11 -pthread")
 
+option(FC_DEBUG "FC Debug Mode" OFF)
+if(FC_DEBUG)
+  add_definitions(-DFC_DEBUG_MODE)
+endif()
+
 find_package(Eigen3 REQUIRED)
 include_directories(EIGEN3_INCLUDE_DIR)
 

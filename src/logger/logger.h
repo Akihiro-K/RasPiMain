@@ -23,6 +23,4 @@ void GPSLogging();
 
 void LSMLogging();
 
-void FCDebugLogging();
-
 #endif

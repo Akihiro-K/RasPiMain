@@ -9,8 +9,6 @@
 #define PositionOK 0x02
 #define VelocityOK 0x04
 
-//#define FCDebug
-
 using namespace std;
 using namespace Eigen;
 
@@ -80,11 +78,8 @@ extern struct FromGPS from_gps;
 extern struct FromLSM from_lsm;
 
 extern struct ToFlightCtrl to_fc;
-#ifndef FCDebug
-	extern struct FromFlightCtrl from_fc;
-#else
-	extern struct ForDebug for_debug;
-#endif
+extern struct FromFlightCtrl from_fc;
+extern struct ForDebug for_debug;
 
 extern uint8_t marker_flag;
 extern uint8_t gps_pos_flag;

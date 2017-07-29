@@ -58,7 +58,7 @@ static void TerminalSignalHandler(int sig)
 static void HandleUTRx(uint8_t component_id, uint8_t message_id,
   const uint8_t * data_buffer)
 {    
-    #ifndef FCDebug
+    #ifndef FC_DEBUG_MODE
         struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)data_buffer;
 
         from_fc.timestamp = struct_ptr->timestamp;
@@ -73,7 +73,8 @@ static void HandleUTRx(uint8_t component_id, uint8_t message_id,
         }
     #else
         struct ForDebug * struct_ptr = (struct ForDebug *)data_buffer;
-        for_debug.verion = struct_ptr->version;
+        for_debug.timestamp = struct_ptr->timestamp;
+        for_debug.version = struct_ptr->version;
     #endif
 }
 
@@ -188,7 +189,7 @@ int ReadFromFC(void)
 	  }
 	}
 	
-    #ifndef FCDebug
+    #ifndef FC_DEBUG_MODE
         static uint16_t timestamp_pv=0;
         if (from_fc.timestamp-timestamp_pv) {
             timestamp_pv = from_fc.timestamp;

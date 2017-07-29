@@ -46,6 +46,7 @@ struct FromFlightCtrl {
 } __attribute__((packed));
 
 struct ForDebug{
+	uint16_t timestamp;
 	uint16_t version;
 }__attribute__((packed));
 
@@ -54,11 +55,8 @@ struct FromGPS from_gps = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},0};
 struct FromLSM from_lsm = {{0,0,0},0};
 
 struct ToFlightCtrl to_fc = {1, 2, 7, {0, 0, 0}, {0, 0, 0}, 1, 0, {0, 0, -0.8}, 0.5, 0, 0.3};
-#ifndef FCDebug
-	struct FromFlightCtrl from_fc = {0, 0, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0, 0}, 0};
-#else
-	struct ForDebug for_debug = {0, 0};
-#endif
+struct FromFlightCtrl from_fc = {0, 0, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0, 0}, 0};
+struct ForDebug for_debug = {0, 0};
 
 uint8_t marker_flag = 0;
 uint8_t gps_pos_flag = 0;
