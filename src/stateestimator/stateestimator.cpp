@@ -271,6 +271,7 @@ void AttitudeMeasurementUpdateWithLSM()
                 0.5*quat[3], 0.5*quat[0], -0.5*quat[1],
                 -0.5*quat[2], 0.5*quat[1], 0.5*quat[0];
         Vector4f dq = Psi * alpha;
+        
         to_fc.quat0 = dq(0);
         to_fc.quatz = dq(3);
 

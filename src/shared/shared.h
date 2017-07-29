@@ -7,7 +7,7 @@
 
 #define HeadingOK 0x01
 #define PositionOK 0x02
-#define VelocityOK 
+#define VelocityOK 0x04
 
 //#define FCDebug
 
