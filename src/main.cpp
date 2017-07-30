@@ -20,7 +20,7 @@ void MarkerHandler(const char * src, size_t len);
 void RecvFromGPS();
 void GPSHandler(const char * src, size_t len);
 
-void RevFromLSM();
+void RecvFromLSM();
 void LSMHandler(const char * src, size_t len);
 
 void RecvFromDP();
@@ -127,7 +127,7 @@ void GPSHandler(const char * src, size_t len)
 	m.unlock();
 }
 
-void RevFromLSM()
+void RecvFromLSM()
 {
     tcp_client c;
     c.start_connect("127.0.0.1" , 80);
