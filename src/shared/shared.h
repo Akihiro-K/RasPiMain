@@ -60,7 +60,9 @@ struct FromFlightCtrl {
 
 struct ForDebug{
 	uint16_t timestamp;
-	uint16_t version;
+	uint16_t motor_setpoint[4];
+	float accelerometer[4];
+	float gyro[4];
 }__attribute__((packed));
 
 ////////////////////////////////////////////////////////////////////////////////

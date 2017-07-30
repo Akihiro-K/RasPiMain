@@ -19,6 +19,10 @@ void FCLogging()
 		fout << from_fc.pressure_alt << endl;
 	#else
 		fout << FCDebug << "," << timestamp << ",";
+		fout << for_debug.motor_setpoint[0] << "," << for_debug.motor_setpoint[1] << ",";
+		fout << for_debug.motor_setpoint[2] << "," << for_debug.motor_setpoint[3] << ",";
+		fout << for_debug.accelerometer[0] << "," << for_debug.accelerometer[1] << "," << for_debug.accelerometer[2] << ",";
+		fout << for_debug.gyro[0] << "," << for_debug.gyro[1] << "," << for_debug.gyro[2] << endl;
 		fout << endl;
 	#endif
 }
