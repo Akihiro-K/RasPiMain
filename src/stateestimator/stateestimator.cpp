@@ -164,13 +164,13 @@ void AttitudeTimeUpdate()
          from_fc.gyro[1], -from_fc.gyro[0], 0;
 
     Matrix3f Q;
-    Q << 0.1, 0, 0,
-         0, 0.1, 0,
-         0, 0, 0.1;
+    Q << 0.01, 0, 0,
+         0, 0.01, 0,
+         0, 0, 0.01;
 
     P_att = A * P_att * A.transpose() + Q;
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         quat[i] = from_fc.quaternion[i];
     }
 }
@@ -178,14 +178,13 @@ void AttitudeTimeUpdate()
 void AttitudeMeasurementUpdateWithMarker()
 {
     if (marker_flag) {
-        
         Quaternionf q_marker(sqrt(1-from_marker.quaternion[0]*from_marker.quaternion[0]-from_marker.quaternion[1]*from_marker.quaternion[1]-from_marker.quaternion[2]*from_marker.quaternion[2]),
         from_marker.quaternion[0], from_marker.quaternion[1], from_marker.quaternion[2]);
-        Matrix3f DCM = q_marker.toRotationMatrix();
+        Matrix3f DCM = (q_marker.toRotationMatrix()).transpose(); // inertial to body
         Vector3f z_meas = DCM * Vector3f::UnitX();
- 
+		
         Quaternionf q(quat[0],quat[1],quat[2],quat[3]);
-        DCM = q.toRotationMatrix();
+        DCM = (q.toRotationMatrix()).transpose(); // inertial to body
         Vector3f z_pred = DCM * Vector3f::UnitX();
          
         Vector3f dz = z_meas - z_pred;
@@ -196,23 +195,20 @@ void AttitudeMeasurementUpdateWithMarker()
              -z_pred(1), z_pred(0), 0;
          
         Matrix3f R;
-        R << 0.1, 0, 0,
-             0, 0.1, 0,
-             0, 0, 0.1;       
+        R << 0.000001, 0, 0,
+             0, 0.000001, 0,
+             0, 0, 0.000001;       
  
         Matrix3f K;
         K = P_att * H.transpose() * (H * P_att * H.transpose() + R).inverse();
  
         Vector3f alpha = K * dz;
-        MatrixXf Psi; // Conversion matrix from alpha to delta quaternion
+        MatrixXf Psi(4,3); // Conversion matrix from alpha to delta quaternion
         Psi << -0.5*quat[1], -0.5*quat[2], -0.5*quat[3],
                 0.5*quat[0], -0.5*quat[3], 0.5*quat[2],
                 0.5*quat[3], 0.5*quat[0], -0.5*quat[1],
                 -0.5*quat[2], 0.5*quat[1], 0.5*quat[0];
         Vector4f dq = Psi * alpha;
-
-        to_fc.quat0 = dq(0);
-        to_fc.quatz = dq(3);
 
         float norm = 0;
         for (int i = 0; i < 4; i++) {
@@ -222,14 +218,19 @@ void AttitudeMeasurementUpdateWithMarker()
         for (int i = 0; i < 4; i++) {
             quat[i] /= norm;
         }
+
+        Quaternionf q_fc(from_fc.quaternion[0], from_fc.quaternion[1], from_fc.quaternion[2], from_fc.quaternion[3]);
+        Quaternionf q_nc(quat[0], quat[1], quat[2], quat[3]);
+        Quaternionf dq_ = q_fc.conjugate() * q_nc;
+ 
+        to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
+        to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
         
         Vector3f a_b(from_fc.accelerometer[0],from_fc.accelerometer[1],from_fc.accelerometer[2]);
         Quaternionf q_c(quat[0],quat[1],quat[2],quat[3]);
-        q_c = q_c.inverse();
-        DCM = q_c.toRotationMatrix();
+        DCM = q_c.toRotationMatrix(); // body to inertial
         u = DCM * a_b;
-    }
-    
+    }   
 }
 
 void AttitudeMeasurementUpdateWithLSM()
@@ -246,7 +247,7 @@ void AttitudeMeasurementUpdateWithLSM()
         z_pred = getMi * z_pred; // magnetic vector in inertial frame
          
         Quaternionf q(quat[0],quat[1],quat[2],quat[3]);
-        Matrix3f DCM = q.toRotationMatrix();
+        Matrix3f DCM = (q.toRotationMatrix()).transpose(); // inertial to body
         z_pred = DCM * z_pred; // magnetic vector prediction in body frame
          
         Vector3f dz = z_meas - z_pred;
@@ -272,9 +273,6 @@ void AttitudeMeasurementUpdateWithLSM()
                 -0.5*quat[2], 0.5*quat[1], 0.5*quat[0];
         Vector4f dq = Psi * alpha;
         
-        to_fc.quat0 = dq(0);
-        to_fc.quatz = dq(3);
-
         float norm = 0;
         for (int i = 0; i < 4; i++) {
             quat[i] += dq[i];
@@ -283,11 +281,26 @@ void AttitudeMeasurementUpdateWithLSM()
         for (int i = 0; i < 4; i++) {
             quat[i] /= norm;
         }
+        
+        Quaternionf q_fc(from_fc.quaternion[0], from_fc.quaternion[1], from_fc.quaternion[2], from_fc.quaternion[3]);
+        Quaternionf q_nc(quat[0], quat[1], quat[2], quat[3]);
+        Quaternionf dq_ = q_fc.conjugate() * q_nc;
+ 
+        to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
+        to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
 
         Vector3f a_b(from_fc.accelerometer[0],from_fc.accelerometer[1],from_fc.accelerometer[2]);
         Quaternionf q_c(quat[0],quat[1],quat[2],quat[3]);
-        q_c = q_c.inverse();
-        DCM = q_c.toRotationMatrix();
+        DCM = q_c.toRotationMatrix(); // body to inertial
         u = DCM * a_b;
     }
+}
+
+void ResetHeadingCorrectionQuat()
+{
+	if(to_fc.quat0 != 1){
+		// measurement update performed in the previous timestep
+		to_fc.quat0 = 1;
+		to_fc.quatz = 0;
+	}	
 }

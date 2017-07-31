@@ -35,6 +35,7 @@ enum UARTRxMode {
 static Serial serial("/dev/ttyAMA0", 57600);
 uint8_t data_buffer[UART_DATA_BUFFER_LENGTH];
 uint8_t tx_buffer[UART_TX_BUFFER_LENGTH];
+static uint8_t new_data_flag = 0;
 
 static volatile int received_sigterm = 0;
 static volatile int received_nb_signals = 0;
@@ -73,7 +74,6 @@ static void HandleUTRx(uint8_t component_id, uint8_t message_id,
         }
     #else
         struct ForDebug * struct_ptr = (struct ForDebug *)data_buffer;
-        for_debug.timestamp = struct_ptr->timestamp;
         for (int i = 0; i < 3; i++) {
             for_debug.accelerometer[i] = struct_ptr->accelerometer[i];
             for_debug.gyro[i] = struct_ptr->gyro[i];
@@ -126,7 +126,10 @@ enum UARTRxMode UTSerialRx(uint8_t byte, uint8_t * data_buffer)
     }
     else  // CRC[1]
     {
-        if (byte == crc.bytes[1]) HandleUTRx(component_id, message_id, data_buffer);
+        if (byte == crc.bytes[1]) {
+            HandleUTRx(component_id, message_id, data_buffer);
+            new_data_flag = 1;
+        }
         goto RESET;
     }
     bytes_processed++;
@@ -196,15 +199,13 @@ int ReadFromFC(void)
 	}
 	
     #ifndef FC_DEBUG_MODE
-        static uint16_t timestamp_pv=0;
-        if (from_fc.timestamp-timestamp_pv) {
-            timestamp_pv = from_fc.timestamp;
+        if (new_data_flag) {
+            new_data_flag = 0;
             return 1;
         }
     #else
-        static uint16_t timestamp_pv=0;
-        if (for_debug.timestamp-timestamp_pv) {
-            timestamp_pv = for_debug.timestamp;
+        if (new_data_flag) {
+            new_data_flag = 0;
             return 1;
         }        
     #endif

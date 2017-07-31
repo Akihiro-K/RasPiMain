@@ -32,4 +32,6 @@ void AttitudeMeasurementUpdateWithMarker();
 
 void AttitudeMeasurementUpdateWithLSM();
 
+void ResetHeadingCorrectionQuat();
+
 #endif

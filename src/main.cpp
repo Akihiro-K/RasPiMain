@@ -37,15 +37,17 @@ int main(int argc, char const *argv[])
     for(;;) {
 		if (ReadFromFC()){
 			// at 128Hz
+			// TO DO: order of function
 
 			m.lock();
 			DispfromFC();
 			FCLogging();
 			ToFCLogging();
 			PositionTimeUpdate();
-			// AttitudeTimeUpdate();
+			AttitudeTimeUpdate();
 			UpdateNavigation();
 			UTSerialTx(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
+			ResetHeadingCorrectionQuat();
 			m.unlock();
 		}
 	}
@@ -86,7 +88,7 @@ void MarkerHandler(const char * src, size_t len)
 	}
 	
 	UpdateMarkerFlag();
-	// AttitudeMeasurementUpdateWithMarker();
+	AttitudeMeasurementUpdateWithMarker();
 	PositionMeasurementUpdateWithMarker();
 	VisionLogging();
 	m.unlock();
