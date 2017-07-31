@@ -74,7 +74,13 @@ static void HandleUTRx(uint8_t component_id, uint8_t message_id,
     #else
         struct ForDebug * struct_ptr = (struct ForDebug *)data_buffer;
         for_debug.timestamp = struct_ptr->timestamp;
-        for_debug.version = struct_ptr->version;
+        for (int i = 0; i < 3; i++) {
+            for_debug.accelerometer[i] = struct_ptr->accelerometer[i];
+            for_debug.gyro[i] = struct_ptr->gyro[i];
+        }
+        for (int i = 0; i < 4; i++) {
+            for_debug.motor_setpoint[i] = struct_ptr->motor_setpoint[i];
+        }
     #endif
 }
 
