@@ -3,11 +3,11 @@
 void UpdateNavigation()
 {
 	/* Heading part */
-	// if (marker_flag||lsm_flag) {
-	// 	to_fc.navigation_status |= HeadingOK;
-	// } else {
-	// 	to_fc.navigation_status &= ~HeadingOK;
-	// }
+	if (marker_flag||lsm_flag) {
+		to_fc.navigation_status |= HeadingOK;
+	} else {
+		to_fc.navigation_status &= ~HeadingOK;
+	}
 
 	/* Position part */
 	if (marker_flag||gps_pos_flag) {
@@ -17,11 +17,18 @@ void UpdateNavigation()
 	}
 
 	/* Velocity part */
-	// if (marker_flag||gps_vel_flag) {
-	// 	to_fc.navigation_status |= VelocityOK;
-	// } else {
-	// 	to_fc.navigation_status &= ~VelocityOK;
-	// }
+	if (marker_flag||gps_vel_flag) {
+		to_fc.navigation_status |= VelocityOK;
+	} else {
+		to_fc.navigation_status &= ~VelocityOK;
+	}
+
+	/* low precision vertical part */
+	if (!marker_flag) {
+		to_fc.navigation_status |= LOW_PRECISION_VERTICAL;
+	} else {
+		to_fc.navigation_status &= ~LOW_PRECISION_VERTICAL;
+	}
 }
 
 
