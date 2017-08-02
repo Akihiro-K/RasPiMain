@@ -41,6 +41,7 @@ struct FromFlightCtrl {
     uint8_t flightctrl_state;
     float accelerometer[3];
     float gyro[3];
+	// float g_b_cmd[3];
     float quaternion[4];
     float pressure_alt;
 } __attribute__((packed));

@@ -5,10 +5,6 @@
 #include <eigen3/Eigen/Geometry>
 #include <iostream>
 
-#define HeadingOK 0x01
-#define PositionOK 0x02
-#define VelocityOK 0x04
-
 using namespace std;
 using namespace Eigen;
 
@@ -54,6 +50,7 @@ struct FromFlightCtrl {
     uint8_t flightctrl_state;
     float accelerometer[3];
     float gyro[3];
+	// float g_b_cmd[3];
     float quaternion[4];
     float pressure_alt;
 } __attribute__((packed));
@@ -72,6 +69,14 @@ enum Sensor {
 	LSM = 3,
 	FCDebug = 4,
 };
+
+enum NavStatusBits {
+	HeadingOK = 1<<0,
+	PositionOK = 1<<1,
+	VelocityOK = 1<<2,
+	LOW_PRECISION_VERTICAL = 1<<3,
+	POSITION_RESET_REQUEST = 1<<4,
+},
 
 ////////////////////////////////////////////////////////////////////////////////
 extern struct FromMarker from_marker;
