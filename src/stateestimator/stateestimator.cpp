@@ -3,7 +3,7 @@
 void PositionTimeUpdate()
 {
   float dt = 1.0/128;
-    
+
   MatrixXf A(6,6);
   A << 1,0,0,dt,0,0,
       0,1,0,0,dt,0,
@@ -51,7 +51,7 @@ void PositionTimeUpdate()
   }
 
   // if heading, velocity and position is not ok
-  // position is unchanged 
+  // position is unchanged
 
   x = A * x + B * u;
   P_pos = A * P_pos * A.transpose() + Q;
@@ -97,7 +97,7 @@ void PositionMeasurementUpdateWithMarker()
       to_fc.position[i] = x(i);
       to_fc.velocity[i] = x(i+3);
     }
-  }   
+  }
 }
 
 void PositionMeasurementUpdateWithGPSPos()
@@ -111,7 +111,7 @@ void PositionMeasurementUpdateWithGPSPos()
     Matrix2f R;
     R << from_gps.r_var[0], 0,
         0, from_gps.r_var[1];
-    
+
     MatrixXf K(6,2);
     K = P_pos * H.transpose() * (H * P_pos * H.transpose() + R).inverse();
 
@@ -159,7 +159,7 @@ void PositionMeasurementUpdateWithBar()
   MatrixXf H(1,6);
   H << 0, 0, 1, 0, 0, 0;
 
-  VectorXf R(1); 
+  VectorXf R(1);
   R << 1.0;// TO DO
 
   MatrixXf K(6,1);
@@ -171,7 +171,7 @@ void PositionMeasurementUpdateWithBar()
   for (int i = 0; i < 3; i++) {
     to_fc.position[i] = x(i);
     to_fc.velocity[i] = x(i+3);
-  }    
+  }
 }
 
 void AttitudeTimeUpdate()
@@ -204,18 +204,18 @@ void AttitudeMeasurementUpdateWithMarker()
     Quaternionf q(quat[0],quat[1],quat[2],quat[3]);
     DCM = (q.toRotationMatrix()).transpose(); // inertial to body
     Vector3f z_pred = DCM * Vector3f::UnitX();
-      
+
     Vector3f dz = z_meas - z_pred;
 
     Matrix3f H;
     H << 0, -z_pred(2), z_pred(1),
          z_pred(2), 0, -z_pred(0),
          -z_pred(1), z_pred(0), 0;
-      
+
     Matrix3f R;
     R << 0.000001, 0, 0,
          0, 0.000001, 0,
-         0, 0, 0.000001;    
+         0, 0, 0.000001;
 
     Matrix3f K;
     K = P_att * H.transpose() * (H * P_att * H.transpose() + R).inverse();
@@ -243,7 +243,7 @@ void AttitudeMeasurementUpdateWithMarker()
 
     to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
     to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
-  } 
+  }
 }
 
 void AttitudeMeasurementUpdateWithLSM()
@@ -258,18 +258,18 @@ void AttitudeMeasurementUpdateWithLSM()
               -sin(initial_heading-D*M_PI/180), cos(initial_heading-D*M_PI/180), 0,
               0, 0, 1;
     z_pred = getMi * z_pred; // magnetic vector in inertial frame
-      
+
     Quaternionf q(quat[0],quat[1],quat[2],quat[3]);
     Matrix3f DCM = (q.toRotationMatrix()).transpose(); // inertial to body
     z_pred = DCM * z_pred; // magnetic vector prediction in body frame
-      
+
     Vector3f dz = z_meas - z_pred;
 
     Matrix3f H;
     H << 0, -z_pred(2), z_pred(1),
          z_pred(2), 0, -z_pred(0),
          -z_pred(1), z_pred(0), 0;
-        
+
     Matrix3f R;
     R << 0.1, 0, 0,
          0, 0.1, 0,
@@ -285,7 +285,7 @@ void AttitudeMeasurementUpdateWithLSM()
             0.5*quat[3], 0.5*quat[0], -0.5*quat[1],
             -0.5*quat[2], 0.5*quat[1], 0.5*quat[0];
     Vector4f dq = Psi * alpha;
-      
+
     float norm = 0;
     for (int i = 0; i < 4; i++) {
       quat[i] += dq(i);
@@ -294,7 +294,7 @@ void AttitudeMeasurementUpdateWithLSM()
     for (int i = 0; i < 4; i++) {
       quat[i] /= norm;
     }
-      
+
     Quaternionf q_fc(from_fc.quaternion[0], from_fc.quaternion[1], from_fc.quaternion[2], from_fc.quaternion[3]);
     Quaternionf q_nc(quat[0], quat[1], quat[2], quat[3]);
     Quaternionf dq_ = q_fc.conjugate() * q_nc;
@@ -321,11 +321,11 @@ void AttitudeMeasurementUpdateWithGPSVel()
     // H << 0, -z_pred(2), z_pred(1),
     //      z_pred(2), 0, -z_pred(0),
     //      -z_pred(1), z_pred(0), 0;
-      
+
     // Matrix3f R;
     // R << 0.000001, 0, 0,
     //      0, 0.000001, 0,
-    //      0, 0, 0.000001;    
+    //      0, 0, 0.000001;
 
     // Matrix3f K;
     // K = P_att * H.transpose() * (H * P_att * H.transpose() + R).inverse();
@@ -362,5 +362,5 @@ void ResetHeadingCorrectionQuat()
     // measurement update performed in the previous timestep
     to_fc.quat0 = 1;
     to_fc.quatz = 0;
-  }	
+  }
 }
