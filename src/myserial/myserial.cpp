@@ -197,13 +197,13 @@ int ReadFromFC(void)
         break;
     }
   }
-	
+  
   if (new_data_flag) {
     new_data_flag = 0;
     return 1;
   }        
 
-	return 0;
+  return 0;
 }
 
 #endif // MYSERIAL_CPP_

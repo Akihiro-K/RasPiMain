@@ -28,35 +28,35 @@ void DPHandler(const char * src, size_t len);
 
 int main(int argc, char const *argv[])
 {    
-	InitLogging();
-	std::thread marker_comm(&RecvFromMarker);
-	//std::thread gps_comm(&RecvFromGPS);
-	//std::thread lsm_comm(&RecvFromLSM);
-	//std::thread dp_comm(&RecvFromDP);
-	
+  InitLogging();
+  std::thread marker_comm(&RecvFromMarker);
+  //std::thread gps_comm(&RecvFromGPS);
+  //std::thread lsm_comm(&RecvFromLSM);
+  //std::thread dp_comm(&RecvFromDP);
+  
   for(;;) {
-		if (ReadFromFC()){
-			// at 128Hz
-			// TO DO: consider order of functions
+    if (ReadFromFC()){
+      // at 128Hz
+      // TO DO: consider order of functions
 
-			m.lock();
-			DispfromFC();
-			FCLogging();
-			ToFCLogging();
-			PositionTimeUpdate();
-			AttitudeTimeUpdate();
-			// PositionMeasurementUpdateWithBar();
-			UpdateNavigation();
-			UTSerialTx(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
-			ResetHeadingCorrectionQuat();
-			m.unlock();
-		}
-	}
-	
-	marker_comm.join(); 
-	//gps_comm.join();
-	//lsm_comm.join();
-	//dp_comm.join();
+      m.lock();
+      DispfromFC();
+      FCLogging();
+      ToFCLogging();
+      PositionTimeUpdate();
+      AttitudeTimeUpdate();
+      // PositionMeasurementUpdateWithBar();
+      UpdateNavigation();
+      UTSerialTx(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
+      ResetHeadingCorrectionQuat();
+      m.unlock();
+    }
+  }
+  
+  marker_comm.join(); 
+  //gps_comm.join();
+  //lsm_comm.join();
+  //dp_comm.join();
 
     return 0;
 }
@@ -74,25 +74,25 @@ void RecvFromMarker()
 
 void MarkerHandler(const char * src, size_t len)
 {    
-	m.lock();
-	char temp[CLIENT_BUF_SIZE];
-	memcpy(temp, src, len);
-	struct FromMarker * struct_ptr = (struct FromMarker *)temp;
+  m.lock();
+  char temp[CLIENT_BUF_SIZE];
+  memcpy(temp, src, len);
+  struct FromMarker * struct_ptr = (struct FromMarker *)temp;
 
-	from_marker.timestamp = struct_ptr->timestamp;
-	from_marker.status = struct_ptr->status;
+  from_marker.timestamp = struct_ptr->timestamp;
+  from_marker.status = struct_ptr->status;
 
-	for (int i=0;i<3;i++){
-	  from_marker.position[i] = struct_ptr->position[i];
-		from_marker.quaternion[i] = struct_ptr->quaternion[i];
-		from_marker.r_var[i] = struct_ptr->r_var[i];
-	}
+  for (int i=0;i<3;i++){
+    from_marker.position[i] = struct_ptr->position[i];
+    from_marker.quaternion[i] = struct_ptr->quaternion[i];
+    from_marker.r_var[i] = struct_ptr->r_var[i];
+  }
 
-	UpdateMarkerFlag();
-	AttitudeMeasurementUpdateWithMarker();
-	PositionMeasurementUpdateWithMarker();
-	VisionLogging();
-	m.unlock();
+  UpdateMarkerFlag();
+  AttitudeMeasurementUpdateWithMarker();
+  PositionMeasurementUpdateWithMarker();
+  VisionLogging();
+  m.unlock();
 }
 
 void RecvFromGPS()
@@ -108,26 +108,26 @@ void RecvFromGPS()
 
 void GPSHandler(const char * src, size_t len)
 {
-	m.lock();
-	char temp[CLIENT_BUF_SIZE];
-	memcpy(temp, src, len);
-	struct FromGPS * struct_ptr = (struct FromGPS *)temp;
+  m.lock();
+  char temp[CLIENT_BUF_SIZE];
+  memcpy(temp, src, len);
+  struct FromGPS * struct_ptr = (struct FromGPS *)temp;
 
-	from_gps.status = struct_ptr->status;
+  from_gps.status = struct_ptr->status;
 
-	for (int i=0;i<3;i++){
-		from_gps.position[i] = struct_ptr->position[i];
-		from_gps.velocity[i] = struct_ptr->velocity[i];
-		from_gps.r_var[i] = struct_ptr->r_var[i];
-		from_gps.v_var[i] = struct_ptr->v_var[i];
-	}
+  for (int i=0;i<3;i++){
+    from_gps.position[i] = struct_ptr->position[i];
+    from_gps.velocity[i] = struct_ptr->velocity[i];
+    from_gps.r_var[i] = struct_ptr->r_var[i];
+    from_gps.v_var[i] = struct_ptr->v_var[i];
+  }
 
-	UpdateGPSPosFlag();
-	UpdateGPSVelFlag();
-	PositionMeasurementUpdateWithGPSPos();
-	PositionMeasurementUpdateWithGPSVel();
-	GPSLogging();
-	m.unlock();
+  UpdateGPSPosFlag();
+  UpdateGPSVelFlag();
+  PositionMeasurementUpdateWithGPSPos();
+  PositionMeasurementUpdateWithGPSVel();
+  GPSLogging();
+  m.unlock();
 }
 
 void RecvFromLSM()
@@ -143,21 +143,21 @@ void RecvFromLSM()
 
 void LSMHandler(const char * src, size_t len)
 {
-	m.lock();
-	char temp[CLIENT_BUF_SIZE];
-	memcpy(temp, src, len);
-	struct FromLSM * struct_ptr = (struct FromLSM *)temp;
+  m.lock();
+  char temp[CLIENT_BUF_SIZE];
+  memcpy(temp, src, len);
+  struct FromLSM * struct_ptr = (struct FromLSM *)temp;
 
-	from_lsm.status = struct_ptr->status;
+  from_lsm.status = struct_ptr->status;
 
-	for (int i=0;i<3;i++){
-	  from_lsm.mag[i] = struct_ptr->mag[i];
-	}
+  for (int i=0;i<3;i++){
+    from_lsm.mag[i] = struct_ptr->mag[i];
+  }
 
-	UpdateLSMFlag();
-	AttitudeMeasurementUpdateWithLSM();
-	LSMLogging();
-	m.unlock();
+  UpdateLSMFlag();
+  AttitudeMeasurementUpdateWithLSM();
+  LSMLogging();
+  m.unlock();
 }
 
 void RecvFromDP()

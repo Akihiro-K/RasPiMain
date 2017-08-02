@@ -1,38 +1,38 @@
 #include <iostream>
 
 struct FromMarker {
-	uint32_t timestamp; // microseconds
-	float position[3]; // meter
-	float quaternion[3]; // x y z
-	float r_var[3]; // meter^2
-	uint8_t status; // 1 : detected, 0 : not detected
+  uint32_t timestamp; // microseconds
+  float position[3]; // meter
+  float quaternion[3]; // x y z
+  float r_var[3]; // meter^2
+  uint8_t status; // 1 : detected, 0 : not detected
 } __attribute__((packed));
 
 struct FromGPS {
-	float position[3];
-	float velocity[3];
-	float r_var[3];
-	float v_var[3];
-	uint8_t status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
+  float position[3];
+  float velocity[3];
+  float r_var[3];
+  float v_var[3];
+  uint8_t status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
 } __attribute__((packed));
 
 struct FromLSM {
-	float mag[3];
-	uint8_t status; // 1: OK 0: unavailable
+  float mag[3];
+  uint8_t status; // 1: OK 0: unavailable
 } __attribute__((packed));
 
 struct ToFlightCtrl {
-	uint16_t version;
-	uint8_t nav_mode;
-	uint8_t navigation_status;
-	float position[3]; // meter
-	float velocity[3];
-	float quat0;
-	float quatz;
-	float target_position[3];
-	float transit_vel;
-	float target_heading;
-	float heading_rate;
+  uint16_t version;
+  uint8_t nav_mode;
+  uint8_t navigation_status;
+  float position[3]; // meter
+  float velocity[3];
+  float quat0;
+  float quatz;
+  float target_position[3];
+  float transit_vel;
+  float target_heading;
+  float heading_rate;
 } __attribute__((packed));
 
 struct FromFlightCtrl {
@@ -47,9 +47,9 @@ struct FromFlightCtrl {
 } __attribute__((packed));
 
 struct ForDebug{
-	uint16_t motor_setpoint[4];
-	float accelerometer[3];
-	float gyro[3];
+  uint16_t motor_setpoint[4];
+  float accelerometer[3];
+  float gyro[3];
 }__attribute__((packed));
 
 struct FromMarker from_marker = {0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 0};
