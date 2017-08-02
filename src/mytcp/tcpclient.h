@@ -18,17 +18,17 @@ using namespace std;
 
 class tcp_client
 {
-    private:
-        int sock;
-        struct sockaddr_in server;
-        char buffer[CLIENT_BUF_SIZE];
+private:
+  int sock;
+  struct sockaddr_in server;
+  char buffer[CLIENT_BUF_SIZE];
 
-    public:
-        tcp_client() : sock(-1) {};
-        ~tcp_client() {close(sock);};
-        bool start_connect(string, int);
-        bool send_data(const char *, size_t);
-        bool recv_data(function<void (const char *, size_t)>);   
+public:
+  tcp_client() : sock(-1) {};
+  ~tcp_client() {close(sock);};
+  bool start_connect(string, int);
+  bool send_data(const char *, size_t);
+  bool recv_data(function<void (const char *, size_t)>);   
 };
 
 #endif // MYTCPCLIENT_H_

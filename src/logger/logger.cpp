@@ -2,7 +2,7 @@
 
 void InitLogging()
 {
-	timerclear(&tv);
+  timerclear(&tv);
 }
 
 void FCLogging()
@@ -10,20 +10,20 @@ void FCLogging()
 	gettimeofday(&tv, NULL);
 	uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
 	
-	#ifndef FC_DEBUG_MODE
-		fout << FC <<"," << timestamp << ",";
-		fout << unsigned(from_fc.nav_mode_request) << "," << unsigned(from_fc.flightctrl_state) << ",";
-		fout << from_fc.accelerometer[0] << "," << from_fc.accelerometer[1] << "," << from_fc.accelerometer[2] << ",";
-		fout << from_fc.gyro[0] << "," << from_fc.gyro[1] << "," << from_fc.gyro[2] <<",";
-		fout << from_fc.quaternion[0] << "," << from_fc.quaternion[1] << "," << from_fc.quaternion[2] << "," <<from_fc.quaternion[3] << ",";
-		fout << from_fc.pressure_alt << endl;
-	#else
-		fout << FCDebug << "," << timestamp << ",";
-		fout << for_debug.motor_setpoint[0] << "," << for_debug.motor_setpoint[1] << ",";
-		fout << for_debug.motor_setpoint[2] << "," << for_debug.motor_setpoint[3] << ",";
-		fout << for_debug.accelerometer[0] << "," << for_debug.accelerometer[1] << "," << for_debug.accelerometer[2] << ",";
-		fout << for_debug.gyro[0] << "," << for_debug.gyro[1] << "," << for_debug.gyro[2] << endl;
-	#endif
+#ifndef FC_DEBUG_MODE
+  fout << FC <<"," << timestamp << ",";
+	fout << unsigned(from_fc.nav_mode_request) << "," << unsigned(from_fc.flightctrl_state) << ",";
+	fout << from_fc.accelerometer[0] << "," << from_fc.accelerometer[1] << "," << from_fc.accelerometer[2] << ",";
+	fout << from_fc.gyro[0] << "," << from_fc.gyro[1] << "," << from_fc.gyro[2] <<",";
+	fout << from_fc.quaternion[0] << "," << from_fc.quaternion[1] << "," << from_fc.quaternion[2] << "," <<from_fc.quaternion[3] << ",";
+	fout << from_fc.pressure_alt << endl;
+#else
+	fout << FCDebug << "," << timestamp << ",";
+	fout << for_debug.motor_setpoint[0] << "," << for_debug.motor_setpoint[1] << ",";
+  fout << for_debug.motor_setpoint[2] << "," << for_debug.motor_setpoint[3] << ",";
+	fout << for_debug.accelerometer[0] << "," << for_debug.accelerometer[1] << "," << for_debug.accelerometer[2] << ",";
+	fout << for_debug.gyro[0] << "," << for_debug.gyro[1] << "," << for_debug.gyro[2] << endl;
+#endif
 }
 
 void ToFCLogging()

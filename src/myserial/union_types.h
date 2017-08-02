@@ -6,23 +6,23 @@
 
 
 union S16Bytes {
-    int16_t s16;
-    uint8_t bytes[sizeof(int16_t)];
+  int16_t s16;
+  uint8_t bytes[sizeof(int16_t)];
 };
 
 union S32Bytes {
-    int32_t s32;
-    uint8_t bytes[sizeof(int32_t)];
+  int32_t s32;
+  uint8_t bytes[sizeof(int32_t)];
 };
 
 union U16Bytes {
-    uint16_t u16;
-    uint8_t bytes[sizeof(uint16_t)];
+  uint16_t u16;
+  uint8_t bytes[sizeof(uint16_t)];
 };
 
 union U32Bytes {
-    uint32_t u32;
-    uint8_t bytes[sizeof(uint32_t)];
+  uint32_t u32;
+  uint8_t bytes[sizeof(uint32_t)];
 };
 
 
