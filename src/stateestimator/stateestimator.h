@@ -4,6 +4,7 @@
 #include "../shared/shared.h"
 
 #define std_acc 0.1 // [G]
+#define g 9.8 // gravity constant [m/s^2]
 
 #define D 7 // deflection [deg]
 #define I 51 // inclination [deg]
@@ -31,6 +32,8 @@ void AttitudeTimeUpdate();
 void AttitudeMeasurementUpdateWithMarker();
 
 void AttitudeMeasurementUpdateWithLSM();
+
+void AttitudeMeasurementUpdateWithGPSVel();
 
 void ResetHeadingCorrectionQuat();
 

@@ -16,9 +16,9 @@ void PositionTimeUpdate()
     B << 0,0,0,
         0,0,0,
         0,0,0,
-        dt,0,0,
-        0,dt,0,
-        0,0,dt;
+        g*dt,0,0,
+        0,g*dt,0,
+        0,0,g*dt;
 
     MatrixXf Q(6,6);
     Q << 0.01,0,0,0,0,0,
@@ -28,6 +28,31 @@ void PositionTimeUpdate()
          0,0,0,0,1,0,
          0,0,0,0,0,1;
 
+    if(to_fc.navigation_status&HeadingOK) {
+        // if heading correction is performed
+        // calculate a_i from quaternion
+
+        Vector3f a_b(from_fc.accelerometer[0],from_fc.accelerometer[1],from_fc.accelerometer[2]);
+        Quaternionf q_c(quat[0],quat[1],quat[2],quat[3]);
+        DCM = q_c.toRotationMatrix(); // body to inertial
+        u = DCM * (a_b + Vector3f::UnitZ()); // remove acceleration due to gravity
+    } else {
+        for (int i = 0; i < 3; i++) {
+            u(i) = 0;
+        }
+    }
+
+    if (!(to_fc.navigation_status&VelocityOK)) {
+        // velocity is unavailable from any sensor
+
+        for (int i = 0; i < 3; i++) {
+            x(i+3) = 0;
+        }
+    }
+
+    // if heading, velocity and position is not ok
+    // position is unchanged 
+
     x = A * x + B * u;
     P_pos = A * P_pos * A.transpose() + Q;
 
@@ -35,27 +60,21 @@ void PositionTimeUpdate()
         to_fc.position[i] = x(i);
         to_fc.velocity[i] = x(i+3);
     }
-
-    if (!(to_fc.navigation_status&PositionOK)) {
-        for (int i = 0; i < 3; i++) {
-            x(i+3) = 0;
-        }
-    }
 }
 
 void PositionMeasurementUpdateWithMarker()
 {
-	static uint8_t init_marker_flag = 0;
+    static uint8_t init_marker_flag = 0;
 
     if (marker_flag) {
-		// when marker is detected for the first time
-		// position is initialized to raw reading from marker
-		if (!init_marker_flag) {
-			for (int i = 0; i < 3; i++) {
-				x(i) = from_marker.position[i];
-			}
-		}
-		init_marker_flag = 1;
+        // when marker is detected for the first time
+        // position is initialized to raw reading from marker
+        if (!init_marker_flag) {
+            for (int i = 0; i < 3; i++) {
+                x(i) = from_marker.position[i];
+            }
+        }
+        init_marker_flag = 1;
 		
         Vector3f z(from_marker.position[0], from_marker.position[1],from_marker.position[2]);
         MatrixXf H(3,6);
@@ -197,7 +216,7 @@ void AttitudeMeasurementUpdateWithMarker()
         Matrix3f R;
         R << 0.000001, 0, 0,
              0, 0.000001, 0,
-             0, 0, 0.000001;       
+             0, 0, 0.000001;    
  
         Matrix3f K;
         K = P_att * H.transpose() * (H * P_att * H.transpose() + R).inverse();
@@ -212,7 +231,7 @@ void AttitudeMeasurementUpdateWithMarker()
 
         float norm = 0;
         for (int i = 0; i < 4; i++) {
-            quat[i] += dq[i];
+            quat[i] += dq(i);
             norm += quat[i]*quat[i];
         }
         for (int i = 0; i < 4; i++) {
@@ -225,12 +244,7 @@ void AttitudeMeasurementUpdateWithMarker()
  
         to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
         to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
-        
-        Vector3f a_b(from_fc.accelerometer[0],from_fc.accelerometer[1],from_fc.accelerometer[2]);
-        Quaternionf q_c(quat[0],quat[1],quat[2],quat[3]);
-        DCM = q_c.toRotationMatrix(); // body to inertial
-        u = DCM * a_b;
-    }   
+    } 
 }
 
 void AttitudeMeasurementUpdateWithLSM()
@@ -275,7 +289,7 @@ void AttitudeMeasurementUpdateWithLSM()
         
         float norm = 0;
         for (int i = 0; i < 4; i++) {
-            quat[i] += dq[i];
+            quat[i] += dq(i);
             norm += quat[i]*quat[i];
         }
         for (int i = 0; i < 4; i++) {
@@ -288,19 +302,66 @@ void AttitudeMeasurementUpdateWithLSM()
  
         to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
         to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
+    }
+}
 
-        Vector3f a_b(from_fc.accelerometer[0],from_fc.accelerometer[1],from_fc.accelerometer[2]);
-        Quaternionf q_c(quat[0],quat[1],quat[2],quat[3]);
-        DCM = q_c.toRotationMatrix(); // body to inertial
-        u = DCM * a_b;
+void AttitudeMeasurementUpdateWithGPSVel()
+{
+    if (gps_vel_flag) {
+        // Vector3f z_meas(from_gps.velocity[0], from_gps.velocity[1], from_gps.veocity[2]);
+        // z_meas.normalize();
+
+        // Vector3f g_b_cmd(from_fc.g_b_cmd[0], from_fc.g_b_cmd[1], from_fc.g_b_cmd[2]);
+        // Quaternionf q(quat[0],quat[1],quat[2],quat[3]);
+        // DCM = q.toRotationMatrix(); // body to inertial
+        // Vector3f z_pred = DCM * (-g_b_cmd); // direction of g_b_cmd is opposite to that of gps_vel
+
+        // Vector3f dz = z_meas - z_pred;
+ 
+        // Matrix3f H;
+        // H << 0, -z_pred(2), z_pred(1),
+        //      z_pred(2), 0, -z_pred(0),
+        //      -z_pred(1), z_pred(0), 0;
+         
+        // Matrix3f R;
+        // R << 0.000001, 0, 0,
+        //      0, 0.000001, 0,
+        //      0, 0, 0.000001;    
+ 
+        // Matrix3f K;
+        // K = P_att * H.transpose() * (H * P_att * H.transpose() + R).inverse();
+ 
+        // Vector3f alpha = K * dz;
+        // MatrixXf Psi(4,3); // Conversion matrix from alpha to delta quaternion
+        // Psi << -0.5*quat[1], -0.5*quat[2], -0.5*quat[3],
+        //         0.5*quat[0], -0.5*quat[3], 0.5*quat[2],
+        //         0.5*quat[3], 0.5*quat[0], -0.5*quat[1],
+        //         -0.5*quat[2], 0.5*quat[1], 0.5*quat[0];
+        // Vector4f dq = Psi * alpha;
+
+        // float norm = 0;
+        // for (int i = 0; i < 4; i++) {
+        //     quat[i] += dq(i);
+        //     norm += quat[i]*quat[i];
+        // }
+        // for (int i = 0; i < 4; i++) {
+        //     quat[i] /= norm;
+        // }
+
+        // Quaternionf q_fc(from_fc.quaternion[0], from_fc.quaternion[1], from_fc.quaternion[2], from_fc.quaternion[3]);
+        // Quaternionf q_nc(quat[0], quat[1], quat[2], quat[3]);
+        // Quaternionf dq_ = q_fc.conjugate() * q_nc;
+ 
+        // to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
+        // to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
     }
 }
 
 void ResetHeadingCorrectionQuat()
 {
-	if(to_fc.quat0 != 1){
-		// measurement update performed in the previous timestep
-		to_fc.quat0 = 1;
-		to_fc.quatz = 0;
-	}	
+    if(to_fc.quat0 != 1){
+        // measurement update performed in the previous timestep
+        to_fc.quat0 = 1;
+        to_fc.quatz = 0;
+    }	
 }
