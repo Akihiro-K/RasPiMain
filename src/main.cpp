@@ -58,7 +58,7 @@ int main(int argc, char const *argv[])
   //lsm_comm.join();
   //dp_comm.join();
 
-    return 0;
+  return 0;
 }
 
 void RecvFromMarker()
