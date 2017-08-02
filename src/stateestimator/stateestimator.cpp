@@ -34,7 +34,7 @@ void PositionTimeUpdate()
 
     Vector3f a_b(from_fc.accelerometer[0],from_fc.accelerometer[1],from_fc.accelerometer[2]);
     Quaternionf q_c(quat[0],quat[1],quat[2],quat[3]);
-    DCM = q_c.toRotationMatrix(); // body to inertial
+    Matrix3f DCM = q_c.toRotationMatrix(); // body to inertial
     u = DCM * (a_b + Vector3f::UnitZ()); // remove acceleration due to gravity
   } else {
     for (int i = 0; i < 3; i++) {
