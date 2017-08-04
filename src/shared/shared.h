@@ -5,6 +5,8 @@
 #include <eigen3/Eigen/Geometry>
 #include <iostream>
 
+#define NAV_COMMS_VERSION (1)
+
 using namespace std;
 using namespace Eigen;
 
@@ -50,7 +52,7 @@ struct FromFlightCtrl {
   uint8_t flightctrl_state;
   float accelerometer[3];
   float gyro[3];
-  // float g_b_cmd[3];
+  // float g_b_cmd[2];
   float quaternion[4];
   float pressure_alt;
 } __attribute__((packed));
@@ -70,13 +72,29 @@ enum Sensor {
   FCDebug = 4,
 };
 
+enum NavMode {
+  NAV_MODE_OFF = 0,
+  NAV_MODE_HOLD = 1,
+  NAV_MODE_AUTO = 2,
+  NAV_MODE_HOME = 3,
+};
+
 enum NavStatusBits {
   HeadingOK = 1<<0,
   PositionOK = 1<<1,
   VelocityOK = 1<<2,
   LOW_PRECISION_VERTICAL = 1<<3,
   POSITION_RESET_REQUEST = 1<<4,
-},
+};
+
+enum FlightCtrlStateBits {
+  FC_STATE_BIT_MOTORS_INHIBITED = 1<<0,
+  FC_STATE_BIT_INITIALIZED = 1<<1,
+  FC_STATE_BIT_STARTING = 1<<2,
+  FC_STATE_BIT_MOTORS_RUNNING = 1<<3,
+  FC_STATE_BIT_INITIALIZATION_TOGGLE = 1<<4,
+  FC_STATE_BIT_LOST_CONTROL_LINK = 1<<5,
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 extern struct FromMarker from_marker;
@@ -91,5 +109,7 @@ extern uint8_t marker_flag;
 extern uint8_t gps_pos_flag;
 extern uint8_t gps_vel_flag;
 extern uint8_t lsm_flag;
+
+extern enum NavMode nav_mode_;
 
 #endif
