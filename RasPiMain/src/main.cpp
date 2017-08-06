@@ -1,4 +1,4 @@
-#include "../../libraries/mytcp/tcpclient.h"
+#include "../../libraries/tcp/tcpclient.h"
 #include "../../libraries/utserial/utserial.h"
 #include "../../libraries/nc/nc.h"
 

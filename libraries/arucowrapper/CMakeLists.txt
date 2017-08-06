@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-add_library(MyGPS STATIC
-  gps.cpp
+add_library(ArucoWrapper STATIC
+  aruco_wrapper.cpp
 )
 
 include(CheckCXXCompilerFlag)

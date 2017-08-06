@@ -1,4 +1,4 @@
-#include "mymarker.h"
+#include "aruco_wrappermarker.h"
 
 // =============================================================================
 // Private functions:

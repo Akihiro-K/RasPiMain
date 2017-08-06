@@ -1,7 +1,7 @@
 #ifndef UTSERIAL_H_
 #define UTSERIAL_H_
 
-#include "../myserial/serial.hpp"
+#include "../serial/serial.hpp"
 
 #include <csignal>
 #include <cstdint>

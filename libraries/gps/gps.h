@@ -5,10 +5,10 @@
 #include <iostream>
 #include <string.h>
 #include <math.h>
-#include "../myserial/serial.hpp"
+#include "../serial/serial.hpp"
 
 // Payload structure for TCP
-struct GPS_PAYLOAD {
+struct GPSPayload {
   float position[3]; // [m]
   float velocity[3]; // [m/s]
   float r_var[3]; // [m^2]
@@ -55,7 +55,7 @@ class GPS : public Serial
       int checksum; // checksum
       string message; // whole message
     }gprmc;
-    struct GPS_PAYLOAD payload;
+    struct GPSPayload payload;
     void ProcessGPGGA(char* message);
     void ProcessGPRMC(char* message);
     void ProcessPayload();
@@ -68,8 +68,7 @@ class GPS : public Serial
     void ProcessIncomingBytes(); // Process all new bytes from GPS module
     bool NewDataAvailable(); // Note: calling this will change internal flag
     void ShowData(); // Display data
-    const char* PayloadPtr();
-    size_t PayloadLength();
+    struct GPSPayload* Payload();
     void Log();
 };
 

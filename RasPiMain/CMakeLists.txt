@@ -12,9 +12,9 @@ find_package(Eigen3 REQUIRED)
 include_directories(EIGEN3_INCLUDE_DIR)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/utserial ${CMAKE_CURRENT_BINARY_DIR}/utserial_build)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/myserial ${CMAKE_CURRENT_BINARY_DIR}/myserial_build)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/mytcp ${CMAKE_CURRENT_BINARY_DIR}/mytcp_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/serial ${CMAKE_CURRENT_BINARY_DIR}/serial_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/tcp ${CMAKE_CURRENT_BINARY_DIR}/tcp_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/nc ${CMAKE_CURRENT_BINARY_DIR}/nc_build)
 
 add_executable(main src/main.cpp)
-target_link_libraries(main UTSerial MySerial MyTCPClient StateEstimator Navigator Logger Shared Disp)
+target_link_libraries(main UTSerial Serial TCPClient StateEstimator Navigator Logger Shared Disp)
