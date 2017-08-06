@@ -3,6 +3,10 @@
 void ReadWPfromFile()
 {
   // TO DO: read WPs from json file
+  json j;
+  fin >> j;
+  cout << "***********WPs read from file************" << endl;
+  cout << "Rout_num: " << j["Rout_num"] << endl;
 }
 
 void ReadWPfromDP()
