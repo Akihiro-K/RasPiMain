@@ -1,3 +1,5 @@
 /build
 /*.csv
 /RasPiMain/build
+/RasPiMain/*.csv
+/MarkerSimulator/build
