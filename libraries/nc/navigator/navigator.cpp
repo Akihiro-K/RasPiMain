@@ -1,8 +1,13 @@
 #include "navigator.h"
 
-void InitNavigation()
+void ReadWPfromFile()
 {
   // TO DO: read WPs from json file
+}
+
+void ReadWPfromDP()
+{
+  // TO DO: read WPs from DP
 }
 
 void UpdateNavigation()

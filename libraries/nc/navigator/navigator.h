@@ -43,7 +43,9 @@ static float hold_position[3];
 static const struct WayPoint * curr_waypoint = &waypoints_[ROUTE_1][0];
 static const struct WayPoint * final_waypoint = &waypoints_[ROUTE_1][0];
 
-void InitNavigation();
+void ReadWPfromFile();
+
+void ReadWPfromDP();
 
 void UpdateNavigation();
 
