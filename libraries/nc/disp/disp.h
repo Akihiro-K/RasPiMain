@@ -7,4 +7,14 @@ using namespace std;
 
 void DispfromFC();
 
+void DispToFC();
+
+void DispFromMarker();
+
+void DispFromGPS();
+
+void DispFromLSM();
+
+void DispFromDP();
+
 #endif
