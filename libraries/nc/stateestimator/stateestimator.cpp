@@ -316,8 +316,8 @@ void AttitudeMeasurementUpdateWithGPSVel()
     // Vector3f g_b_cmd(from_fc.g_b_cmd[0], from_fc.g_b_cmd[1], 0);
     // g_b_cmd.normalize();
     // Quaternionf q(quat[0],quat[1],quat[2],quat[3]);
-    // DCM = q.toRotationMatrix(); // body to inertial
-    // Vector3f z_pred = DCM * g_b_cmd; // direction of g_b_cmd is opposite to that of gps_vel
+    // Matrix3f DCM = q.toRotationMatrix(); // body to inertial
+    // Vector3f z_pred = DCM * g_b_cmd; // direction of g_b_cmd is the same as that of gps_vel
 
     // Vector3f dz = z_meas - z_pred;
 

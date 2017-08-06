@@ -37,6 +37,8 @@ enum RouteNumber {
   ROUTE_3 = 2,
 };
 
+static ifstream fin("../input_data/wp.json");
+
 static struct WayPoint waypoints_[N_ROUTES][MAX_WAYPOINTS] = { 0 };
 static float hold_position[3];
 

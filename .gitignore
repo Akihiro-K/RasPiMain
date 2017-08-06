@@ -2,5 +2,9 @@
 /*.csv
 /RasPiMain/build
 /RasPiMain/*.csv
+/RasPiMain/input_data
+/RasPiMain/output_data
+/.vscode
+/debug
 /MarkerSimulator/build
 /FlightCtrlSimulator/build

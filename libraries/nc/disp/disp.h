@@ -5,6 +5,16 @@
 
 using namespace std;
 
-void DispfromFC();
+void DispFromFC();
+
+void DispToFC();
+
+void DispFromMarker();
+
+void DispFromGPS();
+
+void DispFromLSM();
+
+void DispFromDP();
 
 #endif

@@ -32,19 +32,14 @@ int main(int argc, char const *argv[])
   //std::thread lsm_comm(&RecvFromLSM);
   //std::thread dp_comm(&RecvFromDP);
   
+  // ReadWPfromFile();
+
   for(;;) {
     if (FC_comm.recv_data(FCHandler)){
       // at 128Hz
-      // TO DO: consider order of functions
-
+      
       m.lock();
-      DispfromFC();
-      FCLogging();
-      ToFCLogging();
-      PositionTimeUpdate();
-      AttitudeTimeUpdate();
-      // PositionMeasurementUpdateWithBar();
-      UpdateNavigation();
+      DispToFC();
       FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
       ResetHeadingCorrectionQuat();
       m.unlock();
@@ -88,6 +83,16 @@ void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
     for_debug.motor_setpoint[i] = struct_ptr->motor_setpoint[i];
   }
 #endif
+
+  // TO DO: consider order of functions
+
+  DispFromFC();
+  FCLogging();
+  ToFCLogging();
+  PositionTimeUpdate();
+  AttitudeTimeUpdate();
+  // PositionMeasurementUpdateWithBar();
+  UpdateNavigation();
   m.unlock();
 }
 
@@ -121,6 +126,7 @@ void MarkerHandler(const char * src, size_t len)
   UpdateMarkerFlag();
   AttitudeMeasurementUpdateWithMarker();
   PositionMeasurementUpdateWithMarker();
+  DispFromMarker();
   VisionLogging();
   m.unlock();
 }
@@ -154,8 +160,10 @@ void GPSHandler(const char * src, size_t len)
 
   UpdateGPSPosFlag();
   UpdateGPSVelFlag();
+  // AttitudeMeasurementUpdateWithGPSVel();
   PositionMeasurementUpdateWithGPSPos();
   PositionMeasurementUpdateWithGPSVel();
+  DispFromGPS();
   GPSLogging();
   m.unlock();
 }
