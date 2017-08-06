@@ -1,32 +1,36 @@
 # FlightCtrl Simulator
 
-![](http://g.gravizo.com/g?
+![](https://g.gravizo.com/source/custom_mark10?https%3a%2f%2fraw%2egithubusercontent%2ecom%2fAkihiro%2dK%2fRasPiMain%2fmarker_simulator%2fFlightCtrlSimulator%2fREADME%2emd)
+<details>
+<summary></summary>
+custom_mark10
   digraph G {
     subgraph cluster_0 {
-      NC_comm[shape=box]
+      NC_comm[shape=box];
       label = "FlightCtrlSimulator";
     }
     subgraph cluster_1 {
-      MarkerSimulator[shape=box]
-      label = "MarkerSimulator"
+      MarkerSimulator[shape=box];
+      label = "MarkerSimulator";
     }
     subgraph cluster_2 {
-      FC_comm[shape=box,label="ut_serial FC_comm"]
-      marker_comm[shape=box,label="std::thread marker_comm"]
+      FC_comm[shape=box,label="ut_serial FC_comm"];
+      marker_comm[shape=box,label="std::thread marker_comm"];
       label = "RasPiMain";
     }
-    ttySIM0[label="/dev/ttySIM0"]
-    ttyAMA0[label="/dev/ttyAMA0"]
-    FC_comm -> ttyAMA0
-    ttyAMA0 -> FC_comm [label="Serial"]
-    NC_comm -> ttySIM0
-    ttySIM0 -> NC_comm[label="Serial"]
-    ttySIM0 -> ttyAMA0
-    ttyAMA0 -> ttySIM0[label="link with socat"]
-    MarkerSimulator -> marker_comm[label="TCP"]
-    marker_comm -> MarkerSimulator
+    ttySIM0[label="/dev/ttySIM0"];
+    ttyAMA0[label="/dev/ttyAMA0"];
+    FC_comm -> ttyAMA0;
+    ttyAMA0 -> FC_comm [label="Serial"];
+    NC_comm -> ttySIM0;
+    ttySIM0 -> NC_comm[label="Serial"];
+    ttySIM0 -> ttyAMA0;
+    ttyAMA0 -> ttySIM0[label="link with socat"];
+    MarkerSimulator -> marker_comm[label="TCP"];
+    marker_comm -> MarkerSimulator;
   }
-)
+custom_mark10
+</details>
 
 Prerequisites
 --
@@ -88,36 +92,41 @@ Todo
 Tight coupling of FlightCtrlSimulator and MarkerSimulator.
 Run a simulator of linear multicopter dynamics in the background and output simulated data with FlightCtrlSimulator and MarkerSimulator.
 
-![](http://g.gravizo.com/g?
+
+![](https://g.gravizo.com/source/custom_mark11?https%3a%2f%2fraw%2egithubusercontent%2ecom%2fAkihiro%2dK%2fRasPiMain%2fmarker_simulator%2fFlightCtrlSimulator%2fREADME%2emd)
+<details>
+<summary></summary>
+custom_mark11
   digraph G {
     subgraph cluster_0 {
       subgraph cluster_1{
-        NC_comm[shape=box]
-        label = "FlightCtrlSimulator"
+        NC_comm[shape=box];
+        label = "FlightCtrlSimulator";
       }
       subgraph cluster_2{
-        MarkerSimulator[shape=box,label="tcpserver MarkerSimulator"]
-        label = "MarkerSimulator"
+        MarkerSimulator[shape=box,label="tcpserver MarkerSimulator"];
+        label = "MarkerSimulator";
       }
-      shared_memory[label="shared memory"]
-      shared_memory -> NC_comm
-      shared_memory -> MarkerSimulator
+      shared_memory[label="shared memory"];
+      shared_memory -> NC_comm;
+      shared_memory -> MarkerSimulator;
       label = "Multicopter Simulator";
     }
     subgraph cluster_3 {
-      FC_comm[shape=box]
-      marker_comm[shape=box, label ="std::thread marker_comm"]
+      FC_comm[shape=box];
+      marker_comm[shape=box, label ="std::thread marker_comm"];
       label = "RasPiMain";
     }
-    ttySIM0[label="/dev/ttySIM0"]
-    ttyAMA0[label="/dev/ttyAMA0"]
-    FC_comm -> ttyAMA0
-    ttyAMA0 -> FC_comm [label="Serial"]
-    NC_comm -> ttySIM0
-    ttySIM0 -> NC_comm[label="Serial"]
-    ttySIM0 -> ttyAMA0
-    ttyAMA0 -> ttySIM0[label="link with socat"]
-    MarkerSimulator -> marker_comm[label="TCP"]
-    marker_comm -> MarkerSimulator
+    ttySIM0[label="/dev/ttySIM0"];
+    ttyAMA0[label="/dev/ttyAMA0"];
+    FC_comm -> ttyAMA0;
+    ttyAMA0 -> FC_comm [label="Serial"];
+    NC_comm -> ttySIM0;
+    ttySIM0 -> NC_comm[label="Serial"];
+    ttySIM0 -> ttyAMA0;
+    ttyAMA0 -> ttySIM0[label="link with socat"];
+    MarkerSimulator -> marker_comm[label="TCP"];
+    marker_comm -> MarkerSimulator;
   }
-)
+custom_mark11
+</details>
