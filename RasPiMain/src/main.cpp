@@ -32,6 +32,8 @@ int main(int argc, char const *argv[])
   //std::thread lsm_comm(&RecvFromLSM);
   //std::thread dp_comm(&RecvFromDP);
   
+  ReadWPfromFile();
+
   for(;;) {
     if (FC_comm.recv_data(FCHandler)){
       // at 128Hz
