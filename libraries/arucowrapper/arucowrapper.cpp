@@ -1,19 +1,19 @@
-#include "aruco_wrappermarker.h"
+#include "arucowrapper.h"
 
 // =============================================================================
 // Private functions:
 
-void getpos(Mat Rvec, Mat Tvec, float position[3], int port_num) 
+void aruco_wrapper::getpos(Mat Rvec, Mat Tvec, float position[3]) 
 {
   Mat pos, rmat;
   Rodrigues(Rvec, rmat);
   pos = -rmat.inv() * Tvec.t();
-  position[0] = pos.at<float>(0,0) + (LAT[port_num-1]-LAT[HOME-1]) * LAT_TO_MET;
-  position[1] = pos.at<float>(0,1) + (LON[port_num-1]-LON[HOME-1]) * LON_TO_MET;
+  position[0] = pos.at<float>(0,0) - OFFSET_X;
+  position[1] = pos.at<float>(0,1) - OFFSET_Y;
   position[2] = pos.at<float>(0,2);
 }
 
-void geterr_(Marker marker, MarkerMap MM, Mat Rvec, Mat Tvec, CameraParameters CP, float err_[3])
+void aruco_wrapper::geterr_(Marker marker, Mat Rvec, Mat Tvec, float err_[3])
 {
   // get 3Dinfo from marker map
   Marker3DInfo a = MM.getMarker3DInfo(marker.id);
@@ -178,24 +178,22 @@ void geterr_(Marker marker, MarkerMap MM, Mat Rvec, Mat Tvec, CameraParameters C
 
     for (int i = 0; i < 3; i++) {
       // summing up
-      err_[i] = abs(err_t[i]) + abs(err_r[i]);
-
-      // sd to variance
-      err_[i] = err_[i] * err_[i];
+      err_[i] = err_t[i]*err_t[i] + err_r[i]*err_r[i];
     }
   }
 }
 
-void geterr(vector<Marker> v_m, MarkerMap MM, Mat Rvec, Mat Tvec, CameraParameters CP, float err[3]) 
+void aruco_wrapper::geterr(vector<Marker> v_m, Mat Rvec, Mat Tvec, float err[3]) 
 {
   float dst[3] = {0, 0, 0};
   
   for (int i = 0; i < v_m.size(); i++) {
     float temp[3];
+    // assign previous value
     for (int j = 0; j < 3; j++) {
       temp[j] = err[j];
     }
-    geterr_(v_m[i], MM, Rvec, Tvec, CP, temp);
+    geterr_(v_m[i], Rvec, Tvec, temp);
     for (int j = 0; j < 3; j++) {
       dst[j] += temp[j];			
     }
@@ -206,17 +204,15 @@ void geterr(vector<Marker> v_m, MarkerMap MM, Mat Rvec, Mat Tvec, CameraParamete
   }
 }
 
-void getquaternion(Mat Rvec, float quat[3]) 
+void aruco_wrapper::getquaternion(Mat Rvec, float quat[3]) 
 {
   Mat rmat;
   Rodrigues(Rvec, rmat);
 
   float angle_x, angle_y, angle_z;
-  angle_x = -asin(rmat.at<float>(2,1)) - ANGLE;
+  angle_x = -asin(rmat.at<float>(2,1));
   angle_y = atan2(rmat.at<float>(2,0), rmat.at<float>(2,2));
   angle_z = atan2(-rmat.at<float>(1,1), rmat.at<float>(0,1));	
-
-  //cout << angle_x*180/M_PI<< "," << angle_y*180/M_PI << "," << angle_z*180/M_PI << endl;
 
   if (isnan(angle_x)) angle_x = 0;
   if (isnan(angle_y)) angle_y = 0;
@@ -226,46 +222,35 @@ void getquaternion(Mat Rvec, float quat[3])
   temp = AngleAxisf(angle_x, Vector3f::UnitX()) *
     AngleAxisf(angle_y, Vector3f::UnitY()) *
     AngleAxisf(angle_z, Vector3f::UnitZ());
-  //heading = angle_z;
   
   quat[0] = temp.x();
   quat[1] = temp.y();
   quat[2] = temp.z();
-  
 }
 
-bool checkmarker(vector<Marker> v_m, vector<MarkerMap> MMs, int &num)
+bool aruco_wrapper::checkmarker(vector<Marker> v_m)
 {
   if (!v_m.size()) return false;
   
-  for (int i = 0; i < MMs.size(); i++) {
-    vector<int> ids, MM_ids;
-    MMs[i].getIdList(MM_ids);
-    for (int j = 0; j < v_m.size(); j++) {
-      ids.push_back(v_m[j].id);
-    }
-    
-    vector<int>::iterator it;
-    bool flag = true;
-
-    for (int j = 0; j < ids.size(); j++) {
-      it = find(MM_ids.begin(), MM_ids.end(), ids[j]);
-      if (it == MM_ids.end()) {
-        flag = false;
-        break;
-      }
-    }
-
-    if (flag) {
-      num = i + 1;
-      return true;
-    }
+  vector<int> ids, MM_ids;
+  MM.getIdList(MM_ids);
+  for (int i = 0; i < v_m.size(); i++) {
+    ids.push_back(v_m[i].id);
   }
   
-  return false;
+  vector<int>::iterator it;
+
+  for (int i = 0; i < ids.size(); i++) {
+    it = find(MM_ids.begin(), MM_ids.end(), ids[i]);
+    if (it == MM_ids.end()) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
-bool checkpos(float position[3], float dt, MarkerMap MM, CameraParameters CP, MarkerMapPoseTracker &MMPT)
+bool aruco_wrapper::checkpos(float position[3], float dt)
 {
   if (position[2]>0||position[2]<-50||isnan(position[2])||isinf(position[2])||dt > 1000000) {
     MarkerMapPoseTracker temp;
@@ -281,57 +266,86 @@ bool checkpos(float position[3], float dt, MarkerMap MM, CameraParameters CP, Ma
 // =============================================================================
 // Public functions:
 
-bool marker_mes(Mat img, vector<MarkerMapPoseTracker> &MMPTs, vector<MarkerMap> MMs, CameraParameters CP, struct timeval &tv, struct STATE &S) 
+aruco_wrapper::aruco_wrapper(string pathforCP, string pathforMM)
+{
+  SetCameraParameters(pathforCP);
+  SetMarkerMap(pathforMM);
+  SetMarkerMapPoseTracker();
+  timerclear(&tv);
+  packet = {0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 0};
+}
+
+void aruco_wrapper::SetCameraParameters(string filepath)
+{
+  CP.readFromXMLFile(filepath.c_str());
+}
+
+void aruco_wrapper::SetMarkerMap(string filepath)
+{
+  MM.readFromFile(filepath.c_str());
+}
+
+void aruco_wrapper::SetMarkerMapPoseTracker()
+{
+  MMPT.setParams(CP, MM);
+}
+
+bool aruco_wrapper::MarkerUpdate(Mat img)
 {
   gettimeofday(&tv, NULL);
-  S.timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
-
+  packet.timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
+  
   vector<Marker> v_m;
   MarkerDetector detector;
   detector.detect(img, v_m);
 
-  /* validation of markers */
-  int num=0; // the number of markermap
-  bool judge = checkmarker(v_m, MMs, num);
+  bool judge = checkmarker(v_m);
 
   if (judge) {
-    static uint32_t t_m = S.timestamp;
-    uint32_t dt = S.timestamp - t_m; 
-    t_m = S.timestamp;
+    static uint32_t t_m = packet.timestamp;
+    uint32_t dt = packet.timestamp - t_m; 
+    t_m = packet.timestamp;
 
-    MMPTs[num-1].estimatePose(v_m);
-    Mat Rvec = MMPTs[num-1].getRvec();
-    Mat Tvec = MMPTs[num-1].getTvec();
-    getpos(Rvec, Tvec, S.position, num);
+    MMPT.estimatePose(v_m);
+    Mat Rvec = MMPT.getRvec();
+    Mat Tvec = MMPT.getTvec();
+    getpos(Rvec, Tvec, packet.position);
     
-    if (checkpos(S.position, dt, MMs[num-1], CP, MMPTs[num-1])) {
-      geterr(v_m, MMs[num-1], Rvec, Tvec, CP, S.r_var);
-      getquaternion(Rvec, S.quaternion);
+    if (checkpos(packet.position, dt)) {
+      geterr(v_m, Rvec, Tvec, packet.r_var);
+      getquaternion(Rvec, packet.quaternion);
     } else {
       judge = false;
-    }
+    }   
   }
-  S.status = judge;
+
+  packet.status = judge;
 
   return judge;
 }
 
-void no_marker(struct timeval &tv, struct STATE &S) 
+void aruco_wrapper::Disp()
 {
-  gettimeofday(&tv, NULL);
-  S.timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
-  for (int i = 0; i < 3; i++) {
-      S.position[i] = 0;
-  }
+  cout << "******************************************" << endl;
+  cout << "Timestamp: " << packet.timestamp << endl;
+  cout << "Position: " << packet.position[0] << "\t" << packet.position[1] << "\t" << packet.position[2] << endl;
+  cout << "Variance: " << packet.r_var[0] << "\t" << packet.r_var[1] << "\t" << packet.r_var[2] << endl;
+  cout << "Quaternion: " << sqrt(1-packet.quaternion[0]*packet.quaternion[0]-packet.quaternion[1]*packet.quaternion[1]-packet.quaternion[2]*packet.quaternion[2]) << "\t";
+  cout << packet.quaternion[0] << "\t" << packet.quaternion[1] << "\t" << packet.quaternion[2] << endl;
 }
 
-void savetofile(struct STATE S, ofstream &fout) 
+void aruco_wrapper::Logging()
 {
-  fout << S.timestamp << "," << S.position[0] << "," << S.position[1] << "," << S.position[2] << ",";
-  fout << S.r_var[0] << "," << S.r_var[1] << "," << S.r_var[2] << ",";
-  fout << int(S.status) << "," << endl;
-  cout << S.position[0] << "\t" << S.position[1] << "\t" << S.position[2] << endl;
-  // cout << S.r_var[0] << "\t" << S.r_var[1] << "\t" << S.r_var[2] << endl;
+  fout << packet.timestamp << ",";
+  fout << packet.position[0] << "," << packet.position[1] << "," << packet.position[2] << ",";
+  fout << packet.quaternion[0] << "," << packet.quaternion[1] << "," << packet.quaternion[2] << ",";
+  fout << packet.r_var[0] << "," << packet.r_var[1] << "," << packet.r_var[2] << ",";
+  fout << int(packet.status) << "," << endl;
+}
+
+struct Packet* aruco_wrapper::Packet()
+{
+  return &packet;
 }
 
 // =============================================================================
