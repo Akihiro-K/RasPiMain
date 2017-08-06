@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void DispfromFC();
+void DispFromFC();
 
 void DispToFC();
 
