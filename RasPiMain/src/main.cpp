@@ -235,6 +235,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
     }
     case 12:
     {
+      ReadWPfromDP();
       break;
     }
     default:
