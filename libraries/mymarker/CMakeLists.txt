@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
-add_library(MySerial STATIC
-  myserial.cpp
-  serial.cpp
+
+add_library(MyMarker STATIC
+  mymarker.cpp
 )
+
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)

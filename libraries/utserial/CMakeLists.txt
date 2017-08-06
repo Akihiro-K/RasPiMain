@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-add_library(Logger STATIC
-  logger.cpp
+add_library(UTSerial STATIC
+  utserial.cpp
 )
 
 include(CheckCXXCompilerFlag)

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-add_library(Disp STATIC
-  disp.cpp
+add_library(MyGPS STATIC
+  gps.cpp
 )
 
 include(CheckCXXCompilerFlag)

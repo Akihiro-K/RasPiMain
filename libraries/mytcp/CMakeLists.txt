@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 
-add_library(StateEstimator STATIC
-  stateestimator.cpp
+add_library(MyTCPServer STATIC
+  tcpserver.cpp
+)
+add_library(MyTCPClient STATIC
+  tcpclient.cpp
 )
 
 include(CheckCXXCompilerFlag)

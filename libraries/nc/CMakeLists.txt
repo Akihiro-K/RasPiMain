@@ -1,11 +1,25 @@
 cmake_minimum_required(VERSION 2.8)
 
-add_library(MyTCPServer STATIC
-  tcpserver.cpp
+add_library(Disp STATIC
+  disp/disp.cpp
 )
-add_library(MyTCPClient STATIC
-  tcpclient.cpp
+
+add_library(Logger STATIC
+  logger/logger.cpp
 )
+
+add_library(Navigator STATIC
+  navigator/navigator.cpp
+)
+
+add_library(Shared STATIC
+  shared/shared.cpp
+)
+
+add_library(StateEstimator STATIC
+  stateestimator/stateestimator.cpp
+)
+
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)

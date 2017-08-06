@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-add_library(Navigator STATIC
-  navigator.cpp
+add_library(MySerial STATIC
+  serial.cpp
 )
 
 include(CheckCXXCompilerFlag)

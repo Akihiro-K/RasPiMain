@@ -32,6 +32,16 @@ struct FromLSM {
   uint8_t status; // 1: OK 0: unavailable
 } __attribute__((packed));
 
+struct ToDronePort {
+  uint8_t nav_mode;
+  uint8_t nav_status;
+  uint8_t waypoint_status;
+  uint8_t gps_status;
+  float position[3];
+  float velocity[3];
+  float quaternion[4];
+} __attribute__((packed));
+
 struct ToFlightCtrl {
   uint16_t version;
   uint8_t nav_mode;
@@ -77,6 +87,8 @@ enum NavMode {
   NAV_MODE_HOLD = 1,
   NAV_MODE_AUTO = 2,
   NAV_MODE_HOME = 3,
+  TAKEOFF_TO_AUTO = 4,
+  LAND = 5,
 };
 
 enum NavStatusBits {
@@ -104,12 +116,15 @@ extern struct FromLSM from_lsm;
 extern struct ToFlightCtrl to_fc;
 extern struct FromFlightCtrl from_fc;
 extern struct ForDebug for_debug;
+extern struct ToDronePort to_dp;
 
 extern uint8_t marker_flag;
 extern uint8_t gps_pos_flag;
 extern uint8_t gps_vel_flag;
 extern uint8_t lsm_flag;
+extern uint8_t dp_id;
 
 extern enum NavMode nav_mode_;
+extern uint8_t nav_mode_request_from_dp;
 
 #endif

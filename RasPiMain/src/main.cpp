@@ -1,11 +1,6 @@
-#include "myserial/myserial.cpp"
-#include "mytcp/tcpserver.h"
-#include "mytcp/tcpclient.h"
-#include "shared/shared.h"
-#include "navigator/navigator.h"
-#include "stateestimator/stateestimator.h"
-#include "logger/logger.h"
-#include "disp/disp.h"
+#include "../../libraries/mytcp/tcpclient.h"
+#include "../../libraries/utserial/utserial.h"
+#include "../../libraries/nc/nc.h"
 
 #include <thread>
 #include <mutex>
@@ -13,6 +8,8 @@
 #define UT_SERIAL_COMPONENT_ID_RASPI (2)
 
 std::mutex m; // for lock
+
+void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);
 
 void RecvFromMarker();
 void MarkerHandler(const char * src, size_t len);
@@ -24,18 +21,19 @@ void RecvFromLSM();
 void LSMHandler(const char * src, size_t len);
 
 void RecvFromDP();
-void DPHandler(const char * src, size_t len);
+void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);
 
 int main(int argc, char const *argv[])
 {    
   InitLogging();
+  ut_serial FC_comm("/dev/ttyAMA0", 57600);
   std::thread marker_comm(&RecvFromMarker);
   //std::thread gps_comm(&RecvFromGPS);
   //std::thread lsm_comm(&RecvFromLSM);
   //std::thread dp_comm(&RecvFromDP);
   
   for(;;) {
-    if (ReadFromFC()){
+    if (FC_comm.recv_data(FCHandler)){
       // at 128Hz
       // TO DO: consider order of functions
 
@@ -47,7 +45,7 @@ int main(int argc, char const *argv[])
       AttitudeTimeUpdate();
       // PositionMeasurementUpdateWithBar();
       UpdateNavigation();
-      UTSerialTx(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
+      FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
       ResetHeadingCorrectionQuat();
       m.unlock();
     }
@@ -59,6 +57,36 @@ int main(int argc, char const *argv[])
   //dp_comm.join();
 
   return 0;
+}
+
+void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len)
+{    
+  uint8_t temp[UART_DATA_BUFFER_LENGTH];
+  memcpy(temp, data_buffer, len);
+
+#ifndef FC_DEBUG_MODE
+  struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)temp;
+
+  from_fc.timestamp = struct_ptr->timestamp;
+  from_fc.nav_mode_request = struct_ptr->nav_mode_request;
+  from_fc.pressure_alt = struct_ptr->pressure_alt;
+  for (int i = 0; i < 3; i++) {
+    from_fc.accelerometer[i] = struct_ptr->accelerometer[i];
+    from_fc.gyro[i] = struct_ptr->gyro[i];
+  }
+  for (int i = 0; i < 4; i++) {
+    from_fc.quaternion[i] = struct_ptr->quaternion[i];
+  }
+#else
+  struct ForDebug * struct_ptr = (struct ForDebug *)temp;
+  for (int i = 0; i < 3; i++) {
+    for_debug.accelerometer[i] = struct_ptr->accelerometer[i];
+    for_debug.gyro[i] = struct_ptr->gyro[i];
+  }
+  for (int i = 0; i < 4; i++) {
+    for_debug.motor_setpoint[i] = struct_ptr->motor_setpoint[i];
+  }
+#endif
 }
 
 void RecvFromMarker()
@@ -162,16 +190,57 @@ void LSMHandler(const char * src, size_t len)
 
 void RecvFromDP()
 {
-  tcp_client c;
-  c.start_connect("127.0.0.1" , 9090);
+  ut_serial DP_comm("/dev/ttyUSB1", 57600);
 
   for(;;){
     // at HZ
-    c.recv_data(DPHandler);
+    if (DP_comm.recv_data(DPHandler)) {
+      if (dp_id == 10) {
+        DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
+      }
+    }
   }	
 }
 
-void DPHandler(const char * src, size_t len)
+void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len)
 {
+  m.lock();
+  uint8_t temp[UART_DATA_BUFFER_LENGTH];
+  memcpy(temp, data_buffer, len);
+  
+  dp_id = message_id;
 
+  switch (message_id) {
+    case 10:
+    {
+      struct ToDronePort to_dp;
+      to_dp.nav_mode = to_fc.nav_mode;
+      to_dp.nav_status = to_fc.navigation_status;
+      // to_dp.waypoint_status = ;
+      to_dp.gps_status = from_gps.status;
+      for (int i = 0; i < 3; i++) {
+        to_dp.position[i] = to_fc.position[i];
+        to_dp.velocity[i] = to_fc.velocity[i];
+      }
+      for (int i = 0; i < 4; i++) {
+        to_dp.quaternion[i] = from_fc.quaternion[i];
+      }
+      break;
+    }
+    case 11:
+    {
+      uint8_t * nav_mode_request_ptr = (uint8_t *)temp;
+      nav_mode_request_from_dp = *nav_mode_request_ptr;
+      break;
+    }
+    case 12:
+    {
+      break;
+    }
+    default:
+    {
+      break;
+    }
+  }
+  m.unlock();
 }
