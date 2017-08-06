@@ -3,3 +3,4 @@
 /RasPiMain/build
 /RasPiMain/*.csv
 /MarkerSimulator/build
+/FlightCtrlSimulator/build
