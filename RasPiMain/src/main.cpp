@@ -60,7 +60,8 @@ int main(int argc, char const *argv[])
 }
 
 void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len)
-{    
+{
+  m.lock();   
   uint8_t temp[UART_DATA_BUFFER_LENGTH];
   memcpy(temp, data_buffer, len);
 
@@ -87,6 +88,7 @@ void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
     for_debug.motor_setpoint[i] = struct_ptr->motor_setpoint[i];
   }
 #endif
+  m.unlock();
 }
 
 void RecvFromMarker()
@@ -235,6 +237,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
     }
     case 12:
     {
+      ReadWPfromDP();
       break;
     }
     default:
