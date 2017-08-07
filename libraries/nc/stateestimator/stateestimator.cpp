@@ -28,9 +28,9 @@ void PositionTimeUpdate()
         0,0,0,0,1,0,
         0,0,0,0,0,1;
 
-    if ((to_fc.navigation_status&HeadingOK)&&
-    (to_fc.navigation_status&PositionOK)&&
-    (to_fc.navigation_status&VelocityOK)) {
+  if ((to_fc.navigation_status&HeadingOK)&&
+  (to_fc.navigation_status&PositionOK)&&
+  (to_fc.navigation_status&VelocityOK)) {
     // if heading correction is performed
     // calculate a_i from quaternion
 
@@ -227,8 +227,15 @@ void AttitudeMeasurementUpdateWithMarker()
       quat[i] += dq(i);
       norm += quat[i]*quat[i];
     }
+    norm = sqrt(norm);
     for (int i = 0; i < 4; i++) {
-      quat[i] /= norm;
+      if (norm) {
+        quat[i] /= norm;
+      } else {
+        cout << "=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=" << endl << endl;
+        quat[i] = from_fc.quaternion[i];
+      }
+
     }
 
     Quaternionf q_fc(from_fc.quaternion[0], from_fc.quaternion[1], from_fc.quaternion[2], from_fc.quaternion[3]);
@@ -241,6 +248,9 @@ void AttitudeMeasurementUpdateWithMarker()
     if (isnan(to_fc.quat0)||isnan(to_fc.quatz)) {
       to_fc.quat0 = 1;
       to_fc.quatz = 0;
+      for (int i = 0; i < 4; i++) {
+        quat[i] = from_fc.quaternion[i];
+      }
     }
   }
 }
