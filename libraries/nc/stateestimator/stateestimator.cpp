@@ -35,18 +35,10 @@ void PositionTimeUpdate()
     Vector3f a_b(from_fc.accelerometer[0],from_fc.accelerometer[1],from_fc.accelerometer[2]);
     Quaternionf q_c(quat[0],quat[1],quat[2],quat[3]);
     Matrix3f DCM = q_c.toRotationMatrix(); // body to inertial
-    u = DCM * (a_b + Vector3f::UnitZ()); // remove acceleration due to gravity
+    u = DCM * a_b + Vector3f::UnitZ(); // remove acceleration due to gravity
   } else {
     for (int i = 0; i < 3; i++) {
-      u(i) = 0;
-    }
-  }
-
-  if (!(to_fc.navigation_status&VelocityOK)) {
-    // velocity is unavailable from any sensor
-
-    for (int i = 0; i < 3; i++) {
-      x(i+3) = 0;
+      // u(i) = 0;
     }
   }
 
@@ -131,8 +123,7 @@ void PositionMeasurementUpdateWithGPSVel()
     Vector2f z(from_gps.velocity[0], from_gps.velocity[1]);
     MatrixXf H(2,6);
     H << 0, 0, 0, 1, 0, 0,
-          0, 0, 0, 0, 1, 0,
-          0, 0, 0, 0, 0, 1;
+          0, 0, 0, 0, 1, 0;
 
     Matrix2f R;
     R << from_gps.v_var[0], 0,

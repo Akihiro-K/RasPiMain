@@ -24,20 +24,20 @@ void RecvFromDP();
 void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);
 
 int main(int argc, char const *argv[])
-{    
+{
   InitLogging();
   ut_serial FC_comm("/dev/ttyAMA0", 57600);
   std::thread marker_comm(&RecvFromMarker);
   //std::thread gps_comm(&RecvFromGPS);
   //std::thread lsm_comm(&RecvFromLSM);
   //std::thread dp_comm(&RecvFromDP);
-  
+
   // ReadWPfromFile();
 
   for(;;) {
     if (FC_comm.recv_data(FCHandler)){
       // at 128Hz
-      
+
       m.lock();
       DispToFC();
       FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
@@ -45,8 +45,8 @@ int main(int argc, char const *argv[])
       m.unlock();
     }
   }
-  
-  marker_comm.join(); 
+
+  marker_comm.join();
   //gps_comm.join();
   //lsm_comm.join();
   //dp_comm.join();
@@ -56,7 +56,7 @@ int main(int argc, char const *argv[])
 
 void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len)
 {
-  m.lock();   
+  m.lock();
   uint8_t temp[UART_DATA_BUFFER_LENGTH];
   memcpy(temp, data_buffer, len);
 
@@ -108,7 +108,7 @@ void RecvFromMarker()
 }
 
 void MarkerHandler(const char * src, size_t len)
-{    
+{
   m.lock();
   char temp[CLIENT_BUF_SIZE];
   memcpy(temp, src, len);
@@ -176,7 +176,7 @@ void RecvFromLSM()
   for(;;){
     // at HZ
     c.recv_data(LSMHandler);
-  }	
+  }
 }
 
 void LSMHandler(const char * src, size_t len)
@@ -209,7 +209,7 @@ void RecvFromDP()
         DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
       }
     }
-  }	
+  }
 }
 
 void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len)
@@ -217,7 +217,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
   m.lock();
   uint8_t temp[UART_DATA_BUFFER_LENGTH];
   memcpy(temp, data_buffer, len);
-  
+
   dp_id = message_id;
 
   switch (message_id) {
