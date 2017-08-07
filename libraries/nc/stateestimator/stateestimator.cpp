@@ -27,7 +27,7 @@ void PositionTimeUpdate()
         0,0,0,1,0,0,
         0,0,0,0,1,0,
         0,0,0,0,0,1;
-        
+
     if ((to_fc.navigation_status&HeadingOK)&&
     (to_fc.navigation_status&PositionOK)&&
     (to_fc.navigation_status&VelocityOK)) {
@@ -237,6 +237,11 @@ void AttitudeMeasurementUpdateWithMarker()
 
     to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
     to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
+
+    if (isnan(to_fc.quat0)||isnan(to_fc.quatz)) {
+      to_fc.quat0 = 1;
+      to_fc.quatz = 0;
+    }
   }
 }
 
