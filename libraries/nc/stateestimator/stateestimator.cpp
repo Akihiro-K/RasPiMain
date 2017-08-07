@@ -174,9 +174,9 @@ void AttitudeTimeUpdate()
         from_fc.gyro[1], -from_fc.gyro[0], 0;
 
   Matrix3f Q;
-  Q << 0.01, 0, 0,
-        0, 0.01, 0,
-        0, 0, 0.01;
+  Q << 0.1, 0, 0,
+        0, 0.1, 0,
+        0, 0, 0.1;
 
   P_att = A * P_att * A.transpose() + Q;
 
@@ -229,13 +229,7 @@ void AttitudeMeasurementUpdateWithMarker()
     }
     norm = sqrt(norm);
     for (int i = 0; i < 4; i++) {
-      if (norm) {
-        quat[i] /= norm;
-      } else {
-        cout << "=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=" << endl << endl;
-        quat[i] = from_fc.quaternion[i];
-      }
-
+      quat[i] /= norm;
     }
 
     Quaternionf q_fc(from_fc.quaternion[0], from_fc.quaternion[1], from_fc.quaternion[2], from_fc.quaternion[3]);
@@ -251,6 +245,9 @@ void AttitudeMeasurementUpdateWithMarker()
       for (int i = 0; i < 4; i++) {
         quat[i] = from_fc.quaternion[i];
       }
+      P_att << 0.1, 0.1, 0.1,
+               0.1, 0.1, 0.1,
+               0.1, 0.1, 0.1;
     }
   }
 }
@@ -302,8 +299,9 @@ void AttitudeMeasurementUpdateWithLSM()
       quat[i] += dq(i);
       norm += quat[i]*quat[i];
     }
+    norm = sqrt(norm);
     for (int i = 0; i < 4; i++) {
-      quat[i] /= norm;
+        quat[i] /= norm;
     }
 
     Quaternionf q_fc(from_fc.quaternion[0], from_fc.quaternion[1], from_fc.quaternion[2], from_fc.quaternion[3]);
@@ -312,6 +310,17 @@ void AttitudeMeasurementUpdateWithLSM()
 
     to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
     to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
+
+    if (isnan(to_fc.quat0)||isnan(to_fc.quatz)) {
+      to_fc.quat0 = 1;
+      to_fc.quatz = 0;
+      for (int i = 0; i < 4; i++) {
+        quat[i] = from_fc.quaternion[i];
+      }
+      P_att << 0.1, 0.1, 0.1,
+               0.1, 0.1, 0.1,
+               0.1, 0.1, 0.1;
+    }
   }
 }
 
@@ -357,6 +366,7 @@ void AttitudeMeasurementUpdateWithGPSVel()
     //   quat[i] += dq(i);
     //   norm += quat[i]*quat[i];
     // }
+    // norm = sqrt(norm);
     // for (int i = 0; i < 4; i++) {
     //   quat[i] /= norm;
     // }
@@ -367,6 +377,17 @@ void AttitudeMeasurementUpdateWithGPSVel()
 
     // to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
     // to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
+
+    // if (isnan(to_fc.quat0)||isnan(to_fc.quatz)) {
+    //   to_fc.quat0 = 1;
+    //   to_fc.quatz = 0;
+    //   for (int i = 0; i < 4; i++) {
+    //     quat[i] = from_fc.quaternion[i];
+    //   }
+    //   P_att << 0.1, 0.1, 0.1,
+    //            0.1, 0.1, 0.1,
+    //            0.1, 0.1, 0.1;
+    // }
   }
 }
 
