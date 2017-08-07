@@ -27,8 +27,10 @@ void PositionTimeUpdate()
         0,0,0,1,0,0,
         0,0,0,0,1,0,
         0,0,0,0,0,1;
-
-  if(to_fc.navigation_status&HeadingOK) {
+        
+    if ((to_fc.navigation_status&HeadingOK)&&
+    (to_fc.navigation_status&PositionOK)&&
+    (to_fc.navigation_status&VelocityOK)) {
     // if heading correction is performed
     // calculate a_i from quaternion
 
@@ -38,7 +40,7 @@ void PositionTimeUpdate()
     u = DCM * a_b + Vector3f::UnitZ(); // remove acceleration due to gravity
   } else {
     for (int i = 0; i < 3; i++) {
-      // u(i) = 0;
+      u(i) = 0;
     }
   }
 
