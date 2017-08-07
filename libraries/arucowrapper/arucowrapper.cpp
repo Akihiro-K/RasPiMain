@@ -177,8 +177,11 @@ void aruco_wrapper::geterr_(Marker marker, Mat Rvec, Mat Tvec, float err_[3])
     //////////////////////////////////////////////////////////////////////
 
     for (int i = 0; i < 3; i++) {
-      // summing up
-      err_[i] = err_t[i]*err_t[i] + err_r[i]*err_r[i];
+			// summing up
+			err_[i] = abs(err_t[i]) + abs(err_r[i]);
+
+			// sd to variance
+			err_[i] = err_[i] * err_[i];
     }
   }
 }
