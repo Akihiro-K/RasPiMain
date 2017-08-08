@@ -12,7 +12,7 @@ static uint8_t cur_wp_num = 0;
 
 static float hold_position[3] = {0, 0, 0};
 static uint16_t reached_time = 0;
-static uint8_t reached_flag = 0;
+static uint8_t wait_start_flag = 0;
 
 void ReadWPfromFile(string filepath)
 {
@@ -142,30 +142,20 @@ void UpdateNavigation()
                              from_fc.quaternion[3]*from_fc.quaternion[3]));
       delta_heading = abs(cur_heading-manager[cur_route_num][cur_wp_num].target_heading);
       if ((delta_pos < manager[cur_route_num][cur_wp_num].radius)&&
-          (delta_heading < manager[cur_route_num][cur_wp_num].heading_range)) {
-        // if position & heading delta is less than radius
-        // switch to the next wp
-        hold_position[0] = manager[cur_route_num][cur_wp_num].target_longtitude;
-        hold_position[1] = manager[cur_route_num][cur_wp_num].target_latitude;
-        hold_position[2] = manager[cur_route_num][cur_wp_num].target_altitude;
+          (delta_heading < manager[cur_route_num][cur_wp_num].heading_range)&&(!wait_start_flag)) {
         reached_time = from_fc.timestamp;
-        reached_flag = 1;
-        cur_wp_num++;
+        wait_start_flag = 1;
       }
-      uint16_t dt = from_fc.timestamp - reached_time;
-      if (reached_flag&(dt < manager[cur_route_num][cur_wp_num].wait_ms)) {
-        for (int i = 0; i < 3; i++) {
-          to_fc.target_position[i] = hold_position[i];
+      if (wait_start_flag) {
+        uint16_t dt = from_fc.timestamp - reached_time;
+        if (dt < manager[cur_route_num][cur_wp_num].wait_ms) {
+          cur_wp_num++;
         }
-      } else {
-        to_fc.target_position[0] = manager[cur_route_num][cur_wp_num].target_longtitude;
-        to_fc.target_position[1] = manager[cur_route_num][cur_wp_num].target_latitude;
-        to_fc.target_position[2] = manager[cur_route_num][cur_wp_num].target_altitude;
-        to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
-        to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
-        to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
-        reached_flag = 0;
       }
+      manager[cur_route_num].GetTarget(cur_wp_num, target_position);s
+      to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
+      to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
+      to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
       break;
     }
     case NAV_MODE_HOLD:

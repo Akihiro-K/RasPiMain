@@ -28,18 +28,20 @@ private:
   struct WayPoint *p;
   int WP_num;
   int flag;
-  void free();
-public:
-  Route() : flag(0) {};
-  Route(struct WayPoint *wps_, int num_);
-  ~Route();
-  void SetWPs(struct WayPoint *wps_, int num_);
-	struct WayPoint &operator [](int index);
-  const struct WayPoint &operator [](int index) const;
   float latitude_0;
   float longtitude_0;
   float lat_to_meters;
   float lon_to_meters;
+  void free();
+public:
+  Route() : flag(0) {};
+  Route(struct WayPoint *waypoints_, int wp_num_);
+  ~Route();
+  void SetWPs(struct WayPoint *waypoints_, int wp_num_);
+  void GetTarget(const int cur_wp_num, float target_position[3]);
+  void GetDelta(const float lon_src, const float lat_src, float *lon_dst, float *lat_dst);
+	struct WayPoint &operator [](int index);
+  const struct WayPoint &operator [](int index) const;
 };
 
 class Route_Manager
@@ -58,10 +60,10 @@ public:
   const Route &operator [](int index) const;
 };
 
-Route::Route(struct WayPoint *wps_, int num_)
+Route::Route(struct WayPoint *waypoints_, int wp_num_)
 {
   flag = 0;
-  SetWPs(wps_, num_);
+  SetWPs(waypoints_, wp_num_);
 }
 
 Route::~Route()
@@ -74,24 +76,34 @@ void Route::free()
   delete[] p;
 }
 
-void Route::SetWPs(struct WayPoint *wps_, int num_)
+void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
 {
-  WP_num = num_;
+  WP_num = wp_num_;
   if(flag) free();
   p = new struct WayPoint[WP_num];
 
   // Conversion from deg to meter
-  longtitude_0 = wps_[0].target_longtitude;
-  latitude_0 = wps_[0].target_latitude;
+  longtitude_0 = waypoints_[0].target_longtitude;
+  latitude_0 = waypoints_[0].target_latitude;
   lon_to_meters = 111412.84*cos(latitude_0*M_PI/180) - 93.5*cos(3*latitude_0*M_PI/180);
   lat_to_meters = 111132.92 - 559.82*cos(2*latitude_0*M_PI/180);
   for (int i = 0; i < WP_num; i++) {
-    p[i] = wps_[i];
-    p[i].target_longtitude = (p[i].target_longtitude - longtitude_0) * lon_to_meters;
-    p[i].target_latitude = (p[i].target_latitude - latitude_0) * lat_to_meters;
-    p[i].target_altitude = -p[i].target_altitude;
+    p[i] = waypoints_[i];
   }
   flag = 1;
+}
+
+void Route::GetTarget(const int cur_wp_num, float target_position[3])
+{
+  target_position[0] = (p[i].target_longtitude - longtitude_0) * lon_to_meters;
+  target_position[1] = (p[i].target_latitude - latitude_0) * lat_to_meters;
+  target_position[2] = -p[i].target_altitude;
+}
+
+void Route::GetDelta(const float lon_src, const float lat_src, float *lon_dst, float *lat_dst)
+{
+  *lon_dst = lon_src * lon_to_meters;
+  *lat_dst = lat_src * lat_to_meters;
 }
 
 struct WayPoint &Route::operator [](int index)
@@ -134,22 +146,22 @@ void Route_Manager::ReadFromFile(string filepath)
     oss1 << "Route_" << i + 1;
     string route_name = oss1.str();
     int wp_num = j_[route_name.c_str()]["WP_num"];
-    struct WayPoint wps[wp_num];
+    struct WayPoint waypoints[wp_num];
     for (int j = 0; j < wp_num; j++) {
       ostringstream oss2;
       oss2 << "WP_" << j + 1;
       string wp_name = oss2.str();
-      wps[j].wait_ms = j_[route_name.c_str()][wp_name.c_str()]["wait_ms"];
-      wps[j].target_longtitude = j_[route_name.c_str()][wp_name.c_str()]["target_longtitude"];
-      wps[j].target_latitude = j_[route_name.c_str()][wp_name.c_str()]["target_latitude"];
-      wps[j].target_altitude = j_[route_name.c_str()][wp_name.c_str()]["target_altitude"];
-      wps[j].transit_speed = j_[route_name.c_str()][wp_name.c_str()]["transit_speed"];
-      wps[j].radius = j_[route_name.c_str()][wp_name.c_str()]["radius"];
-      wps[j].target_heading = j_[route_name.c_str()][wp_name.c_str()]["target_heading"];
-      wps[j].heading_rate = j_[route_name.c_str()][wp_name.c_str()]["heading_rate"];
-      wps[j].heading_range =j_[route_name.c_str()][wp_name.c_str()]["heading_range"];
+      waypoints[j].wait_ms = j_[route_name.c_str()][wp_name.c_str()]["wait_ms"];
+      waypoints[j].target_longtitude = j_[route_name.c_str()][wp_name.c_str()]["target_longtitude"];
+      waypoints[j].target_latitude = j_[route_name.c_str()][wp_name.c_str()]["target_latitude"];
+      waypoints[j].target_altitude = j_[route_name.c_str()][wp_name.c_str()]["target_altitude"];
+      waypoints[j].transit_speed = j_[route_name.c_str()][wp_name.c_str()]["transit_speed"];
+      waypoints[j].radius = j_[route_name.c_str()][wp_name.c_str()]["radius"];
+      waypoints[j].target_heading = j_[route_name.c_str()][wp_name.c_str()]["target_heading"];
+      waypoints[j].heading_rate = j_[route_name.c_str()][wp_name.c_str()]["heading_rate"];
+      waypoints[j].heading_range =j_[route_name.c_str()][wp_name.c_str()]["heading_range"];
     }
-    p[i].SetWPs(wps, wp_num);
+    p[i].Setwaypoints(wps, wp_num);
   }
   flag = 1;
 }
