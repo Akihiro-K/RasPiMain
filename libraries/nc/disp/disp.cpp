@@ -27,7 +27,7 @@ void DispToFC()
   cout << "Position: " << to_fc.position[0] << "\t" << to_fc.position[1] << "\t" << to_fc.position[2] << endl;
   cout << "Velocity: " << to_fc.velocity[0] << "\t" << to_fc.velocity[1] << "\t" << to_fc.velocity[2] << endl;
   cout << "Heading Correction: " << to_fc.quat0 << "\t" << to_fc.quatz << endl;
-  cout << "Target Position: " << to_fc.target_position[0] << "\t" << to_fc.target_position[1] << "\t" << to_fc.target_position[2] << endl; 
+  cout << "Target Position: " << to_fc.target_position[0] << "\t" << to_fc.target_position[1] << "\t" << to_fc.target_position[2] << endl;
 }
 
 void DispFromMarker()
@@ -43,7 +43,7 @@ void DispFromMarker()
 void DispFromGPS()
 {
   cout << "**************FROM  GPS**************" << endl;
-  cout << "Position: " << from_gps.position[0] << "\t" << from_gps.position[1] << "\t" << from_gps.position[2] << endl;
+  cout << "Position: " << from_gps.longitude << "\t" << from_gps.latitude << "\t" << from_gps.z << endl;
   cout << "Velocity: " << from_gps.velocity[0] << "\t" << from_gps.velocity[1] << "\t" << from_gps.velocity[2] << endl;
   cout << "Status: " << unsigned(from_gps.status) << endl;
 }

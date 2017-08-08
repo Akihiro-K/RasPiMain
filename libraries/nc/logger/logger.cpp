@@ -15,7 +15,7 @@ void FCLogging()
 {
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
-  
+
 #ifndef FC_DEBUG_MODE
   fout << FC <<"," << timestamp << ",";
   fout << unsigned(from_fc.nav_mode_request) << "," << unsigned(from_fc.flightctrl_state) << ",";
@@ -63,10 +63,8 @@ void GPSLogging()
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
   fout << GPS << "," << timestamp << ",";
-  fout << from_gps.position[0] << "," << from_gps.position[1] << "," << from_gps.position[2] << ",";
+  fout << from_gps.longitude << "," << from_gps.latitude << "," << from_gps.z << ",";
   fout << from_gps.velocity[0] << "," << from_gps.velocity[1] << "," << from_gps.velocity[2] << ",";
-  fout << from_gps.r_var[0] << "," << from_gps.r_var[1] << "," << from_gps.r_var[2] << ",";
-  fout << from_gps.v_var[0] << "," << from_gps.v_var[1] << "," << from_gps.v_var[2] << ",";
   fout << unsigned(from_gps.status) << endl;
 }
 
