@@ -1,14 +1,11 @@
 #ifndef SHARED_H_
 #define SHARED_H_
 
-#include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Geometry>
 #include <iostream>
 
-#define NAV_COMMS_VERSION (1)
-
 using namespace std;
-using namespace Eigen;
+
+#define NAV_COMMS_VERSION (1)
 
 ////////////////////////////////////////////////////////////////////////////////
 struct FromMarker {

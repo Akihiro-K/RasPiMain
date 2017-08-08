@@ -1,17 +1,28 @@
 #include "navigator.h"
+#include "waypoint.hpp"
 
-void ReadWPfromFile()
+#define DEFAULT_TRANSIT_SPEED (1)  // m/s
+#define DEFAULT_HEADING (0) // rad
+#define DEFAULT_HEADING_RATE (0.3)  // rad/s
+
+static Route_Manager manager;
+
+static uint8_t cur_route_num = 0;
+static uint8_t cur_wp_num = 0;
+
+static float hold_position[3] = {0, 0, 0};
+static uint16_t reached_time = 0;
+static uint8_t reached_flag = 0;
+
+void ReadWPfromFile(string filepath)
 {
-  // TO DO: read WPs from json file
-  json j;
-  fin >> j;
-  cout << "***********WPs read from file************" << endl;
-  cout << "Rout_num: " << j["Rout_num"] << endl;
+  manager.ReadFromFile(filepath.c_str());
 }
 
-void ReadWPfromDP()
+void ReadWPfromDP(struct WayPoint *wps_, int num_)
 {
   // TO DO: read WPs from DP
+  
 }
 
 void UpdateNavigation()
@@ -97,7 +108,7 @@ void UpdateNavigation()
       }
       case NAV_MODE_HOME:
       {
-        // TO DO: Consider GO HOME algorithm
+        // TO DO: Consider how to switch to GO HOME mode
         nav_mode_ = NAV_MODE_HOME;
         break;
       }
@@ -117,7 +128,44 @@ void UpdateNavigation()
   switch (nav_mode_) {
     case NAV_MODE_AUTO:
     {
-      // TO DO: Consider how to generate target from WP
+      // Waypoint Switching Algorithm
+
+      float delta_pos, delta_heading, cur_heading;
+      delta_pos = sqrt((to_fc.position[0]-manager[cur_route_num][cur_wp_num].target_longtitude)*
+                       (to_fc.position[0]-manager[cur_route_num][cur_wp_num].target_longtitude)+
+                       (to_fc.position[1]-manager[cur_route_num][cur_wp_num].target_latitude)*
+                       (to_fc.position[1]-manager[cur_route_num][cur_wp_num].target_latitude)+
+                       (to_fc.position[2]-manager[cur_route_num][cur_wp_num].target_altitude)*
+                       (to_fc.position[2]-manager[cur_route_num][cur_wp_num].target_altitude));
+      cur_heading = 2 * acos(from_fc.quaternion[0]/
+                        sqrt(from_fc.quaternion[0]*from_fc.quaternion[0]+
+                             from_fc.quaternion[3]*from_fc.quaternion[3]));
+      delta_heading = abs(cur_heading-manager[cur_route_num][cur_wp_num].target_heading);
+      if ((delta_pos < manager[cur_route_num][cur_wp_num].radius)&&
+          (delta_heading < manager[cur_route_num][cur_wp_num].heading_range)) {
+        // if position & heading delta is less than radius
+        // switch to the next wp
+        hold_position[0] = manager[cur_route_num][cur_wp_num].target_longtitude;
+        hold_position[1] = manager[cur_route_num][cur_wp_num].target_latitude;
+        hold_position[2] = manager[cur_route_num][cur_wp_num].target_altitude;
+        reached_time = from_fc.timestamp;
+        reached_flag = 1;
+        cur_wp_num++;
+      }
+      uint16_t dt = from_fc.timestamp - reached_time;
+      if (reached_flag&(dt < manager[cur_route_num][cur_wp_num].wait_ms)) {
+        for (int i = 0; i < 3; i++) {
+          to_fc.target_position[i] = hold_position[i];
+        }
+      } else {
+        to_fc.target_position[0] = manager[cur_route_num][cur_wp_num].target_longtitude;
+        to_fc.target_position[1] = manager[cur_route_num][cur_wp_num].target_latitude;
+        to_fc.target_position[2] = manager[cur_route_num][cur_wp_num].target_altitude;
+        to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
+        to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
+        to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
+        reached_flag = 0;
+      }
       break;
     }
     case NAV_MODE_HOLD:
@@ -126,10 +174,13 @@ void UpdateNavigation()
         to_fc.target_position[i] = hold_position[i];
       }
       to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
+      to_fc.target_heading = DEFAULT_HEADING;
+      to_fc.heading_rate = DEFAULT_HEADING_RATE;
       break;
     }
     case NAV_MODE_HOME:
     {
+      // TO DO: Consider how to generate target in HOME MODE
       break;
     }
     default:

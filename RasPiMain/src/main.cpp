@@ -32,7 +32,7 @@ int main(int argc, char const *argv[])
   //std::thread lsm_comm(&RecvFromLSM);
   //std::thread dp_comm(&RecvFromDP);
 
-  // ReadWPfromFile();
+  ReadWPfromFile("../input_data/wp.json");
 
   for(;;) {
     if (FC_comm.recv_data(FCHandler)){
@@ -245,7 +245,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
     }
     case 12:
     {
-      ReadWPfromDP();
+      //ReadWPfromDP(wps, num);
       break;
     }
     default:

@@ -3,8 +3,6 @@
 
 #include "../shared/shared.h"
 
-using namespace std;
-
 void DispFromFC();
 
 void DispToFC();

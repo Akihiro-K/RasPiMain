@@ -1,4 +1,6 @@
 #include "disp.h"
+#include <iostream>
+#include <cmath>
 
 void DispFromFC()
 {
