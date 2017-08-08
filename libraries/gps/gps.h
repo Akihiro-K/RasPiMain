@@ -7,19 +7,21 @@
 #include <math.h>
 #include "../serial/serial.hpp"
 
-// Payload structure for TCP
-struct GPSPayload {
-  float position[3]; // [m]
-  float velocity[3]; // [m/s]
-  float r_var[3]; // [m^2]
-  float v_var[3]; // [m^2/s^2]
-  uint8_t status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
-} __attribute__((packed));
-
 using namespace std;
 
-// filestream for logging
-static ofstream fout("../output_data/gps_log.csv", ios::out);
+// Payload structure for TCP
+struct GPSPayload {
+  float longitude; // [degrees]
+  float latitude; // [degrees]
+  float z; // height above sea level [m], downward positive
+  float velocity[3]; // [m/s]
+  uint8_t gps_status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
+} __attribute__((packed));
+
+enum GPSStatusBits {
+  VelocityOK = 1<<0,
+  PositionOK = 1<<1,
+};
 
 class GPS : public Serial
 {
@@ -28,10 +30,6 @@ class GPS : public Serial
     int baudrate;
     static const int read_buffer_length = 32; // buffer length for each serial read
     static const int nmea_buffer_length = 256; // buffer length for any nmea message
-    float longitude_0;
-    float latitude_0;
-    float lon_to_meters;
-    float lat_to_meters;
     struct FLAGS{
       bool new_gpgga_available;
       bool new_gprmc_available;
@@ -55,7 +53,7 @@ class GPS : public Serial
       int checksum; // checksum
       string message; // whole message
     }gprmc;
-    struct GPSPayload payload;
+    struct GPSPayload payload = { 0 };
     void ProcessGPGGA(char* message);
     void ProcessGPRMC(char* message);
     void ProcessPayload();
@@ -64,7 +62,6 @@ class GPS : public Serial
     // TODO: Add functionality to set home and waypoints
     GPS(); // Default: /dev/ttyUSB_GPS at baudrate 4800
     void Open(); // Opens serial port
-    void SetOrigin(float longitude_, float latitude_);
     void ProcessIncomingBytes(); // Process all new bytes from GPS module
     bool NewDataAvailable(); // Note: calling this will change internal flag
     void ShowData(); // Display data
