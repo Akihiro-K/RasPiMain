@@ -65,7 +65,7 @@ void GPSLogging()
   fout << GPS << "," << timestamp << ",";
   fout << from_gps.longitude << "," << from_gps.latitude << "," << from_gps.z << ",";
   fout << from_gps.velocity[0] << "," << from_gps.velocity[1] << "," << from_gps.velocity[2] << ",";
-  fout << unsigned(from_gps.status) << endl;
+  fout << unsigned(from_gps.gps_status) << endl;
 }
 
 void LSMLogging()

@@ -131,8 +131,8 @@ void UpdateNavigation()
       // Waypoint Switching Algorithm
 
       float delta_pos, delta_heading, cur_heading;
-      delta_pos = sqrt((to_fc.position[0]-manager[cur_route_num][cur_wp_num].target_longtitude)*
-                       (to_fc.position[0]-manager[cur_route_num][cur_wp_num].target_longtitude)+
+      delta_pos = sqrt((to_fc.position[0]-manager[cur_route_num][cur_wp_num].target_longitude)*
+                       (to_fc.position[0]-manager[cur_route_num][cur_wp_num].target_longitude)+
                        (to_fc.position[1]-manager[cur_route_num][cur_wp_num].target_latitude)*
                        (to_fc.position[1]-manager[cur_route_num][cur_wp_num].target_latitude)+
                        (to_fc.position[2]-manager[cur_route_num][cur_wp_num].target_altitude)*
@@ -193,16 +193,23 @@ void UpdateMarkerFlag()
 
 void UpdateGPSPosFlag()
 {
-  if (from_gps.status&0x01) {
+  if (from_gps.gps_status&0x02) {
     gps_pos_flag = 1;
+    ConvertGPSPos();
   } else {
     gps_pos_flag = 0;
   }
 }
 
+void ConvertGPSPos()
+{
+  manager[cur_route_num].GetDelta(from_gps.longitude, from_gps.latitude,
+                                  &gps_position_y, &gps_position_x);
+}
+
 void UpdateGPSVelFlag()
 {
-  if (from_gps.status&0x02) {
+  if (from_gps.gps_status&0x01) {
     gps_vel_flag = 1;
   } else {
     gps_vel_flag = 0;

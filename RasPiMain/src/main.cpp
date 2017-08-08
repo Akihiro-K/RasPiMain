@@ -149,13 +149,12 @@ void GPSHandler(const char * src, size_t len)
   memcpy(temp, src, len);
   struct FromGPS * struct_ptr = (struct FromGPS *)temp;
 
-  from_gps.status = struct_ptr->status;
+  from_gps.longitude = struct_ptr->longitude;
+  from_gps.latitude = struct_ptr->latitude;
+  from_gps.gps_status = struct_ptr->gps_status;
 
   for (int i=0;i<3;i++){
-    from_gps.position[i] = struct_ptr->position[i];
     from_gps.velocity[i] = struct_ptr->velocity[i];
-    from_gps.r_var[i] = struct_ptr->r_var[i];
-    from_gps.v_var[i] = struct_ptr->v_var[i];
   }
 
   UpdateGPSPosFlag();
@@ -227,7 +226,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
       to_dp.nav_mode = to_fc.nav_mode;
       to_dp.nav_status = to_fc.navigation_status;
       // to_dp.waypoint_status = ;
-      to_dp.gps_status = from_gps.status;
+      to_dp.gps_status = from_gps.gps_status;
       for (int i = 0; i < 3; i++) {
         to_dp.position[i] = to_fc.position[i];
         to_dp.velocity[i] = to_fc.velocity[i];

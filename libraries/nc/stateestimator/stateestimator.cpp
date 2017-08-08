@@ -115,14 +115,14 @@ void PositionMeasurementUpdateWithMarker()
 void PositionMeasurementUpdateWithGPSPos()
 {
   if (gps_pos_flag) {
-    Vector2f z(from_gps.position[0], from_gps.position[1]);
+    Vector2f z(gps_position_x, gps_position_y);
     MatrixXf H(2,6);
     H << 1, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 0, 0;
 
     Matrix2f R;
-    R << from_gps.r_var[0], 0,
-        0, from_gps.r_var[1];
+    R << 50, 0,
+        0, 50;
 
     MatrixXf K(6,2);
     K = P_pos * H.transpose() * (H * P_pos * H.transpose() + R).inverse();
@@ -146,8 +146,8 @@ void PositionMeasurementUpdateWithGPSVel()
           0, 0, 0, 0, 1, 0;
 
     Matrix2f R;
-    R << from_gps.v_var[0], 0,
-        0, from_gps.v_var[1];
+    R << 10, 0,
+        0, 10;
 
     MatrixXf K(6,2);
     K = P_pos * H.transpose() * (H * P_pos * H.transpose() + R).inverse();

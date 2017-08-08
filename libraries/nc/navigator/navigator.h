@@ -15,6 +15,8 @@ void UpdateGPSPosFlag();
 
 void UpdateGPSVelFlag();
 
+void ConvertGPSPos();
+
 void UpdateLSMFlag();
 
 #endif

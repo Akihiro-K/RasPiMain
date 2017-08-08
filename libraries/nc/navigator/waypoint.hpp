@@ -12,7 +12,7 @@ using json = nlohmann::json;
 
 struct WayPoint {
   uint16_t wait_ms; // [ms]
-  float target_longtitude; // [deg]
+  float target_longitude; // [deg]
   float target_latitude; // [deg]
   float target_altitude; // [m]
   float transit_speed; // [m/s]
@@ -29,7 +29,7 @@ private:
   int WP_num;
   int flag;
   float latitude_0;
-  float longtitude_0;
+  float longitude_0;
   float lat_to_meters;
   float lon_to_meters;
   void free();
@@ -83,7 +83,7 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
   p = new struct WayPoint[WP_num];
 
   // Conversion from deg to meter
-  longtitude_0 = waypoints_[0].target_longtitude;
+  longitude_0 = waypoints_[0].target_longitude;
   latitude_0 = waypoints_[0].target_latitude;
   lon_to_meters = 111412.84*cos(latitude_0*M_PI/180) - 93.5*cos(3*latitude_0*M_PI/180);
   lat_to_meters = 111132.92 - 559.82*cos(2*latitude_0*M_PI/180);
@@ -95,7 +95,7 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
 
 void Route::GetTarget(const int cur_wp_num, float target_position[3])
 {
-  target_position[0] = (p[cur_wp_num].target_longtitude - longtitude_0) * lon_to_meters;
+  target_position[0] = (p[cur_wp_num].target_longitude - longitude_0) * lon_to_meters;
   target_position[1] = (p[cur_wp_num].target_latitude - latitude_0) * lat_to_meters;
   target_position[2] = -p[cur_wp_num].target_altitude;
 }
@@ -152,7 +152,7 @@ void Route_Manager::ReadFromFile(string filepath)
       oss2 << "WP_" << j + 1;
       string wp_name = oss2.str();
       waypoints[j].wait_ms = j_[route_name.c_str()][wp_name.c_str()]["wait_ms"];
-      waypoints[j].target_longtitude = j_[route_name.c_str()][wp_name.c_str()]["target_longtitude"];
+      waypoints[j].target_longitude = j_[route_name.c_str()][wp_name.c_str()]["target_longitude"];
       waypoints[j].target_latitude = j_[route_name.c_str()][wp_name.c_str()]["target_latitude"];
       waypoints[j].target_altitude = j_[route_name.c_str()][wp_name.c_str()]["target_altitude"];
       waypoints[j].transit_speed = j_[route_name.c_str()][wp_name.c_str()]["transit_speed"];

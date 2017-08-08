@@ -124,4 +124,7 @@ extern uint8_t dp_id;
 extern enum NavMode nav_mode_;
 extern uint8_t nav_mode_request_from_dp;
 
+extern float gps_position_x;
+extern float gps_position_y;
+
 #endif
