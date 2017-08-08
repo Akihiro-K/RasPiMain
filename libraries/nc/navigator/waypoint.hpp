@@ -95,9 +95,9 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
 
 void Route::GetTarget(const int cur_wp_num, float target_position[3])
 {
-  target_position[0] = (p[i].target_longtitude - longtitude_0) * lon_to_meters;
-  target_position[1] = (p[i].target_latitude - latitude_0) * lat_to_meters;
-  target_position[2] = -p[i].target_altitude;
+  target_position[0] = (p[cur_wp_num].target_longtitude - longtitude_0) * lon_to_meters;
+  target_position[1] = (p[cur_wp_num].target_latitude - latitude_0) * lat_to_meters;
+  target_position[2] = -p[cur_wp_num].target_altitude;
 }
 
 void Route::GetDelta(const float lon_src, const float lat_src, float *lon_dst, float *lat_dst)
@@ -161,7 +161,7 @@ void Route_Manager::ReadFromFile(string filepath)
       waypoints[j].heading_rate = j_[route_name.c_str()][wp_name.c_str()]["heading_rate"];
       waypoints[j].heading_range =j_[route_name.c_str()][wp_name.c_str()]["heading_range"];
     }
-    p[i].Setwaypoints(wps, wp_num);
+    p[i].SetWPs(waypoints, wp_num);
   }
   flag = 1;
 }

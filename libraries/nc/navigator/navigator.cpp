@@ -152,7 +152,7 @@ void UpdateNavigation()
           cur_wp_num++;
         }
       }
-      manager[cur_route_num].GetTarget(cur_wp_num, target_position);s
+      manager[cur_route_num].GetTarget(cur_wp_num, to_fc.target_position);
       to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
       to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
       to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
