@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
   InitLogging();
   ut_serial FC_comm("/dev/ttyAMA0", 57600);
   std::thread marker_comm(&RecvFromMarker);
-  //std::thread gps_comm(&RecvFromGPS);
+  std::thread gps_comm(&RecvFromGPS);
   //std::thread lsm_comm(&RecvFromLSM);
   //std::thread dp_comm(&RecvFromDP);
 
@@ -47,7 +47,7 @@ int main(int argc, char const *argv[])
   }
 
   marker_comm.join();
-  //gps_comm.join();
+  gps_comm.join();
   //lsm_comm.join();
   //dp_comm.join();
 
