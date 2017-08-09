@@ -1,7 +1,7 @@
-/build
 /*.csv
 /RasPiMain/build
 /RasPiMain/input_data
 /RasPiMain/output_data
 /.vscode
 /debug
+!*.gitkeep
