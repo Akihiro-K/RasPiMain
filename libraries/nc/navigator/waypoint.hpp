@@ -102,8 +102,8 @@ void Route::GetTarget(const int cur_wp_num, float target_position[3])
 
 void Route::GetDelta(const float lon_src, const float lat_src, float *lon_dst, float *lat_dst)
 {
-  *lon_dst = lon_src * lon_to_meters;
-  *lat_dst = lat_src * lat_to_meters;
+  *lon_dst = (lon_src - longitude_0) * lon_to_meters;
+  *lat_dst = (lat_src - latitude_0) * lat_to_meters;
 }
 
 struct WayPoint &Route::operator [](int index)

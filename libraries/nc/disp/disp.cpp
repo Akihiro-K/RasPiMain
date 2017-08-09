@@ -43,7 +43,7 @@ void DispFromMarker()
 void DispFromGPS()
 {
   cout << "**************FROM  GPS**************" << endl;
-  cout << "Position: " << from_gps.longitude << "\t" << from_gps.latitude << "\t" << from_gps.z << endl;
+  cout << "Position: " << gps_position_x << "\t" << gps_position_y << "\t" << from_gps.z << endl;
   cout << "Velocity: " << from_gps.velocity[0] << "\t" << from_gps.velocity[1] << "\t" << from_gps.velocity[2] << endl;
   cout << "Status: " << unsigned(from_gps.gps_status) << endl;
 }
