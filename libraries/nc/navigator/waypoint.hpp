@@ -40,7 +40,7 @@ public:
   void SetWPs(struct WayPoint *waypoints_, int wp_num_);
   void GetTarget(const int cur_wp_num, float target_position[3]);
   void GetDelta(const float lon_src, const float lat_src, float *lon_dst, float *lat_dst);
-	struct WayPoint &operator [](int index);
+  struct WayPoint &operator [](int index);
   const struct WayPoint &operator [](int index) const;
 };
 
@@ -109,12 +109,12 @@ void Route::GetDelta(const float lon_src, const float lat_src, float *lon_dst, f
 
 struct WayPoint &Route::operator [](int index)
 {
-	return p[index];
+  return p[index];
 }
 
 const struct WayPoint &Route::operator [](int index) const
 {
-	return p[index];
+  return p[index];
 }
 
 
