@@ -22,7 +22,7 @@ void ReadWPfromFile(string filepath)
 void ReadWPfromDP(struct WayPoint *wps_, int num_)
 {
   // TO DO: read WPs from DP
-  
+
 }
 
 void UpdateNavigation()
@@ -41,11 +41,11 @@ void UpdateNavigation()
     if (marker_notdetected_count > 64) {
       marker_flag_for_nav = 0;
       marker_notdetected_count = 65;
-    }		
+    }
   }
 
   /* Heading part */
-  // no heading 
+  // no heading
   if (marker_flag_for_nav||lsm_flag||gps_vel_flag) {
     to_fc.navigation_status |= HeadingOK;
   } else {
@@ -78,7 +78,7 @@ void UpdateNavigation()
 // =============================================================================
 // Navigation mode Switching Algorithm:
 
-  // if nav_mode_request is different from 
+  // if nav_mode_request is different from
   // previous nav_mode
   // switch nav_mode according to the
   // following algorithm
@@ -149,8 +149,9 @@ void UpdateNavigation()
       }
       if (wait_start_flag) {
         uint16_t dt = from_fc.timestamp - reached_time;
-        if (dt < manager[cur_route_num][cur_wp_num].wait_ms) {
+        if (dt > manager[cur_route_num][cur_wp_num].wait_ms) {
           cur_wp_num++;
+          wait_start_flag = 0;
         }
       }
       manager[cur_route_num].GetTarget(cur_wp_num, to_fc.target_position);
@@ -179,7 +180,7 @@ void UpdateNavigation()
       break;
     }
 
-  }    
+  }
 }
 
 

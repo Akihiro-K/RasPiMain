@@ -1,7 +1,7 @@
 #ifndef WAYPOINT_H_
 #define WAYPOINT_H_
 
-#include "json.hpp" 
+#include "json.hpp"
 #include <fstream>
 #include <sstream>
 #include <iomanip>
@@ -95,8 +95,9 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
 
 void Route::GetTarget(const int cur_wp_num, float target_position[3])
 {
-  target_position[0] = (p[cur_wp_num].target_longitude - longitude_0) * lon_to_meters;
-  target_position[1] = (p[cur_wp_num].target_latitude - latitude_0) * lat_to_meters;
+  // NED coordinates
+  target_position[0] = (p[cur_wp_num].target_latitude - latitude_0) * lat_to_meters;
+  target_position[1] = (p[cur_wp_num].target_longitude - longitude_0) * lon_to_meters;
   target_position[2] = -p[cur_wp_num].target_altitude;
 }
 
@@ -140,7 +141,7 @@ void Route_Manager::ReadFromFile(string filepath)
   ifs >> j_;
   Route_num = j_["Route_num"];
   if (flag) free();
-  p = new Route [Route_num]; 
+  p = new Route [Route_num];
   for (int i = 0; i < Route_num; i++) {
     ostringstream oss1;
     oss1 << "Route_" << i + 1;
