@@ -131,12 +131,13 @@ void UpdateNavigation()
       // Waypoint Switching Algorithm
 
       float delta_pos, delta_heading, cur_heading;
-      delta_pos = sqrt((to_fc.position[0]-manager[cur_route_num][cur_wp_num].target_longitude)*
-                       (to_fc.position[0]-manager[cur_route_num][cur_wp_num].target_longitude)+
-                       (to_fc.position[1]-manager[cur_route_num][cur_wp_num].target_latitude)*
-                       (to_fc.position[1]-manager[cur_route_num][cur_wp_num].target_latitude)+
-                       (to_fc.position[2]-manager[cur_route_num][cur_wp_num].target_altitude)*
-                       (to_fc.position[2]-manager[cur_route_num][cur_wp_num].target_altitude));
+      manager[cur_route_num].GetTarget(cur_wp_num, to_fc.target_position);
+      delta_pos = sqrt((to_fc.position[0]-to_fc.target_position[0])*
+                       (to_fc.position[0]-to_fc.target_position[0])+
+                       (to_fc.position[1]-to_fc.target_position[1])*
+                       (to_fc.position[1]-to_fc.target_position[1])+
+                       (to_fc.position[2]-to_fc.target_position[2])*
+                       (to_fc.position[2]-to_fc.target_position[2]));
       cur_heading = 2 * acos(from_fc.quaternion[0]/
                         sqrt(from_fc.quaternion[0]*from_fc.quaternion[0]+
                              from_fc.quaternion[3]*from_fc.quaternion[3]));
