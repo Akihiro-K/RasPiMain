@@ -131,7 +131,7 @@ void UpdateNavigation()
       // Waypoint Switching Algorithm
 
       float delta_pos, delta_heading, cur_heading;
-      manager[cur_route_num].GetTarget(cur_wp_num, to_fc.target_position);
+      manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
       delta_pos = sqrt((to_fc.position[0]-to_fc.target_position[0])*
                        (to_fc.position[0]-to_fc.target_position[0])+
                        (to_fc.position[1]-to_fc.target_position[1])*
@@ -154,7 +154,7 @@ void UpdateNavigation()
           wait_start_flag = 0;
         }
       }
-      manager[cur_route_num].GetTarget(cur_wp_num, to_fc.target_position);
+      manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
       to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
       to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
       to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
@@ -183,7 +183,6 @@ void UpdateNavigation()
   }
 }
 
-
 void UpdateMarkerFlag()
 {
   if (from_marker.status) {
@@ -197,16 +196,13 @@ void UpdateGPSPosFlag()
 {
   if (from_gps.gps_status&0x02) {
     gps_pos_flag = 1;
-    ConvertGPSPos();
+
+    // TODO: Move this to GPS handler in main
+    manager[cur_route_num].GetPosition(from_gps.longitude, from_gps.latitude,
+      &gps_position_x, &gps_position_y);
   } else {
     gps_pos_flag = 0;
   }
-}
-
-void ConvertGPSPos()
-{
-  manager[cur_route_num].GetDelta(from_gps.longitude, from_gps.latitude,
-                                  &gps_position_y, &gps_position_x);
 }
 
 void UpdateGPSVelFlag()

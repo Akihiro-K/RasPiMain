@@ -38,8 +38,8 @@ public:
   Route(struct WayPoint *waypoints_, int wp_num_);
   ~Route();
   void SetWPs(struct WayPoint *waypoints_, int wp_num_);
-  void GetTarget(const int cur_wp_num, float target_position[3]);
-  void GetDelta(const float lon_src, const float lat_src, float *lon_dst, float *lat_dst);
+  void GetTargetPosition(const int cur_wp_num, float target_position[3]);
+  void GetPosition(const float longitude, const float latitude, float *x_position, float *y_position);
   struct WayPoint &operator [](int index);
   const struct WayPoint &operator [](int index) const;
 };
@@ -93,7 +93,7 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
   flag = 1;
 }
 
-void Route::GetTarget(const int cur_wp_num, float target_position[3])
+void Route::GetTargetPosition(const int cur_wp_num, float target_position[3])
 {
   // NED coordinates
   target_position[0] = (p[cur_wp_num].target_latitude - latitude_0) * lat_to_meters;
@@ -101,10 +101,10 @@ void Route::GetTarget(const int cur_wp_num, float target_position[3])
   target_position[2] = -p[cur_wp_num].target_altitude;
 }
 
-void Route::GetDelta(const float lon_src, const float lat_src, float *lon_dst, float *lat_dst)
+void Route::GetPosition(const float longitude, const float latitude, float *x_position, float *y_position)
 {
-  *lon_dst = (lon_src - longitude_0) * lon_to_meters;
-  *lat_dst = (lat_src - latitude_0) * lat_to_meters;
+  *x_position = (latitude - latitude_0) * lat_to_meters;
+  *y_position = (longitude - longitude_0) * lon_to_meters;
 }
 
 struct WayPoint &Route::operator [](int index)

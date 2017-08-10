@@ -18,5 +18,5 @@ uint8_t dp_id = 0;
 enum NavMode nav_mode_ = NAV_MODE_OFF;
 uint8_t nav_mode_request_from_dp = NAV_MODE_OFF;
 
-float gps_position_x = 0; // Latitude
-float gps_position_y = 0; // Longitude 
+float gps_position_x = 0; // in meters relative to first waypoint in route
+float gps_position_y = 0; // in meters relative to first waypoint in route
