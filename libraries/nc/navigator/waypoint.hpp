@@ -26,7 +26,6 @@ class Route
 {
 private:
   struct WayPoint *p;
-  int WP_num;
   int flag;
   float latitude_0;
   float longitude_0;
@@ -42,6 +41,7 @@ public:
   void GetPosition(const float longitude, const float latitude, float *x_position, float *y_position);
   struct WayPoint &operator [](int index);
   const struct WayPoint &operator [](int index) const;
+  int WP_num;
 };
 
 class Route_Manager

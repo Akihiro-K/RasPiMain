@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
 
   for(;;) {
     if (FC_comm.recv_data(FCHandler)){
-      // at 128Hz
+      // at 64Hz
 
       m.lock();
       DispToFC();
