@@ -10,6 +10,38 @@
 using namespace std;
 using json = nlohmann::json;
 
+// =============================================================================
+// Sample WayPoint file (.json):
+
+// {
+//   "Route_1": {
+//     "WP_1": {
+//       "wait_ms": 20000,
+//       "target_longitude": 140.05205,
+//       "target_latitude": 36.16372,
+//       "target_altitude": 5,
+//       "transit_speed": 0.5,
+//       "radius": 5,
+//       "target_heading": 0,
+//       "heading_rate": 0.2,
+//       "heading_range": 0.3
+//     },
+//     "WP_2": {
+//       "wait_ms": 5000,
+//       "target_longitude": 140.05215,
+//       "target_latitude": 36.1641,
+//       "target_altitude": 5,
+//       "transit_speed": 0.5,
+//       "radius": 5,
+//       "target_heading": 0,
+//       "heading_rate": 0.2,
+//       "heading_range": 0.3
+//     }
+//   }
+// }
+
+// =============================================================================
+
 struct WayPoint {
   uint16_t wait_ms; // [ms]
   float target_longitude; // [deg]
@@ -146,14 +178,14 @@ void Route_Manager::ReadFromFile(string filepath)
   ifstream ifs(filepath);
   json j_;
   ifs >> j_;
-  Route_num = j_["Route_num"];
+  Route_num = j_.size();
   if (flag) free();
   p = new Route [Route_num];
   for (int i = 0; i < Route_num; i++) {
     ostringstream oss1;
     oss1 << "Route_" << i + 1;
     string route_name = oss1.str();
-    int wp_num = j_[route_name.c_str()]["WP_num"];
+    int wp_num = j_[route_name.c_str()].size();
     struct WayPoint waypoints[wp_num];
     for (int j = 0; j < wp_num; j++) {
       ostringstream oss2;
@@ -181,7 +213,6 @@ const Route &Route_Manager::operator [](int index) const
 {
   return p[index];
 }
-
 
 int Route_Manager::GetRouteNum()
 {
