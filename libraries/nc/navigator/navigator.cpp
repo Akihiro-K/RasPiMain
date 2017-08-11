@@ -150,7 +150,7 @@ void UpdateNavigation()
       if (wait_start_flag) {
         uint16_t dt = from_fc.timestamp - reached_time;
         if (dt > manager[cur_route_num][cur_wp_num].wait_ms) {
-          if (cur_wp_num+1 != manager[cur_route_num].WP_num) {
+          if (cur_wp_num+1 != manager[cur_route_num].GetWaypointNum()) {
             cur_wp_num++;
           }
           wait_start_flag = 0;

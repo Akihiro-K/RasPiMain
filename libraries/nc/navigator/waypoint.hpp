@@ -26,6 +26,7 @@ class Route
 {
 private:
   struct WayPoint *p;
+  int WP_num;
   int flag;
   float latitude_0;
   float longitude_0;
@@ -39,9 +40,9 @@ public:
   void SetWPs(struct WayPoint *waypoints_, int wp_num_);
   void GetTargetPosition(const int cur_wp_num, float target_position[3]);
   void GetPosition(const float longitude, const float latitude, float *x_position, float *y_position);
+  int GetWaypointNum();
   struct WayPoint &operator [](int index);
   const struct WayPoint &operator [](int index) const;
-  int WP_num;
 };
 
 class Route_Manager
@@ -56,6 +57,7 @@ public:
   Route_Manager(string filepath);
   ~Route_Manager();
   void ReadFromFile(string filepath);
+  int GetRouteNum();
   Route &operator [](int index);
   const Route &operator [](int index) const;
 };
@@ -105,6 +107,11 @@ void Route::GetPosition(const float longitude, const float latitude, float *x_po
 {
   *x_position = (latitude - latitude_0) * lat_to_meters;
   *y_position = (longitude - longitude_0) * lon_to_meters;
+}
+
+int Route::GetWaypointNum()
+{
+  return WP_num;
 }
 
 struct WayPoint &Route::operator [](int index)
@@ -173,6 +180,12 @@ Route &Route_Manager::operator [](int index)
 const Route &Route_Manager::operator [](int index) const
 {
   return p[index];
+}
+
+
+int Route_Manager::GetRouteNum()
+{
+  return Route_num;
 }
 
 #endif // WAYPOINT_H_
