@@ -20,7 +20,7 @@ static Matrix3f P_att = Matrix3f::Zero();
 
 void PositionTimeUpdate()
 {
-  float dt = 1.0/128;
+  float dt = 1.0/64;
 
   MatrixXf A(6,6);
   A << 1,0,0,dt,0,0,
