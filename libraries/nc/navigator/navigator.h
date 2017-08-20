@@ -5,9 +5,15 @@
 
 void ReadWPfromFile(string filepath);
 
-void ReadWPfromDP(struct WayPoint *wps_, int num_);
+void SetCurrentWPfromDP(const uint8_t * wp_ptr);
+
+bool SetRoute(int route_num_);
+
+void GetCurrentWP(uint8_t * src, size_t * len);
 
 void UpdateNavigation();
+
+void UpdateNavigationFromDP();
 
 void UpdateMarkerFlag();
 

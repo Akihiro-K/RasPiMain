@@ -84,8 +84,6 @@ enum NavMode {
   NAV_MODE_HOLD = 1,
   NAV_MODE_AUTO = 2,
   NAV_MODE_HOME = 3,
-  TAKEOFF_TO_AUTO = 4,
-  LAND = 5,
 };
 
 enum NavStatusBits {
@@ -103,6 +101,17 @@ enum FlightCtrlStateBits {
   FC_STATE_BIT_MOTORS_RUNNING = 1<<3,
   FC_STATE_BIT_INITIALIZATION_TOGGLE = 1<<4,
   FC_STATE_BIT_LOST_CONTROL_LINK = 1<<5,
+};
+
+enum DPModeRequest {
+  NCWaypoint = 0,
+  Disarm = 1,
+  Arm = 2,
+  DPHold = 3,
+  DPWaypoint = 4,
+  TakeoffToDPHold = 5,
+  TakeoffToDPWaypoint = 6,
+  Land = 7,
 };
 
 ////////////////////////////////////////////////////////////////////////////////

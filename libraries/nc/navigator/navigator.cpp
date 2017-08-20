@@ -4,6 +4,8 @@
 #define DEFAULT_TRANSIT_SPEED (1)  // m/s
 #define DEFAULT_HEADING (0) // rad
 #define DEFAULT_HEADING_RATE (0.3)  // rad/s
+#define DEFAULT_HOLD_ALTITUDE (1.5) // m
+#define LAND_START_ALTITUDE (0.8) // m
 
 static Route_Manager manager;
 
@@ -14,15 +16,34 @@ static float hold_position[3] = {0, 0, 0};
 static uint16_t reached_time = 0;
 static uint8_t wait_start_flag = 0;
 
+static uint8_t dp_interrupt_flag = 0;
+
 void ReadWPfromFile(string filepath)
 {
   manager.ReadFromFile(filepath.c_str());
 }
 
-void ReadWPfromDP(struct WayPoint *wps_, int num_)
+void SetCurrentWPfromDP(const uint8_t * wp_ptr)
 {
-  // TO DO: read WPs from DP
+  struct WayPoint * struct_ptr = (struct WayPoint *)wp_ptr;
+  manager[cur_route_num][cur_wp_num] = *struct_ptr;
+}
 
+bool SetRoute(int route_num_)
+{
+  if (route_num_ - 1 > manager.GetRouteNum()) {
+    return false;
+  } else {
+    cur_route_num = route_num_ - 1;
+    return true;
+  }
+}
+
+void GetCurrentWP(uint8_t * src, size_t * len)
+{
+  struct WayPoint * struct_ptr = &manager[cur_route_num][cur_wp_num];
+  src = (uint8_t *)struct_ptr;
+  *len = sizeof(manager[cur_route_num][cur_wp_num]);
 }
 
 void UpdateNavigation()
@@ -130,36 +151,38 @@ void UpdateNavigation()
     {
       // Waypoint Switching Algorithm
 
-      float delta_pos, delta_heading, cur_heading;
-      manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
-      delta_pos = sqrt((to_fc.position[0]-to_fc.target_position[0])*
-                       (to_fc.position[0]-to_fc.target_position[0])+
-                       (to_fc.position[1]-to_fc.target_position[1])*
-                       (to_fc.position[1]-to_fc.target_position[1])+
-                       (to_fc.position[2]-to_fc.target_position[2])*
-                       (to_fc.position[2]-to_fc.target_position[2]));
-      cur_heading = 2 * acos(from_fc.quaternion[0]/
-                        sqrt(from_fc.quaternion[0]*from_fc.quaternion[0]+
-                             from_fc.quaternion[3]*from_fc.quaternion[3]));
-      delta_heading = abs(cur_heading-manager[cur_route_num][cur_wp_num].target_heading);
-      if ((delta_pos < manager[cur_route_num][cur_wp_num].radius)&&
-          (delta_heading < manager[cur_route_num][cur_wp_num].heading_range)&&(!wait_start_flag)) {
-        reached_time = from_fc.timestamp;
-        wait_start_flag = 1;
-      }
-      if (wait_start_flag) {
-        uint16_t dt = from_fc.timestamp - reached_time;
-        if (dt > manager[cur_route_num][cur_wp_num].wait_ms) {
-          if (cur_wp_num+1 != manager[cur_route_num].GetWaypointNum()) {
-            cur_wp_num++;
-          }
-          wait_start_flag = 0;
+      if (!dp_interrupt_flag) {
+        float delta_pos, delta_heading, cur_heading;
+        manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
+        delta_pos = sqrt((to_fc.position[0]-to_fc.target_position[0])*
+                        (to_fc.position[0]-to_fc.target_position[0])+
+                        (to_fc.position[1]-to_fc.target_position[1])*
+                        (to_fc.position[1]-to_fc.target_position[1])+
+                        (to_fc.position[2]-to_fc.target_position[2])*
+                        (to_fc.position[2]-to_fc.target_position[2]));
+        cur_heading = 2 * acos(from_fc.quaternion[0]/
+                          sqrt(from_fc.quaternion[0]*from_fc.quaternion[0]+
+                              from_fc.quaternion[3]*from_fc.quaternion[3]));
+        delta_heading = abs(cur_heading-manager[cur_route_num][cur_wp_num].target_heading);
+        if ((delta_pos < manager[cur_route_num][cur_wp_num].radius)&&
+            (delta_heading < manager[cur_route_num][cur_wp_num].heading_range)&&(!wait_start_flag)) {
+          reached_time = from_fc.timestamp;
+          wait_start_flag = 1;
         }
+        if (wait_start_flag) {
+          uint16_t dt = from_fc.timestamp - reached_time;
+          if (dt > manager[cur_route_num][cur_wp_num].wait_ms) {
+            if (cur_wp_num+1 != manager[cur_route_num].GetWaypointNum()) {
+              cur_wp_num++;
+            }
+            wait_start_flag = 0;
+          }
+        }
+        manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
+        to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
+        to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
+        to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
       }
-      manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
-      to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
-      to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
-      to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
       break;
     }
     case NAV_MODE_HOLD:
@@ -181,7 +204,118 @@ void UpdateNavigation()
     {
       break;
     }
+  }
+}
 
+void UpdateNavigationFromDP()
+{
+// =============================================================================
+// From DP request
+  static uint8_t nav_mode_request_from_dp_prev = NCWaypoint;
+  if (nav_mode_ == NAV_MODE_AUTO) {
+    // only when nav mode is AUTO, change target according to the DP request
+    switch (nav_mode_request_from_dp) {
+      case Disarm:
+      {
+        // TO DO
+        break;
+      }
+      case Arm:
+      {
+        // TO Do
+        break;
+      }
+      case DPHold:
+      {
+        if (nav_mode_request_from_dp_prev != DPHold) {
+          for (int i = 0; i < 3; i++) {
+            hold_position[i] = to_fc.position[i];
+          }
+        }
+        for (int i = 0; i < 3; i++) {
+          to_fc.target_position[i] = hold_position[i];
+        }
+        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
+        to_fc.target_heading = DEFAULT_HEADING;
+        to_fc.heading_rate = DEFAULT_HEADING_RATE;
+        nav_mode_request_from_dp_prev = DPHold;
+        dp_interrupt_flag = 1;
+        break;
+      }
+      case DPWaypoint:
+      {
+        // TO DO
+        break;
+      }
+      case TakeoffToDPHold:
+      {
+        if (nav_mode_request_from_dp_prev != TakeoffToDPHold) {
+          for (int i = 0; i < 2; i++) {
+            hold_position[i] = to_fc.position[i];
+          }
+          hold_position[2] = -DEFAULT_HOLD_ALTITUDE;
+        }
+        for (int i = 0; i < 3; i++) {
+          to_fc.target_position[i] = hold_position[i];
+        }
+        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
+        to_fc.target_heading = DEFAULT_HEADING;
+        to_fc.heading_rate = DEFAULT_HEADING_RATE;
+        nav_mode_request_from_dp_prev = TakeoffToDPHold;
+        dp_interrupt_flag = 1;
+        break;
+      }
+      case TakeoffToDPWaypoint:
+      {
+        if (nav_mode_request_from_dp_prev != TakeoffToDPWaypoint) {
+          for (int i = 0; i < 2; i++) {
+            hold_position[i] = to_fc.position[i];
+          }
+          hold_position[2] = -DEFAULT_HOLD_ALTITUDE;
+        }
+        if (to_fc.position[2] > -DEFAULT_HOLD_ALTITUDE) {
+          for (int i = 0; i < 3; i++) {
+            to_fc.target_position[i] = hold_position[i];
+          }
+          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
+          to_fc.target_heading = DEFAULT_HEADING;
+          to_fc.heading_rate = DEFAULT_HEADING_RATE;
+          dp_interrupt_flag = 1;
+        } else {
+          dp_interrupt_flag = 0;
+        }
+        nav_mode_request_from_dp_prev = TakeoffToDPWaypoint;
+        break;
+      }
+      case Land:
+      {
+        if (nav_mode_request_from_dp_prev != Land) {
+          for (int i = 0; i < 2; i++) {
+            hold_position[i] = to_fc.position[i];
+          }
+          hold_position[2] = 1.5; // target is under the ground
+        }
+        if (to_fc.position[2] > -LAND_START_ALTITUDE) {
+          for (int i = 0; i < 3; i++) {
+            to_fc.target_position[i] = hold_position[i];
+          }
+          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED / 5;
+          to_fc.target_heading = DEFAULT_HEADING;
+          to_fc.heading_rate = DEFAULT_HEADING_RATE;
+          dp_interrupt_flag = 1;
+        } else {
+          dp_interrupt_flag = 0;
+        }
+        nav_mode_request_from_dp_prev = TakeoffToDPWaypoint;
+        break;
+      }
+      default: // NCWaypoint
+      {
+        nav_mode_request_from_dp_prev = NCWaypoint;
+        dp_interrupt_flag = 0;
+        break;
+      }
+    }
   }
 }
 

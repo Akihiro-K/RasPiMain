@@ -9,10 +9,12 @@ struct FromFlightCtrl from_fc = {0, 0, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0, 0}, 0}
 struct ForDebug for_debug = {{0,0,0,0}, {0,0,0}, {0,0,0}};
 struct ToDronePort to_dp = {0, 0, 0, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0, 0}};
 
+// TO DO: unify the following flags
 uint8_t marker_flag = 0;
 uint8_t gps_pos_flag = 0;
 uint8_t gps_vel_flag = 0;
 uint8_t lsm_flag = 0;
+
 uint8_t dp_id = 0;
 
 enum NavMode nav_mode_ = NAV_MODE_OFF;

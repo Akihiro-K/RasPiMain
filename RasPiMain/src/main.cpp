@@ -28,11 +28,16 @@ int main(int argc, char const *argv[])
   InitLogging();
   ut_serial FC_comm("/dev/ttyAMA0", 57600);
   std::thread marker_comm(&RecvFromMarker);
+  std::thread dp_comm(&RecvFromDP);
   std::thread gps_comm(&RecvFromGPS);
   //std::thread lsm_comm(&RecvFromLSM);
-  //std::thread dp_comm(&RecvFromDP);
 
   ReadWPfromFile("../input_data/wp.json");
+  if (argc == 2) {
+    if (!SetRoute(atoi(argv[1]))) {
+      return -1; 
+    }
+  }
 
   for(;;) {
     if (FC_comm.recv_data(FCHandler)){
@@ -47,9 +52,9 @@ int main(int argc, char const *argv[])
   }
 
   marker_comm.join();
+  dp_comm.join();
   gps_comm.join();
   //lsm_comm.join();
-  //dp_comm.join();
 
   return 0;
 }
@@ -204,8 +209,33 @@ void RecvFromDP()
   for(;;){
     // at HZ
     if (DP_comm.recv_data(DPHandler)) {
-      if (dp_id == 10) {
-        DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
+      switch (dp_id) {
+        case 10:
+        {
+          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
+          break;
+        }
+        case 11:
+        {
+          m.lock();
+          UpdateNavigationFromDP();
+          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&nav_mode_request_from_dp, sizeof(nav_mode_request_from_dp));
+          m.unlock();
+          break;
+        }
+        case 12:
+        {
+          uint8_t * src;
+          size_t len;
+          GetCurrentWP(src, &len);
+          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 12, src, len);
+          break;
+        }
+        default: // 13
+        {
+          // do nothing
+          break;
+        }
       }
     }
   }
@@ -222,10 +252,9 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
   switch (message_id) {
     case 10:
     {
-      struct ToDronePort to_dp;
       to_dp.nav_mode = to_fc.nav_mode;
       to_dp.nav_status = to_fc.navigation_status;
-      // to_dp.waypoint_status = ;
+      to_dp.waypoint_status = 0; // TO DO: Consider waypoint status
       to_dp.gps_status = from_gps.gps_status;
       for (int i = 0; i < 3; i++) {
         to_dp.position[i] = to_fc.position[i];
@@ -238,17 +267,42 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
     }
     case 11:
     {
-      uint8_t * nav_mode_request_ptr = (uint8_t *)temp;
-      nav_mode_request_from_dp = *nav_mode_request_ptr;
+      uint8_t * payload_ptr = (uint8_t *)temp;
+      if (*payload_ptr++) { // first payload is write data flag
+        nav_mode_request_from_dp = *payload_ptr;
+      }
       break;
     }
     case 12:
     {
-      //ReadWPfromDP(wps, num);
+      uint8_t * payload_ptr = (uint8_t *)temp;
+      if (*payload_ptr++) { // first payload is write data flag
+         uint8_t route_num, num_of_wps, wp_num;
+         route_num = *payload_ptr++;
+         num_of_wps = *payload_ptr++;
+         wp_num = *payload_ptr;
+         SetCurrentWPfromDP(payload_ptr);
+      }
       break;
     }
-    default:
+    default: // 13
     {
+      struct FromMarker * struct_ptr = (struct FromMarker *)temp;
+
+      from_marker.timestamp = struct_ptr->timestamp;
+      from_marker.status = struct_ptr->status;
+
+      for (int i=0;i<3;i++){
+        from_marker.position[i] = struct_ptr->position[i];
+        from_marker.quaternion[i] = struct_ptr->quaternion[i];
+        from_marker.r_var[i] = struct_ptr->r_var[i];
+      }
+
+      UpdateMarkerFlag();
+      AttitudeMeasurementUpdateWithMarker();
+      PositionMeasurementUpdateWithMarker();
+      DispFromMarker();
+      VisionLogging();
       break;
     }
   }
