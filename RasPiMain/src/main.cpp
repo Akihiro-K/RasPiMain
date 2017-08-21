@@ -280,7 +280,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
          uint8_t route_num, num_of_wps, wp_num;
          route_num = *payload_ptr++;
          num_of_wps = *payload_ptr++;
-         wp_num = *payload_ptr;
+         wp_num = *payload_ptr++;
          SetCurrentWPfromDP(payload_ptr);
       }
       break;
