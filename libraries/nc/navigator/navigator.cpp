@@ -16,8 +16,6 @@ static float hold_position[3] = {0, 0, 0};
 static uint16_t reached_time = 0;
 static uint8_t wait_start_flag = 0;
 
-static uint8_t dp_interrupt_flag = 0;
-
 void ReadWPfromFile(string filepath)
 {
   manager.ReadFromFile(filepath.c_str());
@@ -44,6 +42,11 @@ void GetCurrentWP(uint8_t * src, size_t * len)
   struct WayPoint * struct_ptr = &manager[cur_route_num][cur_wp_num];
   src = (uint8_t *)struct_ptr;
   *len = sizeof(manager[cur_route_num][cur_wp_num]);
+}
+
+int GetCurrentWPNum()
+{
+  return cur_wp_num;
 }
 
 void UpdateNavigation()
@@ -151,37 +154,96 @@ void UpdateNavigation()
     {
       // Waypoint Switching Algorithm
 
-      if (!dp_interrupt_flag) {
-        float delta_pos, delta_heading, cur_heading;
-        manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
-        delta_pos = sqrt((to_fc.position[0]-to_fc.target_position[0])*
-                        (to_fc.position[0]-to_fc.target_position[0])+
-                        (to_fc.position[1]-to_fc.target_position[1])*
-                        (to_fc.position[1]-to_fc.target_position[1])+
-                        (to_fc.position[2]-to_fc.target_position[2])*
-                        (to_fc.position[2]-to_fc.target_position[2]));
-        cur_heading = 2 * acos(from_fc.quaternion[0]/
-                          sqrt(from_fc.quaternion[0]*from_fc.quaternion[0]+
-                              from_fc.quaternion[3]*from_fc.quaternion[3]));
-        delta_heading = abs(cur_heading-manager[cur_route_num][cur_wp_num].target_heading);
-        if ((delta_pos < manager[cur_route_num][cur_wp_num].radius)&&
-            (delta_heading < manager[cur_route_num][cur_wp_num].heading_range)&&(!wait_start_flag)) {
-          reached_time = from_fc.timestamp;
-          wait_start_flag = 1;
+      switch (drone_port_mode_) {
+        case Disarm:
+        {
+          // TO DO
+          break;
         }
-        if (wait_start_flag) {
-          uint16_t dt = from_fc.timestamp - reached_time;
-          if (dt > manager[cur_route_num][cur_wp_num].wait_ms) {
-            if (cur_wp_num+1 != manager[cur_route_num].GetWaypointNum()) {
-              cur_wp_num++;
-            }
-            wait_start_flag = 0;
+        case Arm:
+        {
+          // TO Do
+          break;
+        }
+        case DPHold:
+        {
+          for (int i = 0; i < 3; i++) {
+            to_fc.target_position[i] = hold_position[i];
           }
+          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
+          to_fc.target_heading = DEFAULT_HEADING;
+          to_fc.heading_rate = DEFAULT_HEADING_RATE;
+          break;
         }
-        manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
-        to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
-        to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
-        to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
+        case DPWaypoint:
+        {
+          // TO DO
+          break;
+        }
+        case TakeoffToDPHold:
+        {
+          for (int i = 0; i < 3; i++) {
+            to_fc.target_position[i] = hold_position[i];
+          }
+          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
+          to_fc.target_heading = DEFAULT_HEADING;
+          to_fc.heading_rate = DEFAULT_HEADING_RATE;
+          break;
+        }
+        case TakeoffToDPWaypoint:
+        {
+          for (int i = 0; i < 3; i++) {
+            to_fc.target_position[i] = hold_position[i];
+          }
+          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
+          to_fc.target_heading = DEFAULT_HEADING;
+          to_fc.heading_rate = DEFAULT_HEADING_RATE;
+          break;
+        }
+        case Land:
+        {
+          for (int i = 0; i < 3; i++) {
+            to_fc.target_position[i] = hold_position[i];
+          }
+          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED / 5;
+          to_fc.target_heading = DEFAULT_HEADING;
+          to_fc.heading_rate = DEFAULT_HEADING_RATE;
+          break;
+        }
+        default: // NCWaypoint
+        {
+          float delta_pos, delta_heading, cur_heading;
+          manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
+          delta_pos = sqrt((to_fc.position[0]-to_fc.target_position[0])*
+                          (to_fc.position[0]-to_fc.target_position[0])+
+                          (to_fc.position[1]-to_fc.target_position[1])*
+                          (to_fc.position[1]-to_fc.target_position[1])+
+                          (to_fc.position[2]-to_fc.target_position[2])*
+                          (to_fc.position[2]-to_fc.target_position[2]));
+          cur_heading = 2 * acos(from_fc.quaternion[0]/
+                            sqrt(from_fc.quaternion[0]*from_fc.quaternion[0]+
+                                from_fc.quaternion[3]*from_fc.quaternion[3]));
+          delta_heading = abs(cur_heading-manager[cur_route_num][cur_wp_num].target_heading);
+          if ((delta_pos < manager[cur_route_num][cur_wp_num].radius)&&
+              (delta_heading < manager[cur_route_num][cur_wp_num].heading_range)&&(!wait_start_flag)) {
+            reached_time = from_fc.timestamp;
+            wait_start_flag = 1;
+          }
+          if (wait_start_flag) {
+            uint16_t dt = from_fc.timestamp - reached_time;
+            if (dt > manager[cur_route_num][cur_wp_num].wait_ms) {
+              if (cur_wp_num+1 != manager[cur_route_num].GetWaypointNum()) {
+                cur_wp_num++;
+              }
+              wait_start_flag = 0;
+            }
+          }
+          manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
+          to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
+          to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
+          to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
+          break;
+        }
       }
       break;
     }
@@ -232,14 +294,7 @@ void UpdateNavigationFromDP()
             hold_position[i] = to_fc.position[i];
           }
         }
-        for (int i = 0; i < 3; i++) {
-          to_fc.target_position[i] = hold_position[i];
-        }
-        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
-        to_fc.target_heading = DEFAULT_HEADING;
-        to_fc.heading_rate = DEFAULT_HEADING_RATE;
-        nav_mode_request_from_dp_prev = DPHold;
-        dp_interrupt_flag = 1;
+        drone_port_mode_ = DPHold;
         break;
       }
       case DPWaypoint:
@@ -255,14 +310,14 @@ void UpdateNavigationFromDP()
           }
           hold_position[2] = -DEFAULT_HOLD_ALTITUDE;
         }
-        for (int i = 0; i < 3; i++) {
-          to_fc.target_position[i] = hold_position[i];
-        }
-        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
-        to_fc.target_heading = DEFAULT_HEADING;
-        to_fc.heading_rate = DEFAULT_HEADING_RATE;
         nav_mode_request_from_dp_prev = TakeoffToDPHold;
-        dp_interrupt_flag = 1;
+        if (to_fc.position[2] > -DEFAULT_HOLD_ALTITUDE) {
+          drone_port_mode_ = TakeoffToDPHold;
+        } else {
+          // when take-off completes
+          // drone_port_mode_ automatically switches to DPHold
+          drone_port_mode_ = DPHold;
+        }
         break;
       }
       case TakeoffToDPWaypoint:
@@ -274,15 +329,11 @@ void UpdateNavigationFromDP()
           hold_position[2] = -DEFAULT_HOLD_ALTITUDE;
         }
         if (to_fc.position[2] > -DEFAULT_HOLD_ALTITUDE) {
-          for (int i = 0; i < 3; i++) {
-            to_fc.target_position[i] = hold_position[i];
-          }
-          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
-          to_fc.target_heading = DEFAULT_HEADING;
-          to_fc.heading_rate = DEFAULT_HEADING_RATE;
-          dp_interrupt_flag = 1;
+          drone_port_mode_ = TakeoffToDPHold;
         } else {
-          dp_interrupt_flag = 0;
+          // when take-off completes
+          // drone_port_mode_ automatically switches to NCWaypoint
+          drone_port_mode_ = NCWaypoint;
         }
         nav_mode_request_from_dp_prev = TakeoffToDPWaypoint;
         break;
@@ -296,23 +347,17 @@ void UpdateNavigationFromDP()
           hold_position[2] = 1.5; // target is under the ground
         }
         if (to_fc.position[2] > -LAND_START_ALTITUDE) {
-          for (int i = 0; i < 3; i++) {
-            to_fc.target_position[i] = hold_position[i];
-          }
-          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED / 5;
-          to_fc.target_heading = DEFAULT_HEADING;
-          to_fc.heading_rate = DEFAULT_HEADING_RATE;
-          dp_interrupt_flag = 1;
+          drone_port_mode_ = Land;
         } else {
-          dp_interrupt_flag = 0;
+          drone_port_mode_ = NCWaypoint;
         }
-        nav_mode_request_from_dp_prev = TakeoffToDPWaypoint;
+        nav_mode_request_from_dp_prev = Land;
         break;
       }
       default: // NCWaypoint
       {
         nav_mode_request_from_dp_prev = NCWaypoint;
-        dp_interrupt_flag = 0;
+        drone_port_mode_ = NCWaypoint;
         break;
       }
     }

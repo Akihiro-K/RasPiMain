@@ -31,9 +31,9 @@ struct FromLSM {
 
 struct ToDronePort {
   uint8_t nav_mode;
+  uint8_t drone_port_mode;
   uint8_t nav_status;
   uint8_t waypoint_status;
-  uint8_t gps_status;
   float position[3];
   float velocity[3];
   float quaternion[4];
@@ -131,7 +131,8 @@ extern uint8_t lsm_flag;
 extern uint8_t dp_id;
 
 extern enum NavMode nav_mode_;
-extern uint8_t nav_mode_request_from_dp;
+extern uint8_t nav_mode_request_from_dp; // buffer for dp comm
+extern uint8_t drone_port_mode_; // actual state in response to dp request
 
 extern float gps_position_x;
 extern float gps_position_y;

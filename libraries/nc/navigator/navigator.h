@@ -11,6 +11,8 @@ bool SetRoute(int route_num_);
 
 void GetCurrentWP(uint8_t * src, size_t * len);
 
+int GetCurrentWPNum();
+
 void UpdateNavigation();
 
 void UpdateNavigationFromDP();
