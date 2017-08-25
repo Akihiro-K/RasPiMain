@@ -17,8 +17,8 @@ using json = nlohmann::json;
 //   "Route_1": {
 //     "WP_1": {
 //       "wait_ms": 20000,
-//       "target_longitude": 140.05205,
-//       "target_latitude": 36.16372,
+//       "target_longitude": 140052050,
+//       "target_latitude": 36163720,
 //       "target_altitude": 5,
 //       "transit_speed": 0.5,
 //       "radius": 5,
@@ -28,8 +28,8 @@ using json = nlohmann::json;
 //     },
 //     "WP_2": {
 //       "wait_ms": 5000,
-//       "target_longitude": 140.05215,
-//       "target_latitude": 36.1641,
+//       "target_longitude": 140052150,
+//       "target_latitude": 36164100
 //       "target_altitude": 5,
 //       "transit_speed": 0.5,
 //       "radius": 5,
@@ -44,8 +44,8 @@ using json = nlohmann::json;
 
 struct WayPoint {
   uint16_t wait_ms; // [ms]
-  float target_longitude; // [deg]
-  float target_latitude; // [deg]
+  int32_t target_longitude; // [10^-6 deg]
+  int32_t target_latitude; // [10^-6 deg]
   float target_altitude; // [m]
   float transit_speed; // [m/s]
   float radius; // [m]
@@ -60,8 +60,8 @@ private:
   struct WayPoint *p;
   int WP_num;
   int flag;
-  float latitude_0;
-  float longitude_0;
+  int32_t latitude_0; // [10^-6 deg]
+  int32_t longitude_0; // [10^-6 deg]
   float lat_to_meters;
   float lon_to_meters;
   void free();
@@ -71,7 +71,7 @@ public:
   ~Route();
   void SetWPs(struct WayPoint *waypoints_, int wp_num_);
   void GetTargetPosition(const int cur_wp_num, float target_position[3]);
-  void GetPosition(const float longitude, const float latitude, float *x_position, float *y_position);
+  void GetPosition(const int32_t longitude, const int32_t latitude, float *x_position, float *y_position);
   int GetWaypointNum();
   struct WayPoint &operator [](int index);
   const struct WayPoint &operator [](int index) const;
@@ -133,15 +133,15 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
 void Route::GetTargetPosition(const int cur_wp_num, float target_position[3])
 {
   // NED coordinates
-  target_position[0] = (p[cur_wp_num].target_latitude - latitude_0) * lat_to_meters;
-  target_position[1] = (p[cur_wp_num].target_longitude - longitude_0) * lon_to_meters;
+  target_position[0] = ((float)(p[cur_wp_num].target_latitude - latitude_0)) * lat_to_meters;
+  target_position[1] = ((float)(p[cur_wp_num].target_longitude - longitude_0)) * lon_to_meters;
   target_position[2] = -p[cur_wp_num].target_altitude;
 }
 
-void Route::GetPosition(const float longitude, const float latitude, float *x_position, float *y_position)
+void Route::GetPosition(const int32_t longitude, const int32_t latitude, float *x_position, float *y_position)
 {
-  *x_position = (latitude - latitude_0) * lat_to_meters;
-  *y_position = (longitude - longitude_0) * lon_to_meters;
+  *x_position = ((float)(latitude - latitude_0))/1000000.0f * lat_to_meters;
+  *y_position = ((float)(longitude - longitude_0))/1000000.0f * lon_to_meters;
 }
 
 int Route::GetWaypointNum()

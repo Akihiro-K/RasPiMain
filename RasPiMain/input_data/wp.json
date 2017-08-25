@@ -2,8 +2,8 @@
   "Route_1": {
     "WP_1": {
       "wait_ms": 20000,
-      "target_longitude": 140.05205,
-      "target_latitude": 36.16372,
+      "target_longitude": 140052050,
+      "target_latitude": 36163720,
       "target_altitude": 5,
       "transit_speed": 0.5,
       "radius": 5,
@@ -13,8 +13,8 @@
     },
     "WP_2": {
       "wait_ms": 5000,
-      "target_longitude": 140.05215,
-      "target_latitude": 36.1641,
+      "target_longitude": 140052150,
+      "target_latitude": 36164100,
       "target_altitude": 5,
       "transit_speed": 0.5,
       "radius": 5,
