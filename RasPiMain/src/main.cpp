@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
   ReadWPfromFile("../input_data/wp.json");
   if (argc == 2) {
     if (!SetRoute(atoi(argv[1]))) {
-      return -1; 
+      return -1;
     }
   }
 
@@ -96,7 +96,7 @@ void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
   ToFCLogging();
   PositionTimeUpdate();
   AttitudeTimeUpdate();
-  // PositionMeasurementUpdateWithBar();
+  PositionMeasurementUpdateWithBar();
   UpdateNavigation();
   m.unlock();
 }

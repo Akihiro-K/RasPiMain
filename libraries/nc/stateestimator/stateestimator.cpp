@@ -165,7 +165,8 @@ void PositionMeasurementUpdateWithGPSVel()
 void PositionMeasurementUpdateWithBar()
 {
   VectorXf z(1);
-  z << from_fc.pressure_alt;
+  // pressure_alt: upward positive, z: downward positive
+  z << -from_fc.pressure_alt;
   MatrixXf H(1,6);
   H << 0, 0, 1, 0, 0, 0;
 
