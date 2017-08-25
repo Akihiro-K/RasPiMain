@@ -122,8 +122,8 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
   //lon_to_meters = 111412.84*cos(latitude_0*M_PI/180) - 93.5*cos(3*latitude_0*M_PI/180);
   //lat_to_meters = 111132.92 - 559.82*cos(2*latitude_0*M_PI/180);
   double Phi = latitude_0 * M_PI/180;
-  lat_to_meters = 111132.954 - 559.822*cos(2*Phi) + 1.175*cos(4*Phi) - 0.0023 cos(6*Phi);
-  lon_to_meters = 111412.84 *cos(Phi) - 93.5 cos(3 * Phi) + 0.118 * cos(5 * Phi);
+  lat_to_meters = 111132.954 - 559.822 * cos(2*Phi) + 1.175 * cos(4*Phi) - 0.0023 * cos(6*Phi);
+  lon_to_meters = 111412.84 * cos(Phi) - 93.5 * cos(3 * Phi) + 0.118 * cos(5 * Phi);
   for (int i = 0; i < WP_num; i++) {
     p[i] = waypoints_[i];
   }
