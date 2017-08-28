@@ -94,6 +94,7 @@ void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
   DispFromFC();
   FCLogging();
   ToFCLogging();
+  FromFCLogging();
   PositionTimeUpdate();
   AttitudeTimeUpdate();
   PositionMeasurementUpdateWithBar();

@@ -9,6 +9,8 @@ void FCLogging();
 
 void ToFCLogging();
 
+void FromFCLogging();
+
 void VisionLogging();
 
 void GPSLogging();
