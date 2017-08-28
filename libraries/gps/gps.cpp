@@ -106,14 +106,12 @@ void GPS::ProcessGPGGA(char* message){
   gpgga.gps_time = h*3600+m*60+s;
 
   // latitude and longitude
-  float latitude = atof(latitude_);
-  latitude = floor(latitude/100) + (latitude-100*floor(latitude/100))/60;
+  int32_t latitude = int32_t(convert_latlon(latitude_));
   if(ns_[0]=='S'){
     latitude *= -1;
   }
   gpgga.latitude = latitude;
-  float longitude = atof(longitude_);
-  longitude = floor(longitude/100) + (longitude-100*floor(longitude/100))/60;
+  int32_t longitude = int32_t(convert_latlon(longitude_));
   if(ew_[0]=='W'){
     longitude *= -1;
   }
@@ -180,10 +178,10 @@ void GPS::ProcessPayload(){
     }
   }
   if(flags.new_gprmc_available){
-    float speed = gprmc.speed * 0.51444; // m/s
-    float course = gprmc.true_course * M_PI / 180; // rad
+    float speed = gprmc.speed * 0.51444; // knots to m/s
+    float course = gprmc.true_course * M_PI / 180; // degrees to rad
     payload.velocity[0] = cos(course)*speed; // north
-    payload.velocity[1] = -sin(course)*speed; // east
+    payload.velocity[1] = sin(course)*speed; // east
     payload.velocity[2] = 0;
     if(gprmc.status=='A'){
       payload.gps_status |= VelocityOK;
@@ -274,4 +272,29 @@ void GPS::Log(){
   fout << payload.longitude << "," << payload.latitude << "," << payload.z << ",";
   fout << payload.velocity[0] << "," << payload.velocity[1] << "," << payload.velocity[2] << ",";
   fout << payload.gps_status << endl;
+}
+
+uint32_t GPS::convert_latlon(char* buf){
+  // converts "ddmm.mmmm" to uint32_t
+  char temp[20];
+  uint8_t j = 0;
+  uint32_t return_val;
+  uint32_t deg;
+  uint32_t min;
+  for(int i = 0; i < 20; i++){
+    if(i>=20) break;
+    char c = buf[i];
+    if(c == '\0'){
+      break;
+    }
+    if(c!='.'){
+      temp[j++] = c;
+    }
+  }
+  temp[j]='\0';
+  deg = atol(temp)/1000000;
+  min = atol(temp)-deg*1000000;
+  return_val = deg*1000000+long(float(min)/60.0f*100.0f);
+  cout <<  return_val << endl;
+  return return_val; // [10^-6 deg]
 }
