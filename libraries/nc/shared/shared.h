@@ -17,8 +17,8 @@ struct FromMarker {
 } __attribute__((packed));
 
 struct FromGPS {
-  int32_t longitude; // [degrees]
-  int32_t latitude; // [degrees]
+  int32_t longitude; // [10^-6 deg]
+  int32_t latitude; // [10^-6 deg]
   float z; // height above sea level [m], downward positive
   float velocity[3]; // [m/s]
   uint8_t gps_status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
@@ -133,7 +133,7 @@ extern uint8_t dp_id;
 extern enum NavMode nav_mode_;
 extern uint8_t nav_mode_request_from_dp;
 
-extern float gps_position_x;
-extern float gps_position_y;
+extern float gps_position_x; // in meters relative to first waypoint in route
+extern float gps_position_y; // in meters relative to first waypoint in route
 
 #endif

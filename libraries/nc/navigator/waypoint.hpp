@@ -62,8 +62,8 @@ private:
   int flag;
   int32_t latitude_0; // [10^-6 deg]
   int32_t longitude_0; // [10^-6 deg]
-  float lat_to_meters;
-  float lon_to_meters;
+  float meter_per_microdeg_lat;
+  float meter_per_microdeg_lon;
   void free();
 public:
   Route() : flag(0) {};
@@ -119,11 +119,9 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
   // Conversion from deg to meter
   longitude_0 = waypoints_[0].target_longitude;
   latitude_0 = waypoints_[0].target_latitude;
-  //lon_to_meters = 111412.84*cos(latitude_0*M_PI/180) - 93.5*cos(3*latitude_0*M_PI/180);
-  //lat_to_meters = 111132.92 - 559.82*cos(2*latitude_0*M_PI/180);
   double Phi = latitude_0 * M_PI/180;
-  lat_to_meters = 111132.954 - 559.822 * cos(2*Phi) + 1.175 * cos(4*Phi) - 0.0023 * cos(6*Phi);
-  lon_to_meters = 111412.84 * cos(Phi) - 93.5 * cos(3 * Phi) + 0.118 * cos(5 * Phi);
+  meter_per_microdeg_lat = 0.111132954 - 0.000559822 * cos(2*Phi) + 0.000001175 * cos(4*Phi) - 0.0000000023 * cos(6*Phi);
+  meter_per_microdeg_lon = 0.11141284 * cos(Phi) - 0.0000935 * cos(3 * Phi) + 0.000000118 * cos(5 * Phi);
   for (int i = 0; i < WP_num; i++) {
     p[i] = waypoints_[i];
   }
@@ -133,15 +131,15 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
 void Route::GetTargetPosition(const int cur_wp_num, float target_position[3])
 {
   // NED coordinates
-  target_position[0] = ((float)(p[cur_wp_num].target_latitude - latitude_0)) * lat_to_meters;
-  target_position[1] = ((float)(p[cur_wp_num].target_longitude - longitude_0)) * lon_to_meters;
+  target_position[0] = float(p[cur_wp_num].target_latitude - latitude_0) * meter_per_microdeg_lat;
+  target_position[1] = float(p[cur_wp_num].target_longitude - longitude_0) * meter_per_microdeg_lon;
   target_position[2] = -p[cur_wp_num].target_altitude;
 }
 
 void Route::GetPosition(const int32_t longitude, const int32_t latitude, float *x_position, float *y_position)
 {
-  *x_position = ((float)(latitude - latitude_0))/1000000.0f * lat_to_meters;
-  *y_position = ((float)(longitude - longitude_0))/1000000.0f * lon_to_meters;
+  *x_position = float(latitude - latitude_0) * meter_per_microdeg_lat;
+  *y_position = float(longitude - longitude_0) * meter_per_microdeg_lon;
 }
 
 int Route::GetWaypointNum()

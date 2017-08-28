@@ -143,7 +143,7 @@ void RecvFromGPS()
   c.start_connect("127.0.0.1" , 8000);
 
   for(;;){
-    // at 5HZ
+    // at 1HZ
     c.recv_data(GPSHandler);
   }
 }
