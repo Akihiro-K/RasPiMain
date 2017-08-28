@@ -51,23 +51,12 @@ void FromFCLogging()
 {
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
-  fout2 << timestamp << ",";
-  fout2 << unsigned(from_fc.timestamp) << "," << unsigned(from_fc.nav_mode_request) << "," << unsigned(from_fc.flightctrl_state) << ",";
-  fout2 << from_fc.accelerometer[0] << "," << from_fc.accelerometer[1] << "," << from_fc.accelerometer[2] << ",";
-  fout2 << from_fc.gyro[0] << "," << from_fc.gyro[1] << "," << from_fc.gyro[2] <<",";
-  fout2 << from_fc.quaternion[0] << "," << from_fc.quaternion[1] << "," << from_fc.quaternion[2] << "," << from_fc.quaternion[3] <<",";
-  fout2 << from_fc.pressure_alt << endl;
-
-  //struct FromFlightCtrl {
-  //  uint16_t timestamp;
-  //  uint8_t nav_mode_request;
-  //  uint8_t flightctrl_state;
-  //  float accelerometer[3];
-  //  float gyro[3];
-  //  // float g_b_cmd[2];
-  //  float quaternion[4];
-  //  float pressure_alt;
-  //} __attribute__((packed));
+  fout << 99 << "," << timestamp << ",";
+  fout << unsigned(from_fc.timestamp) << "," << unsigned(from_fc.nav_mode_request) << "," << unsigned(from_fc.flightctrl_state) << ",";
+  fout << from_fc.accelerometer[0] << "," << from_fc.accelerometer[1] << "," << from_fc.accelerometer[2] << ",";
+  fout << from_fc.gyro[0] << "," << from_fc.gyro[1] << "," << from_fc.gyro[2] <<",";
+  fout << from_fc.quaternion[0] << "," << from_fc.quaternion[1] << "," << from_fc.quaternion[2] << "," << from_fc.quaternion[3] <<",";
+  fout << from_fc.pressure_alt << endl;
 }
 
 void VisionLogging()
