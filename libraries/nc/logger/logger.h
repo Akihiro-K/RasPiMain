@@ -5,8 +5,6 @@
 
 void InitLogging();
 
-void FCLogging();
-
 void ToFCLogging();
 
 void FromFCLogging();
@@ -16,5 +14,11 @@ void VisionLogging();
 void GPSLogging();
 
 void LSMLogging();
+
+void FromDPSetDronePortModeLogging();
+
+void ToDPSetDronePortModeLogging();
+
+void ToFCLogging2(); // This will be removed in the future
 
 #endif

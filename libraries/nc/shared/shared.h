@@ -82,11 +82,14 @@ struct ToDPSetDronePortMode {
 
 ////////////////////////////////////////////////////////////////////////////////
 enum Sensor {
-  Vision = 0,
-  FC = 1,
-  GPS = 2,
-  LSM = 3,
-  FCDebug = 4,
+  LogIDVision = 0,
+  LogIDToFC = 1,
+  LogIDGPS = 2,
+  LogIDLSM = 3,
+  LogIDFCDebug = 4,
+  LogIDFromFC = 5,
+  LogIDFromDPSetDronePortMode = 6,
+  LogIDToDPSetDronePortMode = 7,
 };
 
 enum NavMode {

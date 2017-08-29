@@ -93,8 +93,8 @@ void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
   // TO DO: consider order of functions
 
   DispFromFC();
-  FCLogging();
   ToFCLogging();
+  ToFCLogging2(); // This will be removed in the future
   FromFCLogging();
   PositionTimeUpdate();
   AttitudeTimeUpdate();
@@ -239,6 +239,7 @@ void RecvFromDP()
           to_dp_set_dp_mode.drone_port_mode = drone_port_mode;
           to_dp_set_dp_mode.drone_port_status = drone_port_status;
           DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&to_dp_set_dp_mode, sizeof(to_dp_set_dp_mode));
+          ToDPSetDronePortModeLogging();
           m.unlock();
           break;
         }
@@ -282,6 +283,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
       from_dp_set_dp_mode.read_write = struct_ptr->read_write;
       from_dp_set_dp_mode.drone_port_mode_request = struct_ptr->drone_port_mode_request;
       drone_port_mode_request = from_dp_set_dp_mode.drone_port_mode_request;
+      FromDPSetDronePortModeLogging();
       break;
     }
     case 12:
