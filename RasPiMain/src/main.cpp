@@ -210,6 +210,7 @@ void RecvFromDP()
 
   for(;;){
     // at 2 HZ
+    m.lock();
     to_dp.nav_mode = to_fc.nav_mode;
     to_dp.drone_port_mode = drone_port_mode;
     to_dp.nav_status = to_fc.navigation_status;
@@ -221,6 +222,7 @@ void RecvFromDP()
     for (int i = 0; i < 4; i++) {
       to_dp.quaternion[i] = from_fc.quaternion[i];
     }
+    m.unlock();
     DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
 
     if (DP_comm.recv_data(DPHandler)) {
@@ -233,8 +235,10 @@ void RecvFromDP()
         case 11:
         {
           m.lock();
-          UpdateNavigationFromDP();
-          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&drone_port_mode, sizeof(drone_port_mode));
+          SetDronePortMode();
+          set_dp_mode_resp.drone_port_mode = drone_port_mode;
+          set_dp_mode_resp.drone_port_status = drone_port_status;
+          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&set_dp_mode_resp, sizeof(set_dp_mode_resp));
           m.unlock();
           break;
         }

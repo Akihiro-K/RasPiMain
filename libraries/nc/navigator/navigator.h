@@ -17,7 +17,7 @@ int GetCurrentRouteNum();
 
 void UpdateNavigation();
 
-void UpdateNavigationFromDP();
+void SetDronePortMode();
 
 void UpdateMarkerFlag();
 

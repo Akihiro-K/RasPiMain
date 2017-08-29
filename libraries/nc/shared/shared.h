@@ -70,6 +70,11 @@ struct ForDebug{
   float gyro[3];
 }__attribute__((packed));
 
+struct SetDronePortModeResponse {
+  uint8_t drone_port_mode;
+  uint8_t drone_port_status;
+} __attribute__((packed));
+
 ////////////////////////////////////////////////////////////////////////////////
 enum Sensor {
   Vision = 0,
@@ -113,6 +118,11 @@ enum DPModeRequest {
   Land = 6,
 };
 
+enum DPModeStatus {
+  // TODO: refine drone port status
+  DronePortStatusOK = 0,
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 extern struct FromMarker from_marker;
 extern struct FromGPS from_gps;
@@ -122,6 +132,7 @@ extern struct ToFlightCtrl to_fc;
 extern struct FromFlightCtrl from_fc;
 extern struct ForDebug for_debug;
 extern struct ToDronePort to_dp;
+extern struct SetDronePortModeResponse set_dp_mode_resp;
 
 extern uint8_t marker_flag;
 extern uint8_t gps_pos_flag;
@@ -132,6 +143,7 @@ extern uint8_t dp_id;
 extern enum NavMode nav_mode_;
 extern uint8_t drone_port_mode_request; // buffer for dp comm
 extern uint8_t drone_port_mode; // actual state in response to dp request
+extern uint8_t drone_port_status;
 
 extern float gps_position_x; // in meters relative to first waypoint in route
 extern float gps_position_y; // in meters relative to first waypoint in route

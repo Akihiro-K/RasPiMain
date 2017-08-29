@@ -266,7 +266,7 @@ void UpdateNavigation()
   }
 }
 
-void UpdateNavigationFromDP()
+void SetDronePortMode()
 {
 // =============================================================================
 // From DP request
@@ -291,6 +291,7 @@ void UpdateNavigationFromDP()
             hold_position[i] = to_fc.position[i];
           }
         }
+        drone_port_mode_request_prev = DPHold;
         drone_port_mode = DPHold;
         break;
       }
@@ -307,14 +308,8 @@ void UpdateNavigationFromDP()
           }
           hold_position[2] = -DEFAULT_HOLD_ALTITUDE;
         }
+        drone_port_mode = Takeoff;
         drone_port_mode_request_prev = Takeoff;
-        if (to_fc.position[2] > -DEFAULT_HOLD_ALTITUDE) {
-          drone_port_mode = Takeoff;
-        } else {
-          // when take-off completes
-          // drone_port_mode automatically switches to DPHold
-          drone_port_mode = DPHold;
-        }
         break;
       }
       case Land:
@@ -325,18 +320,14 @@ void UpdateNavigationFromDP()
           }
           hold_position[2] = 1.5; // target is under the ground
         }
-        if (to_fc.position[2] > -LAND_START_ALTITUDE) {
-          drone_port_mode = Land;
-        } else {
-          drone_port_mode = NCWaypoint;
-        }
+        drone_port_mode = Land;
         drone_port_mode_request_prev = Land;
         break;
       }
       default: // NCWaypoint
       {
-        drone_port_mode_request_prev = NCWaypoint;
         drone_port_mode = NCWaypoint;
+        drone_port_mode_request_prev = NCWaypoint;
         break;
       }
     }
