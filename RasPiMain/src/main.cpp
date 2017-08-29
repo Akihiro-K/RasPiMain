@@ -6,7 +6,20 @@
 #include <mutex>
 #include <unistd.h> // usleep
 
-#define UT_SERIAL_COMPONENT_ID_RASPI (2)
+#define UT_SERIAL_COMPONENT_ID_RASPI (2) // TODO: remove this in the future
+#define SERIAL_BAUDRATE_FC (57600)
+#define SERIAL_BAUDRATE_DP (57600)
+#define TCP_PORT_MARKER (8080)
+#define TCP_PORT_GPS (8000)
+#define TCP_PORT_LSM (80)
+#define ENABLE_DISP_FROM_FC (1)
+#define ENABLE_DISP_TO_FC (1)
+#define ENABLE_DISP_FROM_MARKER (1)
+#define ENABLE_DISP_FROM_GPS (1)
+const char SERIAL_PORT_FC[] = "/dev/ttyAMA0";
+const char SERIAL_PORT_DP[] = "/dev/ttyUSB1";
+const char WAYPOINT_FILENAME[] = "../input_data/wp.json";
+const char TCP_ADDRESS[] = "127.0.0.1"; // common for all server/client
 
 std::mutex m; // for lock
 
@@ -27,13 +40,13 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
 int main(int argc, char const *argv[])
 {
   InitLogging();
-  ut_serial FC_comm("/dev/ttyAMA0", 57600);
+  ut_serial FC_comm(SERIAL_PORT_FC, SERIAL_BAUDRATE_FC);
   std::thread marker_comm(&RecvFromMarker);
   std::thread dp_comm(&RecvFromDP);
   std::thread gps_comm(&RecvFromGPS);
   //std::thread lsm_comm(&RecvFromLSM);
 
-  ReadWPfromFile("../input_data/wp.json");
+  ReadWPfromFile(WAYPOINT_FILENAME);
   if (argc == 2) {
     if (!SetRoute(atoi(argv[1]))) {
       return -1;
@@ -45,7 +58,7 @@ int main(int argc, char const *argv[])
       // at 64Hz
 
       m.lock();
-      DispToFC();
+      if(ENABLE_DISP_TO_FC) DispToFC();
       FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
       ResetHeadingCorrectionQuat();
       m.unlock();
@@ -92,7 +105,7 @@ void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
 
   // TO DO: consider order of functions
 
-  DispFromFC();
+  if(ENABLE_DISP_FROM_FC) DispFromFC();
   ToFCLogging();
   ToFCLogging2(); // This will be removed in the future
   FromFCLogging();
@@ -106,11 +119,16 @@ void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
 void RecvFromMarker()
 {
   tcp_client c;
-  c.start_connect("127.0.0.1" , 8080);
+  c.start_connect(TCP_ADDRESS , TCP_PORT_MARKER);
 
   for(;;){
     // at 10 ~ 15HZ
-    c.recv_data(MarkerHandler);
+    if(c.recv_data(MarkerHandler)){
+      usleep(5000); // wait 5 ms
+    }else{
+      cout << "Connection with marker failed." << endl;
+      usleep(1000000);
+    }
   }
 }
 
@@ -133,7 +151,7 @@ void MarkerHandler(const char * src, size_t len)
   UpdateMarkerFlag();
   AttitudeMeasurementUpdateWithMarker();
   PositionMeasurementUpdateWithMarker();
-  DispFromMarker();
+  if(ENABLE_DISP_FROM_MARKER) DispFromMarker();
   VisionLogging();
   m.unlock();
 }
@@ -141,11 +159,16 @@ void MarkerHandler(const char * src, size_t len)
 void RecvFromGPS()
 {
   tcp_client c;
-  c.start_connect("127.0.0.1" , 8000);
+  c.start_connect(TCP_ADDRESS , TCP_PORT_GPS);
 
   for(;;){
     // at 1HZ
-    c.recv_data(GPSHandler);
+    if(c.recv_data(GPSHandler)){
+      usleep(5000); // wait 5 ms
+    }else{
+      cout << "Connection with GPS failed." << endl;
+      usleep(1000000);
+    }
   }
 }
 
@@ -169,7 +192,7 @@ void GPSHandler(const char * src, size_t len)
   // AttitudeMeasurementUpdateWithGPSVel();
   PositionMeasurementUpdateWithGPSPos();
   PositionMeasurementUpdateWithGPSVel();
-  DispFromGPS();
+  if(ENABLE_DISP_FROM_GPS) DispFromGPS();
   GPSLogging();
   m.unlock();
 }
@@ -177,11 +200,11 @@ void GPSHandler(const char * src, size_t len)
 void RecvFromLSM()
 {
   tcp_client c;
-  c.start_connect("127.0.0.1" , 80);
+  c.start_connect(TCP_ADDRESS , TCP_PORT_LSM);
 
   for(;;){
-    // at HZ
-    c.recv_data(LSMHandler);
+    c.recv_data(LSMHandler); // at HZ
+    usleep(5000); // wait 5 ms
   }
 }
 
@@ -206,7 +229,7 @@ void LSMHandler(const char * src, size_t len)
 
 void RecvFromDP()
 {
-  ut_serial DP_comm("/dev/ttyUSB1", 57600);
+  ut_serial DP_comm(SERIAL_PORT_DP, SERIAL_BAUDRATE_DP);
 
   for(;;){
     // at 2 HZ
@@ -314,7 +337,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
       //UpdateMarkerFlag();
       //AttitudeMeasurementUpdateWithMarker();
       //PositionMeasurementUpdateWithMarker();
-      //DispFromMarker();
+      //if(ENABLE_DISP_FROM_MARKER) DispFromMarker();
       //VisionLogging();
       //break;
     }
