@@ -33,10 +33,11 @@ void SetCurrentWPfromDP(const uint8_t * wp_ptr)
 
 bool SetRoute(int route_num_)
 {
-  if (route_num_ - 1 > manager.GetNRoutes()) {
+  if (route_num_ + 1 > manager.GetNRoutes()) {
+    // invalid route number
     return false;
   } else {
-    cur_route_num = route_num_ - 1;
+    cur_route_num = route_num_;
     return true;
   }
 }
@@ -204,7 +205,7 @@ void UpdateNavigation()
           for (int i = 0; i < 3; i++) {
             to_fc.target_position[i] = hold_position[i];
           }
-          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED / 5;
+          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED / 5.0f;
           to_fc.target_heading = DEFAULT_HEADING;
           to_fc.heading_rate = DEFAULT_HEADING_RATE;
           break;
@@ -231,7 +232,8 @@ void UpdateNavigation()
           if (wait_start_flag) {
             uint16_t dt = from_fc.timestamp - reached_time;
             if (dt > manager[cur_route_num][cur_wp_num].wait_ms) {
-              if (cur_wp_num+1 != manager[cur_route_num].GetNWaypoints()) {
+              uint8_t isLastWaypoint = (cur_wp_num == manager[cur_route_num].GetNWaypoints() - 1);
+              if (!isLastWaypoint) {
                 cur_wp_num++;
               }
               wait_start_flag = 0;
@@ -287,7 +289,7 @@ void UpdateNavigation()
     }
     case DPWaypoint:
     {
-      uint8_t isLastWaypoint = (cur_wp_num+1 == manager[cur_route_num].GetNWaypoints());
+      uint8_t isLastWaypoint = (cur_wp_num == manager[cur_route_num].GetNWaypoints() - 1);
       float delta = sqrt((to_fc.position[0]-to_fc.target_position[0])*
                       (to_fc.position[0]-to_fc.target_position[0])+
                       (to_fc.position[1]-to_fc.target_position[1])*

@@ -214,7 +214,7 @@ void RecvFromDP()
     to_dp.nav_mode = to_fc.nav_mode;
     to_dp.drone_port_mode = drone_port_mode;
     to_dp.nav_status = to_fc.navigation_status;
-    to_dp.waypoint_status = GetCurrentWPNum();
+    to_dp.drone_port_status = drone_port_status;
     for (int i = 0; i < 3; i++) {
       to_dp.position[i] = to_fc.position[i];
       to_dp.velocity[i] = to_fc.velocity[i];

@@ -1,6 +1,6 @@
 {
-  "Route_1": {
-    "WP_1": {
+  "Route_0": {
+    "WP_0": {
       "wait_ms": 20000,
       "target_longitude": 140052050,
       "target_latitude": 36163720,
@@ -11,7 +11,7 @@
       "heading_rate": 0.2,
       "heading_range": 0.3
     },
-    "WP_2": {
+    "WP_1": {
       "wait_ms": 5000,
       "target_longitude": 140052150,
       "target_latitude": 36164100,

@@ -14,8 +14,8 @@ using json = nlohmann::json;
 // Sample WayPoint file (.json):
 
 // {
-//   "Route_1": {
-//     "WP_1": {
+//   "Route_0": {
+//     "WP_0": {
 //       "wait_ms": 20000,
 //       "target_longitude": 140052050,
 //       "target_latitude": 36163720,
@@ -26,7 +26,7 @@ using json = nlohmann::json;
 //       "heading_rate": 0.2,
 //       "heading_range": 0.3
 //     },
-//     "WP_2": {
+//     "WP_1": {
 //       "wait_ms": 5000,
 //       "target_longitude": 140052150,
 //       "target_latitude": 36164100
@@ -184,13 +184,13 @@ void Route_Manager::ReadFromFile(string filepath)
   p = new Route [NRoutes];
   for (int i = 0; i < NRoutes; i++) {
     ostringstream oss1;
-    oss1 << "Route_" << i + 1;
+    oss1 << "Route_" << i;
     string route_name = oss1.str();
-    int wp_num = j_[route_name.c_str()].size();
-    struct WayPoint waypoints[wp_num];
-    for (int j = 0; j < wp_num; j++) {
+    int nwaypoints = j_[route_name.c_str()].size();
+    struct WayPoint waypoints[nwaypoints];
+    for (int j = 0; j < nwaypoints; j++) {
       ostringstream oss2;
-      oss2 << "WP_" << j + 1;
+      oss2 << "WP_" << j;
       string wp_name = oss2.str();
       waypoints[j].wait_ms = j_[route_name.c_str()][wp_name.c_str()]["wait_ms"];
       waypoints[j].target_longitude = j_[route_name.c_str()][wp_name.c_str()]["target_longitude"];
@@ -202,7 +202,7 @@ void Route_Manager::ReadFromFile(string filepath)
       waypoints[j].heading_rate = j_[route_name.c_str()][wp_name.c_str()]["heading_rate"];
       waypoints[j].heading_range =j_[route_name.c_str()][wp_name.c_str()]["heading_range"];
     }
-    p[i].SetWPs(waypoints, wp_num);
+    p[i].SetWPs(waypoints, nwaypoints);
   }
   flag = 1;
 }

@@ -33,7 +33,7 @@ struct ToDronePort {
   uint8_t nav_mode;
   uint8_t drone_port_mode;
   uint8_t nav_status;
-  uint8_t waypoint_status;
+  uint8_t drone_port_status;
   float position[3];
   float velocity[3];
   float quaternion[4];
