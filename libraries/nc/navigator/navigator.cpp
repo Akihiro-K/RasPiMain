@@ -49,6 +49,11 @@ int GetCurrentWPNum()
   return cur_wp_num;
 }
 
+int GetCurrentRouteNum()
+{
+  return cur_route_num;
+}
+
 void UpdateNavigation()
 {
 // =============================================================================
@@ -154,7 +159,7 @@ void UpdateNavigation()
     {
       // Waypoint Switching Algorithm
 
-      switch (drone_port_mode_) {
+      switch (drone_port_mode) {
         case Disarm:
         {
           // TO DO
@@ -180,17 +185,7 @@ void UpdateNavigation()
           // TO DO
           break;
         }
-        case TakeoffToDPHold:
-        {
-          for (int i = 0; i < 3; i++) {
-            to_fc.target_position[i] = hold_position[i];
-          }
-          to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
-          to_fc.target_heading = DEFAULT_HEADING;
-          to_fc.heading_rate = DEFAULT_HEADING_RATE;
-          break;
-        }
-        case TakeoffToDPWaypoint:
+        case Takeoff:
         {
           for (int i = 0; i < 3; i++) {
             to_fc.target_position[i] = hold_position[i];
@@ -273,10 +268,10 @@ void UpdateNavigationFromDP()
 {
 // =============================================================================
 // From DP request
-  static uint8_t nav_mode_request_from_dp_prev = NCWaypoint;
+  static uint8_t drone_port_mode_request_prev = NCWaypoint;
   if (nav_mode_ == NAV_MODE_AUTO) {
     // only when nav mode is AUTO, change target according to the DP request
-    switch (nav_mode_request_from_dp) {
+    switch (drone_port_mode_request) {
       case Disarm:
       {
         // TO DO
@@ -289,12 +284,12 @@ void UpdateNavigationFromDP()
       }
       case DPHold:
       {
-        if (nav_mode_request_from_dp_prev != DPHold) {
+        if (drone_port_mode_request_prev != DPHold) {
           for (int i = 0; i < 3; i++) {
             hold_position[i] = to_fc.position[i];
           }
         }
-        drone_port_mode_ = DPHold;
+        drone_port_mode = DPHold;
         break;
       }
       case DPWaypoint:
@@ -302,62 +297,44 @@ void UpdateNavigationFromDP()
         // TO DO
         break;
       }
-      case TakeoffToDPHold:
+      case Takeoff:
       {
-        if (nav_mode_request_from_dp_prev != TakeoffToDPHold) {
+        if (drone_port_mode_request_prev != Takeoff) {
           for (int i = 0; i < 2; i++) {
             hold_position[i] = to_fc.position[i];
           }
           hold_position[2] = -DEFAULT_HOLD_ALTITUDE;
         }
-        nav_mode_request_from_dp_prev = TakeoffToDPHold;
+        drone_port_mode_request_prev = Takeoff;
         if (to_fc.position[2] > -DEFAULT_HOLD_ALTITUDE) {
-          drone_port_mode_ = TakeoffToDPHold;
+          drone_port_mode = Takeoff;
         } else {
           // when take-off completes
-          // drone_port_mode_ automatically switches to DPHold
-          drone_port_mode_ = DPHold;
+          // drone_port_mode automatically switches to DPHold
+          drone_port_mode = DPHold;
         }
-        break;
-      }
-      case TakeoffToDPWaypoint:
-      {
-        if (nav_mode_request_from_dp_prev != TakeoffToDPWaypoint) {
-          for (int i = 0; i < 2; i++) {
-            hold_position[i] = to_fc.position[i];
-          }
-          hold_position[2] = -DEFAULT_HOLD_ALTITUDE;
-        }
-        if (to_fc.position[2] > -DEFAULT_HOLD_ALTITUDE) {
-          drone_port_mode_ = TakeoffToDPHold;
-        } else {
-          // when take-off completes
-          // drone_port_mode_ automatically switches to NCWaypoint
-          drone_port_mode_ = NCWaypoint;
-        }
-        nav_mode_request_from_dp_prev = TakeoffToDPWaypoint;
         break;
       }
       case Land:
       {
-        if (nav_mode_request_from_dp_prev != Land) {
+        if (drone_port_mode_request_prev != Land) {
           for (int i = 0; i < 2; i++) {
             hold_position[i] = to_fc.position[i];
           }
           hold_position[2] = 1.5; // target is under the ground
         }
         if (to_fc.position[2] > -LAND_START_ALTITUDE) {
-          drone_port_mode_ = Land;
+          drone_port_mode = Land;
         } else {
-          drone_port_mode_ = NCWaypoint;
+          drone_port_mode = NCWaypoint;
         }
-        nav_mode_request_from_dp_prev = Land;
+        drone_port_mode_request_prev = Land;
         break;
       }
       default: // NCWaypoint
       {
-        nav_mode_request_from_dp_prev = NCWaypoint;
-        drone_port_mode_ = NCWaypoint;
+        drone_port_mode_request_prev = NCWaypoint;
+        drone_port_mode = NCWaypoint;
         break;
       }
     }

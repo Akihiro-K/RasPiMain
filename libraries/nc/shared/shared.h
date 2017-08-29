@@ -109,9 +109,8 @@ enum DPModeRequest {
   Arm = 2,
   DPHold = 3,
   DPWaypoint = 4,
-  TakeoffToDPHold = 5,
-  TakeoffToDPWaypoint = 6,
-  Land = 7,
+  Takeoff = 5, // Takeoff then hold at 2m
+  Land = 6,
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -131,8 +130,8 @@ extern uint8_t lsm_flag;
 extern uint8_t dp_id;
 
 extern enum NavMode nav_mode_;
-extern uint8_t nav_mode_request_from_dp; // buffer for dp comm
-extern uint8_t drone_port_mode_; // actual state in response to dp request
+extern uint8_t drone_port_mode_request; // buffer for dp comm
+extern uint8_t drone_port_mode; // actual state in response to dp request
 
 extern float gps_position_x; // in meters relative to first waypoint in route
 extern float gps_position_y; // in meters relative to first waypoint in route

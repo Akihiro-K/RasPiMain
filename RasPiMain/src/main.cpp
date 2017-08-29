@@ -211,7 +211,7 @@ void RecvFromDP()
   for(;;){
     // at 2 HZ
     to_dp.nav_mode = to_fc.nav_mode;
-    to_dp.drone_port_mode = drone_port_mode_;
+    to_dp.drone_port_mode = drone_port_mode;
     to_dp.nav_status = to_fc.navigation_status;
     to_dp.waypoint_status = GetCurrentWPNum();
     for (int i = 0; i < 3; i++) {
@@ -222,7 +222,7 @@ void RecvFromDP()
       to_dp.quaternion[i] = from_fc.quaternion[i];
     }
     DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
-    
+
     if (DP_comm.recv_data(DPHandler)) {
       switch (dp_id) {
         case 10:
@@ -234,7 +234,7 @@ void RecvFromDP()
         {
           m.lock();
           UpdateNavigationFromDP();
-          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&drone_port_mode_, sizeof(drone_port_mode_));
+          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&drone_port_mode, sizeof(drone_port_mode));
           m.unlock();
           break;
         }
@@ -275,7 +275,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
     {
       uint8_t * payload_ptr = (uint8_t *)temp;
       if (*payload_ptr++) { // first payload is write data flag
-        nav_mode_request_from_dp = *payload_ptr;
+        drone_port_mode_request = *payload_ptr;
       }
       break;
     }

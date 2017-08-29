@@ -13,6 +13,8 @@ void GetCurrentWP(uint8_t * src, size_t * len);
 
 int GetCurrentWPNum();
 
+int GetCurrentRouteNum();
+
 void UpdateNavigation();
 
 void UpdateNavigationFromDP();
