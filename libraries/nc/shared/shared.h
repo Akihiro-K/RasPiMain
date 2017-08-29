@@ -114,13 +114,14 @@ enum DPModeRequest {
   Arm = 2,
   DPHold = 3,
   DPWaypoint = 4,
-  Takeoff = 5, // Takeoff then hold at 2m
+  Takeoff = 5, // Takeoff then hold
   Land = 6,
 };
 
 enum DPModeStatus {
   // TODO: refine drone port status
-  DronePortStatusOK = 0,
+  DPStatusModeInProgress = 0,
+  DPStatusEndOfMode = 1,
 };
 
 ////////////////////////////////////////////////////////////////////////////////

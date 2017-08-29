@@ -6,6 +6,8 @@
 #define DEFAULT_HEADING_RATE (0.3)  // rad/s
 #define DEFAULT_HOLD_ALTITUDE (1.5) // m
 #define LAND_START_ALTITUDE (0.8) // m
+#define TAKEOFF_COMPLETE_RADIUS (0.5) // m
+#define LAND_COMPLETE_ALTITUDE (0.5) // m
 
 static Route_Manager manager;
 
@@ -262,6 +264,73 @@ void UpdateNavigation()
     default:
     {
       break;
+    }
+  }
+
+// =============================================================================
+// Drone Port Status Switching Algorithm:
+  switch(drone_port_mode){
+    case Disarm:
+    {
+      drone_port_status = DPStatusEndOfMode;
+      break;
+    }
+    case Arm:
+    {
+      drone_port_status = DPStatusEndOfMode;
+      break;
+    }
+    case DPHold:
+    {
+      drone_port_status = DPStatusEndOfMode;
+      break;
+    }
+    case DPWaypoint:
+    {
+      uint8_t isLastWaypoint = (cur_wp_num+1 == manager[cur_route_num].GetNWaypoints());
+      float delta = sqrt((to_fc.position[0]-to_fc.target_position[0])*
+                      (to_fc.position[0]-to_fc.target_position[0])+
+                      (to_fc.position[1]-to_fc.target_position[1])*
+                      (to_fc.position[1]-to_fc.target_position[1])+
+                      (to_fc.position[2]-to_fc.target_position[2])*
+                      (to_fc.position[2]-to_fc.target_position[2]));
+      uint8_t isWithinRadius = (delta < manager[cur_route_num][cur_wp_num].radius);
+      if(isLastWaypoint && isWithinRadius){
+        drone_port_status = DPStatusEndOfMode;
+      }else{
+        // If the drone moves out of the radius,
+        // status is set to "in progress" again.
+        drone_port_status = DPStatusModeInProgress;
+      }
+      break;
+    }
+    case Takeoff:
+    {
+      float delta = sqrt((to_fc.position[0]-hold_position[0])*
+                      (to_fc.position[0]-hold_position[0])+
+                      (to_fc.position[1]-hold_position[1])*
+                      (to_fc.position[1]-hold_position[1])+
+                      (to_fc.position[2]-hold_position[2])*
+                      (to_fc.position[2]-hold_position[2]));
+      uint8_t isWithinRadius = (delta < TAKEOFF_COMPLETE_RADIUS);
+      if(isWithinRadius){
+        drone_port_status = DPStatusEndOfMode;
+      }else{
+        // If the drone moves out of the radius,
+        // status is set to "in progress" again.
+        drone_port_status = DPStatusModeInProgress;
+      }
+    }
+    case Land:
+    {
+      // TODO: Implement touchdown detection
+      // Vision will not work on ground
+      uint8_t onGround = (to_fc.position[2]>-LAND_COMPLETE_ALTITUDE);
+      if(onGround){
+        drone_port_status = DPStatusEndOfMode;
+      }else{
+        drone_port_status = DPStatusModeInProgress;
+      }
     }
   }
 }

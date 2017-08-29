@@ -21,7 +21,7 @@ uint8_t dp_id = 0;
 enum NavMode nav_mode_ = NAV_MODE_OFF;
 uint8_t drone_port_mode_request = NCWaypoint;
 uint8_t drone_port_mode = NCWaypoint;
-uint8_t drone_port_status = DronePortStatusOK;
+uint8_t drone_port_status = DPStatusModeInProgress;
 
 float gps_position_x = 0; // in meters relative to first waypoint in route
 float gps_position_y = 0; // in meters relative to first waypoint in route
