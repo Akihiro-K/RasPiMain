@@ -58,7 +58,7 @@ class Route
 {
 private:
   struct WayPoint *p;
-  int WP_num;
+  int NWaypoints;
   int flag;
   int32_t latitude_0; // [10^-6 deg]
   int32_t longitude_0; // [10^-6 deg]
@@ -67,12 +67,12 @@ private:
   void free();
 public:
   Route() : flag(0) {};
-  Route(struct WayPoint *waypoints_, int wp_num_);
+  Route(struct WayPoint *waypoints_, int nwaypoints);
   ~Route();
-  void SetWPs(struct WayPoint *waypoints_, int wp_num_);
+  void SetWPs(struct WayPoint *waypoints_, int nwaypoints);
   void GetTargetPosition(const int cur_wp_num, float target_position[3]);
   void GetPosition(const int32_t longitude, const int32_t latitude, float *x_position, float *y_position);
-  int GetWaypointNum();
+  int GetNWaypoints();
   struct WayPoint &operator [](int index);
   const struct WayPoint &operator [](int index) const;
 };
@@ -81,7 +81,7 @@ class Route_Manager
 {
 private:
   struct Route *p;
-  int Route_num;
+  int NRoutes;
   int flag;
   void free();
 public:
@@ -89,15 +89,15 @@ public:
   Route_Manager(string filepath);
   ~Route_Manager();
   void ReadFromFile(string filepath);
-  int GetRouteNum();
+  int GetNRoutes();
   Route &operator [](int index);
   const Route &operator [](int index) const;
 };
 
-Route::Route(struct WayPoint *waypoints_, int wp_num_)
+Route::Route(struct WayPoint *waypoints_, int nwaypoints)
 {
   flag = 0;
-  SetWPs(waypoints_, wp_num_);
+  SetWPs(waypoints_, nwaypoints);
 }
 
 Route::~Route()
@@ -110,11 +110,11 @@ void Route::free()
   delete[] p;
 }
 
-void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
+void Route::SetWPs(struct WayPoint *waypoints_, int nwaypoints)
 {
-  WP_num = wp_num_;
+  NWaypoints = nwaypoints;
   if(flag) free();
-  p = new struct WayPoint[WP_num];
+  p = new struct WayPoint[NWaypoints];
 
   // Conversion from deg to meter
   longitude_0 = waypoints_[0].target_longitude;
@@ -122,7 +122,7 @@ void Route::SetWPs(struct WayPoint *waypoints_, int wp_num_)
   double Phi = latitude_0 * M_PI/180;
   meter_per_microdeg_lat = 0.111132954 - 0.000559822 * cos(2*Phi) + 0.000001175 * cos(4*Phi) - 0.0000000023 * cos(6*Phi);
   meter_per_microdeg_lon = 0.11141284 * cos(Phi) - 0.0000935 * cos(3 * Phi) + 0.000000118 * cos(5 * Phi);
-  for (int i = 0; i < WP_num; i++) {
+  for (int i = 0; i < NWaypoints; i++) {
     p[i] = waypoints_[i];
   }
   flag = 1;
@@ -142,9 +142,9 @@ void Route::GetPosition(const int32_t longitude, const int32_t latitude, float *
   *y_position = float(longitude - longitude_0) * meter_per_microdeg_lon;
 }
 
-int Route::GetWaypointNum()
+int Route::GetNWaypoints()
 {
-  return WP_num;
+  return NWaypoints;
 }
 
 struct WayPoint &Route::operator [](int index)
@@ -179,10 +179,10 @@ void Route_Manager::ReadFromFile(string filepath)
   ifstream ifs(filepath);
   json j_;
   ifs >> j_;
-  Route_num = j_.size();
+  NRoutes = j_.size();
   if (flag) free();
-  p = new Route [Route_num];
-  for (int i = 0; i < Route_num; i++) {
+  p = new Route [NRoutes];
+  for (int i = 0; i < NRoutes; i++) {
     ostringstream oss1;
     oss1 << "Route_" << i + 1;
     string route_name = oss1.str();
@@ -215,9 +215,9 @@ const Route &Route_Manager::operator [](int index) const
   return p[index];
 }
 
-int Route_Manager::GetRouteNum()
+int Route_Manager::GetNRoutes()
 {
-  return Route_num;
+  return NRoutes;
 }
 
 #endif // WAYPOINT_H_

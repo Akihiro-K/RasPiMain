@@ -23,13 +23,15 @@ void ReadWPfromFile(string filepath)
 
 void SetCurrentWPfromDP(const uint8_t * wp_ptr)
 {
+  // TODO: Implement waypoint upload from DP.
+  // This function is not in accordance with the specs.
   struct WayPoint * struct_ptr = (struct WayPoint *)wp_ptr;
   manager[cur_route_num][cur_wp_num] = *struct_ptr;
 }
 
 bool SetRoute(int route_num_)
 {
-  if (route_num_ - 1 > manager.GetRouteNum()) {
+  if (route_num_ - 1 > manager.GetNRoutes()) {
     return false;
   } else {
     cur_route_num = route_num_ - 1;
@@ -227,7 +229,7 @@ void UpdateNavigation()
           if (wait_start_flag) {
             uint16_t dt = from_fc.timestamp - reached_time;
             if (dt > manager[cur_route_num][cur_wp_num].wait_ms) {
-              if (cur_wp_num+1 != manager[cur_route_num].GetWaypointNum()) {
+              if (cur_wp_num+1 != manager[cur_route_num].GetNWaypoints()) {
                 cur_wp_num++;
               }
               wait_start_flag = 0;
