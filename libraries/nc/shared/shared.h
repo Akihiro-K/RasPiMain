@@ -116,7 +116,7 @@ enum FlightCtrlStateBits {
   FC_STATE_BIT_LOST_CONTROL_LINK = 1<<5,
 };
 
-enum DPModeRequest {
+enum DPMode {
   NCWaypoint = 0,
   Disarm = 1,
   Arm = 2,
@@ -126,7 +126,7 @@ enum DPModeRequest {
   Land = 6,
 };
 
-enum DPModeStatus {
+enum DPStatus {
   // TODO: refine drone port status
   DPStatusModeInProgress = 0,
   DPStatusEndOfMode = 1,

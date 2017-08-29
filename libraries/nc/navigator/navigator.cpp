@@ -185,11 +185,6 @@ void UpdateNavigation()
           to_fc.heading_rate = DEFAULT_HEADING_RATE;
           break;
         }
-        case DPWaypoint:
-        {
-          // TO DO
-          break;
-        }
         case Takeoff:
         {
           for (int i = 0; i < 3; i++) {
@@ -209,6 +204,12 @@ void UpdateNavigation()
           to_fc.target_heading = DEFAULT_HEADING;
           to_fc.heading_rate = DEFAULT_HEADING_RATE;
           break;
+        }
+        case DPWaypoint:
+        {
+          // TODO: Implement DPWaypoint after waypoint upload from DP becomes possible.
+
+          // Execute NCWaypoint instead for now.
         }
         default: // NCWaypoint
         {
@@ -362,13 +363,14 @@ void SetDronePortMode()
             hold_position[i] = to_fc.position[i];
           }
         }
-        drone_port_mode_request_prev = DPHold;
         drone_port_mode = DPHold;
+        drone_port_mode_request_prev = DPHold;
         break;
       }
       case DPWaypoint:
       {
-        // TO DO
+        drone_port_mode = DPWaypoint;
+        drone_port_mode_request_prev = DPWaypoint;
         break;
       }
       case Takeoff:
