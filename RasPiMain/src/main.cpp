@@ -4,6 +4,7 @@
 
 #include <thread>
 #include <mutex>
+#include <unistd.h> // usleep
 
 #define UT_SERIAL_COMPONENT_ID_RASPI (2)
 
@@ -208,19 +209,32 @@ void RecvFromDP()
   ut_serial DP_comm("/dev/ttyUSB1", 57600);
 
   for(;;){
-    // at HZ
+    // at 2 HZ
+    to_dp.nav_mode = to_fc.nav_mode;
+    to_dp.drone_port_mode = drone_port_mode_;
+    to_dp.nav_status = to_fc.navigation_status;
+    to_dp.waypoint_status = GetCurrentWPNum();
+    for (int i = 0; i < 3; i++) {
+      to_dp.position[i] = to_fc.position[i];
+      to_dp.velocity[i] = to_fc.velocity[i];
+    }
+    for (int i = 0; i < 4; i++) {
+      to_dp.quaternion[i] = from_fc.quaternion[i];
+    }
+    DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
+    
     if (DP_comm.recv_data(DPHandler)) {
       switch (dp_id) {
         case 10:
         {
-          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
+          // do nothing
           break;
         }
         case 11:
         {
           m.lock();
           UpdateNavigationFromDP();
-          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&nav_mode_request_from_dp, sizeof(nav_mode_request_from_dp));
+          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&drone_port_mode_, sizeof(drone_port_mode_));
           m.unlock();
           break;
         }
@@ -239,6 +253,7 @@ void RecvFromDP()
         }
       }
     }
+    usleep(500000); // wait for 500 ms
   }
 }
 
@@ -253,17 +268,7 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
   switch (message_id) {
     case 10:
     {
-      to_dp.nav_mode = to_fc.nav_mode;
-      to_dp.nav_status = to_fc.navigation_status;
-      to_dp.waypoint_status = 0; // TO DO: Consider waypoint status
-      to_dp.gps_status = from_gps.gps_status;
-      for (int i = 0; i < 3; i++) {
-        to_dp.position[i] = to_fc.position[i];
-        to_dp.velocity[i] = to_fc.velocity[i];
-      }
-      for (int i = 0; i < 4; i++) {
-        to_dp.quaternion[i] = from_fc.quaternion[i];
-      }
+      // do nothing
       break;
     }
     case 11:
