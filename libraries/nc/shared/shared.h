@@ -70,7 +70,12 @@ struct ForDebug{
   float gyro[3];
 }__attribute__((packed));
 
-struct SetDronePortModeResponse {
+struct FromDPSetDronePortMode{
+  uint8_t read_write; // 0: read-only, 1: write
+  uint8_t drone_port_mode_request;
+} __attribute__((packed));
+
+struct ToDPSetDronePortMode {
   uint8_t drone_port_mode;
   uint8_t drone_port_status;
 } __attribute__((packed));
@@ -133,7 +138,8 @@ extern struct ToFlightCtrl to_fc;
 extern struct FromFlightCtrl from_fc;
 extern struct ForDebug for_debug;
 extern struct ToDronePort to_dp;
-extern struct SetDronePortModeResponse set_dp_mode_resp;
+extern struct FromDPSetDronePortMode from_dp_set_dp_mode; // set drone port mode
+extern struct ToDPSetDronePortMode to_dp_set_dp_mode; // response to set drone port mode
 
 extern uint8_t marker_flag;
 extern uint8_t gps_pos_flag;

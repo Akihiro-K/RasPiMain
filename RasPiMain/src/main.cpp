@@ -236,9 +236,9 @@ void RecvFromDP()
         {
           m.lock();
           SetDronePortMode();
-          set_dp_mode_resp.drone_port_mode = drone_port_mode;
-          set_dp_mode_resp.drone_port_status = drone_port_status;
-          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&set_dp_mode_resp, sizeof(set_dp_mode_resp));
+          to_dp_set_dp_mode.drone_port_mode = drone_port_mode;
+          to_dp_set_dp_mode.drone_port_status = drone_port_status;
+          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&to_dp_set_dp_mode, sizeof(to_dp_set_dp_mode));
           m.unlock();
           break;
         }
@@ -277,10 +277,11 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
     }
     case 11:
     {
-      uint8_t * payload_ptr = (uint8_t *)temp;
-      if (*payload_ptr++) { // first payload is write data flag
-        drone_port_mode_request = *payload_ptr;
-      }
+      struct FromDPSetDronePortMode * struct_ptr = (struct FromDPSetDronePortMode *)temp;
+
+      from_dp_set_dp_mode.read_write = struct_ptr->read_write;
+      from_dp_set_dp_mode.drone_port_mode_request = struct_ptr->drone_port_mode_request;
+      drone_port_mode_request = from_dp_set_dp_mode.drone_port_mode_request;
       break;
     }
     case 12:
