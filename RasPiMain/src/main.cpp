@@ -298,24 +298,29 @@ void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
       }
       break;
     }
-    default: // 13
+    case 13:
     {
-      struct FromMarker * struct_ptr = (struct FromMarker *)temp;
+      //struct FromMarker * struct_ptr = (struct FromMarker *)temp;
 
-      from_marker.timestamp = struct_ptr->timestamp;
-      from_marker.status = struct_ptr->status;
+      //from_marker.timestamp = struct_ptr->timestamp;
+      //from_marker.status = struct_ptr->status;
 
-      for (int i=0;i<3;i++){
-        from_marker.position[i] = struct_ptr->position[i];
-        from_marker.quaternion[i] = struct_ptr->quaternion[i];
-        from_marker.r_var[i] = struct_ptr->r_var[i];
-      }
+      //for (int i=0;i<3;i++){
+      //  from_marker.position[i] = struct_ptr->position[i];
+      //  from_marker.quaternion[i] = struct_ptr->quaternion[i];
+      //  from_marker.r_var[i] = struct_ptr->r_var[i];
+      //}
 
-      UpdateMarkerFlag();
-      AttitudeMeasurementUpdateWithMarker();
-      PositionMeasurementUpdateWithMarker();
-      DispFromMarker();
-      VisionLogging();
+      //UpdateMarkerFlag();
+      //AttitudeMeasurementUpdateWithMarker();
+      //PositionMeasurementUpdateWithMarker();
+      //DispFromMarker();
+      //VisionLogging();
+      //break;
+    }
+    default:
+    {
+      // do nothing
       break;
     }
   }
