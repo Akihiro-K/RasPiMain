@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
   InitLogging();
   ut_serial FC_comm(SERIAL_PORT_FC, SERIAL_BAUDRATE_FC);
   std::thread marker_comm(&RecvFromMarker);
-  std::thread dp_comm(&RecvFromDP);
+//  std::thread dp_comm(&RecvFromDP);
   std::thread gps_comm(&RecvFromGPS);
   //std::thread lsm_comm(&RecvFromLSM);
 
@@ -66,7 +66,7 @@ int main(int argc, char const *argv[])
   }
 
   marker_comm.join();
-  dp_comm.join();
+//  dp_comm.join();
   gps_comm.join();
   //lsm_comm.join();
 
