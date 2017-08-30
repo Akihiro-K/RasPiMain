@@ -72,14 +72,14 @@ void FromDPSetDronePortModeLogging(){
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
   fout << LogIDFromDPSetDronePortMode << "," << timestamp << ",";
-  fout << from_dp_set_dp_mode.read_write << "," << from_dp_set_dp_mode.drone_port_mode_request << endl;
+  fout << unsigned(from_dp_set_dp_mode.read_write) << "," << unsigned(from_dp_set_dp_mode.drone_port_mode_request) << endl;
 }
 
 void ToDPSetDronePortModeLogging(){
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
   fout << LogIDToDPSetDronePortMode << "," << timestamp << ",";
-  fout << to_dp_set_dp_mode.drone_port_mode << "," << to_dp_set_dp_mode.drone_port_status << endl;
+  fout << unsigned(to_dp_set_dp_mode.drone_port_mode) << "," << unsigned(to_dp_set_dp_mode.drone_port_status) << endl;
 }
 
 void ToFCLogging2()
