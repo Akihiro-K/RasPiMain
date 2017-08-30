@@ -39,12 +39,12 @@ void PositionTimeUpdate()
       0,0,g*dt;
 
   MatrixXf Q(6,6);
-  Q << 0.01,0,0,0,0,0,
-        0,0.01,0,0,0,0,
-        0,0,0.01,0,0,0,
-        0,0,0,1,0,0,
-        0,0,0,0,1,0,
-        0,0,0,0,0,1;
+  Q << 0.0001,0,0,0,0,0,
+        0,0.0001,0,0,0,0,
+        0,0,0.0001,0,0,0,
+        0,0,0,0.0001,0,0,
+        0,0,0,0,0.0001,0,
+        0,0,0,0,0,0.0001;
 
   if ((to_fc.navigation_status&HeadingOK)&&
   (to_fc.navigation_status&PositionOK)&&
@@ -121,8 +121,8 @@ void PositionMeasurementUpdateWithGPSPos()
         0, 1, 0, 0, 0, 0;
 
     Matrix2f R;
-    R << 50, 0,
-        0, 50;
+    R << 9, 0,
+        0, 9;
 
     MatrixXf K(6,2);
     K = P_pos * H.transpose() * (H * P_pos * H.transpose() + R).inverse();
