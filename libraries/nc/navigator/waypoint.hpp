@@ -17,8 +17,8 @@ using json = nlohmann::json;
 //   "Route_0": {
 //     "WP_0": {
 //       "wait_ms": 20000,
-//       "target_longitude": 140052050,
-//       "target_latitude": 36163720,
+//       "target_longitude": 1400520500,
+//       "target_latitude": 361637200,
 //       "target_altitude": 5,
 //       "transit_speed": 0.5,
 //       "radius": 5,
@@ -28,8 +28,8 @@ using json = nlohmann::json;
 //     },
 //     "WP_1": {
 //       "wait_ms": 5000,
-//       "target_longitude": 140052150,
-//       "target_latitude": 36164100
+//       "target_longitude": 1400521500,
+//       "target_latitude": 361641000
 //       "target_altitude": 5,
 //       "transit_speed": 0.5,
 //       "radius": 5,
@@ -44,8 +44,8 @@ using json = nlohmann::json;
 
 struct WayPoint {
   uint16_t wait_ms; // [ms]
-  int32_t target_longitude; // [10^-6 deg]
-  int32_t target_latitude; // [10^-6 deg]
+  int32_t target_longitude; // [10^-7 deg]
+  int32_t target_latitude; // [10^-7 deg]
   float target_altitude; // [m]
   float transit_speed; // [m/s]
   float radius; // [m]
@@ -60,10 +60,10 @@ private:
   struct WayPoint *p;
   int NWaypoints;
   int flag;
-  int32_t latitude_0; // [10^-6 deg]
-  int32_t longitude_0; // [10^-6 deg]
-  float meter_per_microdeg_lat;
-  float meter_per_microdeg_lon;
+  int32_t latitude_0; // [10^-7 deg]
+  int32_t longitude_0; // [10^-7 deg]
+  float meter_per_em7_deg_lat;
+  float meter_per_em7_deg_lon;
   void free();
 public:
   Route() : flag(0) {};
@@ -120,8 +120,8 @@ void Route::SetWPs(struct WayPoint *waypoints_, int nwaypoints)
   longitude_0 = waypoints_[0].target_longitude;
   latitude_0 = waypoints_[0].target_latitude;
   double Phi = latitude_0 * M_PI/180;
-  meter_per_microdeg_lat = 0.111132954 - 0.000559822 * cos(2*Phi) + 0.000001175 * cos(4*Phi) - 0.0000000023 * cos(6*Phi);
-  meter_per_microdeg_lon = 0.11141284 * cos(Phi) - 0.0000935 * cos(3 * Phi) + 0.000000118 * cos(5 * Phi);
+  meter_per_em7_deg_lat = 0.0111132954 - 0.0000559822 * cos(2*Phi) + 0.0000001175 * cos(4*Phi) - 0.00000000023 * cos(6*Phi);
+  meter_per_em7_deg_lon = 0.011141284 * cos(Phi) - 0.00000935 * cos(3 * Phi) + 0.0000000118 * cos(5 * Phi);
   for (int i = 0; i < NWaypoints; i++) {
     p[i] = waypoints_[i];
   }
@@ -131,15 +131,15 @@ void Route::SetWPs(struct WayPoint *waypoints_, int nwaypoints)
 void Route::GetTargetPosition(const int cur_wp_num, float target_position[3])
 {
   // NED coordinates
-  target_position[0] = float(p[cur_wp_num].target_latitude - latitude_0) * meter_per_microdeg_lat;
-  target_position[1] = float(p[cur_wp_num].target_longitude - longitude_0) * meter_per_microdeg_lon;
+  target_position[0] = float(p[cur_wp_num].target_latitude - latitude_0) * meter_per_em7_deg_lat;
+  target_position[1] = float(p[cur_wp_num].target_longitude - longitude_0) * meter_per_em7_deg_lon;
   target_position[2] = -p[cur_wp_num].target_altitude;
 }
 
 void Route::GetPosition(const int32_t longitude, const int32_t latitude, float *x_position, float *y_position)
 {
-  *x_position = float(latitude - latitude_0) * meter_per_microdeg_lat;
-  *y_position = float(longitude - longitude_0) * meter_per_microdeg_lon;
+  *x_position = float(latitude - latitude_0) * meter_per_em7_deg_lat;
+  *y_position = float(longitude - longitude_0) * meter_per_em7_deg_lon;
 }
 
 int Route::GetNWaypoints()

@@ -1,6 +1,7 @@
 #include "../../libraries/tcp/tcpclient.h"
 #include "../../libraries/utserial/utserial.h"
 #include "../../libraries/nc/nc.h"
+#include "../../libraries/ublox/ublox.cpp"
 
 #include <thread>
 #include <mutex>
@@ -158,44 +159,73 @@ void MarkerHandler(const char * src, size_t len)
 
 void RecvFromGPS()
 {
-  tcp_client c;
-  c.start_connect(TCP_ADDRESS , TCP_PORT_GPS);
+  //tcp_client c;
+  //c.start_connect(TCP_ADDRESS , TCP_PORT_GPS);
 
+  //for(;;){
+  //  // at 1HZ
+  //  if(c.recv_data(GPSHandler)){
+  //    usleep(5000); // wait 5 ms
+  //  }else{
+  //    cout << "Connection with GPS failed." << endl;
+  //    usleep(1000000);
+  //  }
+  //}
+  UbloxInit();
   for(;;){
-    // at 1HZ
-    if(c.recv_data(GPSHandler)){
-      usleep(5000); // wait 5 ms
-    }else{
-      cout << "Connection with GPS failed." << endl;
-      usleep(1000000);
+    UbloxLoop();
+    if(UBXNewDataAvailable()){
+      const struct UBXPayload * temp;
+      temp = UBXPayload();
+      printf("\n lon:%u lat:%u height:%f v:[%f][%f][%f] stat:%u",
+        temp->longitude, temp->latitude, temp->z,
+        temp->velocity[0], temp->velocity[1], temp->velocity[2],
+        temp->gps_status);
+      m.lock();
+      from_gps.longitude = temp->longitude;
+      from_gps.latitude = temp->latitude;
+      from_gps.z = temp->z;
+      from_gps.velocity[0] = temp->velocity[0];
+      from_gps.velocity[1] = temp->velocity[1];
+      from_gps.velocity[2] = temp->velocity[2];
+      from_gps.gps_status = temp->gps_status;
+      UpdateGPSPosFlag();
+      UpdateGPSVelFlag();
+      // AttitudeMeasurementUpdateWithGPSVel();
+      PositionMeasurementUpdateWithGPSPos();
+      PositionMeasurementUpdateWithGPSVel();
+      if(ENABLE_DISP_FROM_GPS) DispFromGPS();
+      GPSLogging();
+      m.unlock();
+      ClearUBXNewDataFlags();
     }
   }
 }
 
-void GPSHandler(const char * src, size_t len)
-{
-  m.lock();
-  char temp[CLIENT_BUF_SIZE];
-  memcpy(temp, src, len);
-  struct FromGPS * struct_ptr = (struct FromGPS *)temp;
-
-  from_gps.longitude = struct_ptr->longitude;
-  from_gps.latitude = struct_ptr->latitude;
-  from_gps.gps_status = struct_ptr->gps_status;
-
-  for (int i=0;i<3;i++){
-    from_gps.velocity[i] = struct_ptr->velocity[i];
-  }
-
-  UpdateGPSPosFlag();
-  UpdateGPSVelFlag();
-  // AttitudeMeasurementUpdateWithGPSVel();
-  PositionMeasurementUpdateWithGPSPos();
-  PositionMeasurementUpdateWithGPSVel();
-  if(ENABLE_DISP_FROM_GPS) DispFromGPS();
-  GPSLogging();
-  m.unlock();
-}
+//void GPSHandler(const char * src, size_t len)
+//{
+//  m.lock();
+//  char temp[CLIENT_BUF_SIZE];
+//  memcpy(temp, src, len);
+//  struct FromGPS * struct_ptr = (struct FromGPS *)temp;
+//
+//  from_gps.longitude = struct_ptr->longitude;
+//  from_gps.latitude = struct_ptr->latitude;
+//  from_gps.gps_status = struct_ptr->gps_status;
+//
+//  for (int i=0;i<3;i++){
+//    from_gps.velocity[i] = struct_ptr->velocity[i];
+//  }
+//
+//  UpdateGPSPosFlag();
+//  UpdateGPSVelFlag();
+//  // AttitudeMeasurementUpdateWithGPSVel();
+//  PositionMeasurementUpdateWithGPSPos();
+//  PositionMeasurementUpdateWithGPSVel();
+//  if(ENABLE_DISP_FROM_GPS) DispFromGPS();
+//  GPSLogging();
+//  m.unlock();
+//}
 
 void RecvFromLSM()
 {
