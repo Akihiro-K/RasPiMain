@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
   InitLogging();
   ut_serial FC_comm(SERIAL_PORT_FC, SERIAL_BAUDRATE_FC);
   std::thread marker_comm(&RecvFromMarker);
-//  std::thread dp_comm(&RecvFromDP);
+  std::thread dp_comm(&RecvFromDP);
   std::thread gps_comm(&RecvFromGPS);
   //std::thread lsm_comm(&RecvFromLSM);
 
@@ -67,7 +67,7 @@ int main(int argc, char const *argv[])
   }
 
   marker_comm.join();
-//  dp_comm.join();
+  dp_comm.join();
   gps_comm.join();
   //lsm_comm.join();
 
@@ -177,7 +177,7 @@ void RecvFromGPS()
     if(UBXNewDataAvailable()){
       const struct UBXPayload * temp;
       temp = UBXPayload();
-      printf("\n lon:%u lat:%u height:%f v:[%f][%f][%f] stat:%u",
+      printf("\n lon:%u lat:%u height:%f v:[%f][%f][%f] stat:%u\n",
         temp->longitude, temp->latitude, temp->z,
         temp->velocity[0], temp->velocity[1], temp->velocity[2],
         temp->gps_status);
