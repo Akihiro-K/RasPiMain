@@ -175,7 +175,7 @@ static void ProcessIncomingUBloxByte(uint8_t byte)
     static size_t bytes_processed = 0, payload_length = 0;
     static uint8_t id, checksum_a, checksum_b;
     static uint8_t * data_buffer_ptr = NULL;
-    //printf("`\n bytes processed [%zu]", bytes_processed);
+    printf("`\n bytes processed [%zu]", bytes_processed);
 
     switch (bytes_processed)
     {

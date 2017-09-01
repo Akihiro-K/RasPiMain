@@ -94,15 +94,19 @@ int ublox_fd = -1;
 }
 void UBloxTxBuffer(const char b[], int t)
 {
-    int wr =0 ;
-    while(wr != t)
-    {
-        if((int) write(ublox_fd,&b[wr],1)) wr++;
-        printf("\n printing [%x] index[%d] writen:%d", b[wr-1], wr-1, wr);
-        if(wr == t || wr > t) break;
-    }
+  int wr =0 ;
+  while(wr < t)
+  {
+      if((int) write(ublox_fd,&b[wr],1)) wr++;
+      printf("\n printing [%x] index[%d] writen:%d", b[wr-1], wr-1, wr);
+      if(wr == t || wr > t)
+{
+  printf("\n what?");
+  return;
+ }
+  }
 
-    printf("\n wr = %d", wr);
+  std::cout<<"\n wr = %d"<< wr<<std::endl;
 }
 
 void UART_Close()
@@ -239,29 +243,37 @@ int get_ublox_fd(void)
 void Reader_sender(void)
 {
     std::string name = "/dev/gps_fifo";
-    if(!file_exist(name))mkfifo(name.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    //mkfifo(name.c_str(), 0666);
-
-
+    if(!file_exist(name))
+	{
+	int i = mkfifo(name.c_str(), 0666);// S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    	std::cout<<"\n fifo res : "<<i<<std::endl;
+	}
     int flag = O_WRONLY | O_NONBLOCK;//debug
-    //int fifo_fd = open(name.c_str(), flag);
+    int dum = open(name.c_str(), O_RDONLY | O_NONBLOCK);
     int fifo_fd = open(name.c_str(), flag);
-
+    std::cout<<"\n fifo fd "<<fifo_fd<<" dum" <<dum<<std::endl;
     for(;;)
     {
-        printf("\nwaiting for poll");
         pollin();
         int ioctl_bytes = 0;
         ioctl(ublox_fd, FIONREAD, &ioctl_bytes);
-        printf("\r bytes : %d", ioctl_bytes);
+        std::cout<<" bytes : %d"<< ioctl_bytes<<std::endl;
         int r_bytes = 0;
-
         while(r_bytes != ioctl_bytes)
         {
             unsigned char c;
-            if(read(ublox_fd, &c, 1)) r_bytes++;
-            while((write(fifo_fd, &c, 1) != 1)){}
-            printf("\n Read & Write one byte");
+            if(read(ublox_fd, &c, 1))
+            {
+              r_bytes++;
+              write(fifo_fd, &c, 1);
+              //while((write(fifo_fd, &c, 1) != 1))
+          		//{
+              //    std::cout<<"\n fifo write error : "<<fifo_fd;
+          		//}
+              
+              //  std::cout<<"\n Read & Write one byte";
+            }
+
         }
     }
 

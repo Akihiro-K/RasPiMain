@@ -10,7 +10,7 @@
 #define helper_hpp
 
 #include <stdio.h>
-
+#include "string.h"
 #include <iostream>
 #include <stdio.h>
 #include <unistd.h>			//Used for UART
@@ -19,13 +19,12 @@
 #include <sys/ioctl.h>      //Used for UART
 #include <sys/stat.h>       //Used for fifo
 #include <poll.h>           //Pollin()
-#include <string.h>
+
 
 
 
 #define UBLOX_INITIAL_BAUD B9600
 #define UBLOX_OPERATING_BAUD B57600
-//#define GPS_PORT "/dev/cu.usbserial-DJ00LQ19"
 #define GPS_PORT "/dev/ttyUSB_Ublox"
 
 void UART_Init(int b);
