@@ -24,10 +24,10 @@
 #define TCP_PORT_MARKER (8080)
 #define TCP_PORT_GPS (8000)
 #define TCP_PORT_LSM (80)
-#define ENABLE_DISP_FROM_FC (1)
-#define ENABLE_DISP_TO_FC (1)
+#define ENABLE_DISP_FROM_FC (0)
+#define ENABLE_DISP_TO_FC (0)
 #define ENABLE_DISP_FROM_MARKER (1)
-#define ENABLE_DISP_FROM_GPS (1)
+#define ENABLE_DISP_FROM_GPS (0)
 const char SERIAL_PORT_FC[] = "/dev/ttyAMA0";
 const char SERIAL_PORT_DP[] = "/dev/ttyUSB1";
 const char WAYPOINT_FILENAME[] = "../input_data/wp.json";
@@ -162,11 +162,11 @@ static void ProcessIncomingUBloxByte(uint8_t byte)
              #define UBX_ID_TIME_UTC (0x21)
 
              */
-            if(id == UBX_ID_POS_LLH)printf("\n UBX_ID_POS_LLH");
-                else if(id == UBX_ID_VEL_NED)printf("\n UBX_ID_VEL_NED");
-                    else if(id == UBX_ID_SOL)printf("\n UBX_ID_SOL");
-                        else if(id == UBX_ID_TIME_UTC)printf("\n UBX_ID_TIME_UTC");
-                            else printf("\n UNKNOWN_ID %x", id);
+            //if(id == UBX_ID_POS_LLH)printf("\n UBX_ID_POS_LLH");
+            //    else if(id == UBX_ID_VEL_NED)printf("\n UBX_ID_VEL_NED");
+            //        else if(id == UBX_ID_SOL)printf("\n UBX_ID_SOL");
+            //            else if(id == UBX_ID_TIME_UTC)printf("\n UBX_ID_TIME_UTC");
+            //                else printf("\n UNKNOWN_ID %x", id);
 
             break;
         case 4:  // Payload length (lower byte)
@@ -383,7 +383,8 @@ int main(int argc, char const *argv[])
     if (FC_comm.recv_data(FCHandler)){
       // at 64Hz
 
-      m.lock();
+      //m.lock();
+      while(!m.try_lock()){printf("\n failed");}
       if(ENABLE_DISP_TO_FC) DispToFC();
       FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
       ResetHeadingCorrectionQuat();
@@ -536,10 +537,10 @@ void GPSHandler()
 
         const struct UBXPayload * struct_ptr;
         struct_ptr = UBXPayload();
-        printf("\n lon:%u lat:%u height:%f v:[%f][%f][%f] stat:%u",
-          struct_ptr->longitude, struct_ptr->latitude, struct_ptr->z,
-          struct_ptr->velocity[0], struct_ptr->velocity[1], struct_ptr->velocity[2],
-          struct_ptr->gps_status);
+        //printf("\n lon:%u lat:%u height:%f v:[%f][%f][%f] stat:%u",
+        //  struct_ptr->longitude, struct_ptr->latitude, struct_ptr->z,
+        //  struct_ptr->velocity[0], struct_ptr->velocity[1], struct_ptr->velocity[2],
+        //  struct_ptr->gps_status);
 
         //char temp[CLIENT_BUF_SIZE];
         //memcpy(temp, src, len);
@@ -747,7 +748,7 @@ static void CopyUBloxMessage(uint8_t id)
             memcpy(&ubx_pos_llh_, &data_buffer_[0], sizeof(struct UBXPosLLH));
             status_ = ubx_pos_llh_.horizontal_accuracy < 5000;
             new_data_bits_ |= UBX_NEW_DATA_BIT_POS_LLH;
-            printf("\n+----------------------------+\n| LONGITUDE:[%d], LATITUDE:[%d] | \n+----------------------------+",  ubx_pos_llh_.longitude, ubx_pos_llh_.latitude);
+            //printf("\n+----------------------------+\n| LONGITUDE:[%d], LATITUDE:[%d] | \n+----------------------------+",  ubx_pos_llh_.longitude, ubx_pos_llh_.latitude);
             //UpdatePositionToFlightCtrl(UBLOX);
 #ifdef LOG_DEBUG_TO_SD
             // LogUBXPosLLH();
@@ -764,7 +765,7 @@ static void CopyUBloxMessage(uint8_t id)
         case UBX_ID_SOL:
             memcpy(&ubx_sol_, &data_buffer_[0], sizeof(struct UBXSol));
             new_data_bits_ |= UBX_NEW_DATA_BIT_SOL;
-            printf("\n ***************\n GPS_fix_type [%d] \n ***************", ubx_sol_.gps_fix_type);
+            //printf("\n ***************\n GPS_fix_type [%d] \n ***************", ubx_sol_.gps_fix_type);
 #ifdef LOG_DEBUG_TO_SD
             // LogUBXSol();
 #endif
