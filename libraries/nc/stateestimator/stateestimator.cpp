@@ -121,8 +121,8 @@ void PositionMeasurementUpdateWithGPSPos()
         0, 1, 0, 0, 0, 0;
 
     Matrix2f R;
-    R << 50, 0,
-        0, 50;
+    R << 3, 0,
+        0, 3;
 
     MatrixXf K(6,2);
     K = P_pos * H.transpose() * (H * P_pos * H.transpose() + R).inverse();
@@ -146,8 +146,8 @@ void PositionMeasurementUpdateWithGPSVel()
           0, 0, 0, 0, 1, 0;
 
     Matrix2f R;
-    R << 10, 0,
-        0, 10;
+    R << 1, 0,
+        0, 1;
 
     MatrixXf K(6,2);
     K = P_pos * H.transpose() * (H * P_pos * H.transpose() + R).inverse();
