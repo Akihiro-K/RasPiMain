@@ -71,7 +71,7 @@ void Serial::Open(const std::string &comport, const int baudrate)
     case 230400:
       baudrate_code = B230400;
       break;
-  
+
     default :
       std::cerr << "Failed to open " << comport << ". Invalid baudrate."
       << std::endl;
@@ -110,7 +110,7 @@ void Serial::Open(const std::string &comport, const int baudrate)
 int Serial::Read(uint8_t * const buffer, const int length) const
 {
   if (id_ == -1)
-    return -1;
+    return 0;
 
   return (int)read(id_, buffer, length);  // Returns the number of bytes read
 }
