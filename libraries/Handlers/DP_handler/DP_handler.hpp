@@ -10,21 +10,23 @@
 #define DP_handler_hpp
 
 #include <stdio.h>
-#include "../../../libraries/tcp/tcpclient.h"
 #include "../../../libraries/utserial/utserial.h"
 #include "../../../libraries/nc/nc.h"
 #include "../../../libraries/timer/timer.hpp"
-#include "../../../libraries/nc/shared/shared.h"
 
+// TODO: remove this
 #define UT_SERIAL_COMPONENT_ID_RASPI (2)
+
 #define SERIAL_BAUDRATE_DP (57600)
 #define DP_TX_FREQ 2 //hz
 
 const char SERIAL_PORT_DP[] = "/dev/ttyUSB_DP";
 
+extern FromDPSetDronePortModeVector DPSetDronePortModeVector;
+
 void RecvFromDP();
 void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);
-
+void SendDPSetDronePortModeResponse(void);
 
 
 #endif /* DP_handler_hpp */

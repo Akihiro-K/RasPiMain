@@ -88,6 +88,18 @@ int main(int argc, char const *argv[])
                 VisionLogging();
             }
 
+            if(!DPSetDronePortModeVector->empty())
+            {
+                from_dp_set_dp_mode = DPSetDronePortModeVector->back();   //get most recent data
+                DPSetDronePortModeVector->clear();             //remove old datas
+
+                drone_port_mode_request = from_dp_set_dp_mode.drone_port_mode_request;
+                SetDronePortMode();
+                SendDPSetDronePortModeResponse();
+                FromDPSetDronePortModeLogging();
+                ToDPSetDronePortModeLogging();
+            }
+
             //if(!LSMVector->empty())
             //{
             //    from_lsm = LSMVector->back();   //get most recent data

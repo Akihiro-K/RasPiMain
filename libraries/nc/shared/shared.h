@@ -209,6 +209,25 @@ class FromMarkerVector {
 public:
     locker operator->() { return {*this}; }
 };
+
+class FromDPSetDronePortModeVector {
+    std::vector<FromDPSetDronePortMode> vec;
+    std::mutex vector_m;
+
+    struct locker {
+        FromDPSetDronePortModeVector& _ref;
+        locker(FromDPSetDronePortModeVector& parent) : _ref(parent) {
+            _ref.vector_m.lock();
+        }
+        ~locker() { _ref.vector_m.unlock(); }
+
+        std::vector<FromDPSetDronePortMode>* operator->() && { return &_ref.vec; }
+    };
+
+public:
+    locker operator->() { return {*this}; }
+};
+
 extern struct FromMarker from_marker;
 extern struct FromGPS from_gps;
 extern struct FromLSM from_lsm;
@@ -224,13 +243,14 @@ extern uint8_t marker_flag;
 extern uint8_t gps_pos_flag;
 extern uint8_t gps_vel_flag;
 extern uint8_t lsm_flag;
-extern uint8_t dp_id;
 
+// TODO: replace these variables with accessors
 extern enum NavMode nav_mode_;
-extern uint8_t drone_port_mode_request; // buffer for dp comm
+extern uint8_t drone_port_mode_request;
 extern uint8_t drone_port_mode; // actual state in response to dp request
 extern uint8_t drone_port_status;
 
+// TODO: replace these variables with accessors
 extern float gps_position_x; // in meters relative to first waypoint in route
 extern float gps_position_y; // in meters relative to first waypoint in route
 
