@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 add_library(Handlers STATIC
   DP_handler/DP_handler.cpp
+  FC_handler/FC_handler.cpp
   GPS_handler/GPS_handler.cpp
   LSM_handler/LSM_handler.cpp
 )
