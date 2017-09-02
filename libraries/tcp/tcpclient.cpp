@@ -24,6 +24,8 @@ bool tcp_client::start_connect(std::string address, int port)
     perror("Connection failed");
     return false;
   }
+  
+    return true;
 }
 
 bool tcp_client::send_data(const char * src, size_t len)

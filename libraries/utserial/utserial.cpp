@@ -85,7 +85,7 @@ bool ut_serial::send_data(uint8_t component_id, uint8_t message_id,
   *tx_ptr = crc.bytes[1];
 
   ////////////////////////////////////////////////////////////////////////////////
-  if(!Serial::SendBuffer(tx_buffer, UT_HEADER_LENGTH + length + sizeof(crc))) {
+  if(!Serial::SendBuffer(tx_buffer, UT_HEADER_LENGTH + (int)length + sizeof(crc))) {
     std::cout << "Error in sending data" << std::endl;
     return false;
   }

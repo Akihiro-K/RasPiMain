@@ -1,791 +1,109 @@
-#include "../../libraries/tcp/tcpclient.h"
-#include "../../libraries/utserial/utserial.h"
-#include "../../libraries/nc/nc.h"
+
+#include "../../libraries/Handlers/handlers.h"
+#include "../../libraries/timer/timer.hpp"
 
 #include <thread>
 #include <mutex>
+#include <unistd.h>
 
-////
-#include <iostream>
-#include <stdio.h>
-#include <unistd.h>			//Used for UART
-#include <fcntl.h>			//Used for UART
-#include <termios.h>        //Used for UART
-#include <math.h>
-#include <sys/ioctl.h>
-#include "string.h"
-#include "poll.h"
-////
-
-#define UT_SERIAL_COMPONENT_ID_RASPI (2) // TODO: remove this in the future
+ // TODO: remove this in the future
 #define SERIAL_BAUDRATE_FC (57600)
-#define SERIAL_BAUDRATE_DP (57600)
+#define MAIN_FREQ 64 //hz or whatever
+
 #define TCP_PORT_MARKER (8080)
-#define TCP_PORT_GPS (8000)
-#define TCP_PORT_LSM (80)
-#define ENABLE_DISP_FROM_FC (0)
-#define ENABLE_DISP_TO_FC (0)
+
+#define ENABLE_DISP_FROM_FC (1)
+#define ENABLE_DISP_TO_FC (1)
 #define ENABLE_DISP_FROM_MARKER (1)
-#define ENABLE_DISP_FROM_GPS (0)
+#define ENABLE_DISP_FROM_GPS (1)
+
 const char SERIAL_PORT_FC[] = "/dev/ttyAMA0";
-const char SERIAL_PORT_DP[] = "/dev/ttyUSB1";
 const char WAYPOINT_FILENAME[] = "../input_data/wp.json";
-const char TCP_ADDRESS[] = "127.0.0.1"; // common for all server/client
-
-#define UBLOX_INITIAL_BAUD 9600
-#define UBLOX_OPERATING_BAUD 57600
-
-#define UBX_SYNC_CHAR_1 (0xb5)
-#define UBX_SYNC_CHAR_2 (0x62)
-#define UBX_CLASS_NAV (0x01)
-#define UBX_ID_POS_LLH (0x02)
-#define UBX_ID_VEL_NED (0x12)
-#define UBX_ID_SOL (0x06)
-#define UBX_ID_TIME_UTC (0x21)
-
-#define UBX_FRESHNESS_LIMIT (500)  // millisends
-
-static void CopyUBloxMessage(uint8_t id);
-struct UBXPosLLH
-{
-    uint32_t gps_ms_time_of_week;
-    int32_t longitude;
-    int32_t latitude;
-    int32_t height_above_ellipsoid;
-    int32_t height_mean_sea_level;
-    uint32_t horizontal_accuracy;
-    uint32_t vertical_accuracy;
-} __attribute__((packed));
-
-struct UBXVelNED
-{
-    uint32_t gps_ms_time_of_week;
-    int32_t velocity_north;
-    int32_t velocity_east;
-    int32_t velocity_down;
-    uint32_t total_speed;
-    uint32_t horizontal_speed;
-    int32_t course;
-    uint32_t speed_accuracy;
-    uint32_t course_accuracy;
-} __attribute__((packed));
-
-struct UBXSol
-{
-    uint32_t gps_ms_time_of_week;
-    int32_t fractional_time_of_week;
-    int16_t gps_week;
-    uint8_t gps_fix_type;
-    uint8_t gps_fix_status_flags;
-    int32_t ecef_x_coordinate;
-    int32_t ecef_y_coordinate;
-    int32_t ecef_z_coordinate;
-    uint32_t coordinate_accuracy;
-    int32_t ecef_x_velocity;
-    int32_t ecef_y_velocity;
-    int32_t ecef_z_velocity;
-    uint32_t velocity_accuracy;
-    uint16_t position_dop;
-    uint8_t reserved1;
-    uint8_t number_of_satelites_used;
-    uint32_t reserved2;
-} __attribute__((packed));
-
-struct UBXTimeUTC
-{
-    uint32_t gps_ms_time_of_week;
-    uint32_t t_acc;
-    int32_t nano;
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t min;
-    uint8_t sec;
-    uint8_t valid;
-} __attribute__((packed));
-
-enum UBXNewDataBits {
-    UBX_NEW_DATA_BIT_POS_LLH  = 1<<0,
-    UBX_NEW_DATA_BIT_VEL_NED  = 1<<1,
-    UBX_NEW_DATA_BIT_SOL      = 1<<2,
-    UBX_NEW_DATA_BIT_TIME_UTC = 1<<3,
-};
-
-enum UBXErrorBits {
-    UBX_ERROR_BIT_STALE = 1<<0,
-};
-
-static struct UBXPosLLH ubx_pos_llh_;
-static struct UBXVelNED ubx_vel_ned_;
-static struct UBXSol ubx_sol_;
-static struct UBXTimeUTC ubx_time_utc_;
-
-static enum UBXErrorBits error_bits_ = UBX_ERROR_BIT_STALE;
-static uint32_t status_ = 0;
-static uint32_t new_data_bits_ = 0;
-static uint32_t last_reception_timestamp_ = 0;
-
-#define UBLOX_DATA_BUFFER_LENGTH (sizeof(struct UBXSol))
-
-static uint8_t data_buffer_[UBLOX_DATA_BUFFER_LENGTH];
-
-
-int ublox_fd = -1;
-static void ProcessIncomingUBloxByte(uint8_t byte)
-{
-    static size_t bytes_processed = 0, payload_length = 0;
-    static uint8_t id, checksum_a, checksum_b;
-    static uint8_t * data_buffer_ptr = NULL;
-    //printf("\n bytes processed [%zu]", bytes_processed);
-
-    switch (bytes_processed)
-    {
-        case 0:  // Sync char 1
-            if (byte != UBX_SYNC_CHAR_1) goto RESET;
-            break;
-        case 1:  // Sync char 2
-            if (byte != UBX_SYNC_CHAR_2) goto RESET;
-            break;
-        case 2:  // Class (NAV)
-            if (byte != UBX_CLASS_NAV) goto RESET;
-            checksum_a = byte;
-            checksum_b = byte;
-            break;
-        case 3:  // ID
-            id = byte;
-            /*
-             #define UBX_ID_POS_LLH (0x02)
-             #define UBX_ID_VEL_NED (0x12)
-             #define UBX_ID_SOL (0x06)
-             #define UBX_ID_TIME_UTC (0x21)
-
-             */
-            //if(id == UBX_ID_POS_LLH)printf("\n UBX_ID_POS_LLH");
-            //    else if(id == UBX_ID_VEL_NED)printf("\n UBX_ID_VEL_NED");
-            //        else if(id == UBX_ID_SOL)printf("\n UBX_ID_SOL");
-            //            else if(id == UBX_ID_TIME_UTC)printf("\n UBX_ID_TIME_UTC");
-            //                else printf("\n UNKNOWN_ID %x", id);
-
-            break;
-        case 4:  // Payload length (lower byte)
-            if (byte > UBLOX_DATA_BUFFER_LENGTH) goto RESET;
-            payload_length = byte;
-            data_buffer_ptr = &data_buffer_[0];
-        case 5:  // Payload length (upper byte should always be zero)
-            break;
-        default:  // Payload or checksum
-            if (bytes_processed < (6 + payload_length))  // Payload
-            {
-                *data_buffer_ptr++ = byte;
-            }
-            else if (bytes_processed == (6 + payload_length))  // Checksum A
-            {
-
-            }
-            else  // Checksum B
-            {
-                CopyUBloxMessage(id);
-                goto RESET;
-            }
-            break;
-    }
-    bytes_processed++;
-    return;
-
-RESET:
-    bytes_processed = 0;
-}
-
-void UBloxTxBuffer(const char b[], int t)
-{
-    int wr =0 ;
-    while(wr != t)
-    {
-        if((int) write(ublox_fd,&b[wr],1)) wr++;
-        printf("\n printing [%x] index[%d] writen:%d", b[wr-1], wr-1, wr);
-        if(wr == t || wr > t) break;
-    }
-
-    printf("\n wr = %d", wr);
-}
-
-void UART_Init(int b)
-{
-    //-------------------------
-    //----- SETUP USART 0 -----
-    //-------------------------
-    //At bootup, pins 8 and 10 are already set to UART0_TXD, UART0_RXD (ie the alt0 function) respectively
-    ublox_fd = -1;
-    close(ublox_fd);
-    //OPEN THE UART
-    //The flags (defined in fcntl.h):
-    //	Access modes (use 1 of these):
-    //		O_RDONLY - Open for reading only.
-    //		O_RDWR - Open for reading and writing.
-    //		O_WRONLY - Open for writing only.
-    //
-    //	O_NDELAY / O_NONBLOCK (same function) - Enables nonblocking mode. When set read requests on the file can return immediately with a failure status
-    //											if there is no input immediately available (instead of blocking). Likewise, write requests can also return
-    //											immediately with a failure status if the output can't be written immediately.
-    //
-    //	O_NOCTTY - When set and path identifies a terminal device, open() shall not cause the terminal device to become the controlling terminal for the process.
-    ublox_fd = open("/dev/cu.usbserial-DJ00LQ19", O_RDWR | O_NOCTTY | O_NDELAY);		//Open in non blocking read/write mode
-    if (ublox_fd == -1)
-    {
-        //ERROR - CAN'T OPEN SERIAL PORT
-        printf("Error - Unable to open UART.  Ensure it is not in use by another application\n");
-    }
-
-    //CONFIGURE THE UART
-    //The flags (defined in /usr/include/termios.h - see http://pubs.opengroup.org/onlinepubs/007908799/xsh/termios.h.html):
-    //	Baud rate:- B1200, B2400, B4800, B9600, B19200, B38400, B57600, B115200, B230400, B460800, B500000, B576000, B921600, B1000000, B1152000, B1500000, B2000000, B2500000, B3000000, B3500000, B4000000
-    //	CSIZE:- CS5, CS6, CS7, CS8
-    //	CLOCAL - Ignore modem status lines
-    //	CREAD - Enable receiver
-    //	IGNPAR = Ignore characters with parity errors
-    //	ICRNL - Map CR to NL on input (Use for ASCII comms where you want to auto correct end of line characters - don't use for bianry comms!)
-    //	PARENB - Parity enable
-    //	PARODD - Odd parity (else even)
-    struct termios tty;
-
-    memset (&tty, 0, sizeof tty);
-    if (tcgetattr (ublox_fd, &tty) != 0)
-    {
-        if(b == 57600)
-        {
-              cfsetospeed (&tty, B57600);
-            printf("57600 if");
-        }
-        else if(b == 9600)
-        {
-           cfsetospeed (&tty, B9600);
-            printf("9600 if");
-        }
-    }
-
-
-    if(b == 57600){
-         printf("\n57600 ti");
-        cfsetispeed (&tty, B57600);
-    }
-    if(b == 9600)
-    {
-        cfsetispeed (&tty, B9600);
- printf("\n9600 ti");
-
-    }
-
-    tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;     // 8-bit chars
-
-    // disable IGNBRK for mismatched speed tests; otherwise receive break
-    // as \000 chars
-    tty.c_iflag &= ~IGNBRK;         // disable break processing
-    tty.c_lflag = 0;                // no signaling chars, no echo,
-
-    // no canonical processing
-    tty.c_oflag = 0;                // no remapping, no delays
-    tty.c_cc[VMIN]  = 0;            // read doesn't block
-    tty.c_cc[VTIME] = 5;            // 0.5 seconds read timeout
-
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
-
-    tty.c_cflag |= (CLOCAL | CREAD);// ignore modem controls
-
-    // enable reading
-    tty.c_cflag &= ~PARENB;      // shut off parity
-    tty.c_cflag |= 0;
-    tty.c_cflag &= ~CSTOPB;
-    tty.c_cflag &= ~CRTSCTS;
-
-
-    tcsetattr (ublox_fd, TCSANOW, &tty);
-    printf("\n Open status : %d", ublox_fd);
-
-
-
-}
-
-void UART_Close()
-{
-    close(ublox_fd);
-}
 
 //==============================================================================
-struct UBXPayload {
-  int32_t longitude; // [10^-7 deg]
-  int32_t latitude; // [10^-7 deg]
-  float z; // height above sea level [m], downward positive
-  float velocity[3]; // [m/s]
-  uint8_t gps_status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
-} __attribute__((packed));
+FromFCVector    FCVector;
 
-static struct UBXPayload ubx_payload_;
-
-const struct UBXPayload * UBXPayload(void)
-{
-  ubx_payload_.longitude = ubx_pos_llh_.longitude;
-  ubx_payload_.latitude = ubx_pos_llh_.latitude;
-  ubx_payload_.z = ubx_pos_llh_.height_mean_sea_level;
-  ubx_payload_.velocity[0] = float(ubx_vel_ned_.velocity_north)/100.0f;
-  ubx_payload_.velocity[1] = float(ubx_vel_ned_.velocity_east)/100.0f;
-  ubx_payload_.velocity[2] = float(ubx_vel_ned_.velocity_down)/100.0f;
-  ubx_payload_.gps_status = 3;
-  return &ubx_payload_;
-}
-
-// -----------------------------------------------------------------------------
-uint8_t UBXNewDataAvailable(void){
-  return new_data_bits_& UBX_NEW_DATA_BIT_POS_LLH;
-}
-
-// -----------------------------------------------------------------------------
-void ClearUBXNewDataFlags(void){
-  new_data_bits_ &= ~UBX_NEW_DATA_BIT_POS_LLH;
-  new_data_bits_ &= ~UBX_NEW_DATA_BIT_VEL_NED;
-}
+#define MAIN_LOOP_TIMER 15 // 1divide by 64Hz ->15ms
 
 //==============================================================================
-
-
-std::mutex m; // for lock
-
-void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);
-
-void RecvFromMarker();
-void MarkerHandler(const char * src, size_t len);
-
-void GPSHandler();
-
-void RecvFromLSM();
-void LSMHandler(const char * src, size_t len);
-
-void RecvFromDP();
-void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);
 
 int main(int argc, char const *argv[])
 {
-  InitLogging();
-  ut_serial FC_comm(SERIAL_PORT_FC, SERIAL_BAUDRATE_FC);
-  std::thread marker_comm(&RecvFromMarker);
-  std::thread dp_comm(&RecvFromDP);
-  std::thread gps_handler(&GPSHandler);
+    InitLogging();
+    ut_serial FC_comm(SERIAL_PORT_FC, SERIAL_BAUDRATE_FC);
+    std::thread dp_comm(&RecvFromDP);
+    std::thread gps_handler(&GPSHandler);
 
-  ReadWPfromFile(WAYPOINT_FILENAME);
-  if (argc == 2) {
-    if (!SetRoute(atoi(argv[1]))) {
-      return -1;
-    }
-  }
-
-  for(;;) {
-    if (FC_comm.recv_data(FCHandler)){
-      // at 64Hz
-
-      //m.lock();
-      while(!m.try_lock()){printf("\n failed");}
-      if(ENABLE_DISP_TO_FC) DispToFC();
-      FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
-      ResetHeadingCorrectionQuat();
-      m.unlock();
-    }
-  }
-
-  marker_comm.join();
-  dp_comm.join();
-  gps_handler.join();
-
-  return 0;
-}
-
-void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len)
-{
-  m.lock();
-  uint8_t temp[UART_DATA_BUFFER_LENGTH];
-  memcpy(temp, data_buffer, len);
-
-#ifndef FC_DEBUG_MODE
-  struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)temp;
-
-  from_fc.timestamp = struct_ptr->timestamp;
-  from_fc.nav_mode_request = struct_ptr->nav_mode_request;
-  from_fc.pressure_alt = struct_ptr->pressure_alt;
-  for (int i = 0; i < 3; i++) {
-    from_fc.accelerometer[i] = struct_ptr->accelerometer[i];
-    from_fc.gyro[i] = struct_ptr->gyro[i];
-  }
-  for (int i = 0; i < 4; i++) {
-    from_fc.quaternion[i] = struct_ptr->quaternion[i];
-  }
-#else
-  struct ForDebug * struct_ptr = (struct ForDebug *)temp;
-  for (int i = 0; i < 3; i++) {
-    for_debug.accelerometer[i] = struct_ptr->accelerometer[i];
-    for_debug.gyro[i] = struct_ptr->gyro[i];
-  }
-  for (int i = 0; i < 4; i++) {
-    for_debug.motor_setpoint[i] = struct_ptr->motor_setpoint[i];
-  }
-#endif
-
-  // TO DO: consider order of functions
-
-  if(ENABLE_DISP_FROM_FC) DispFromFC();
-  ToFCLogging();
-  ToFCLogging2(); // This will be removed in the future
-  FromFCLogging();
-  PositionTimeUpdate();
-  AttitudeTimeUpdate();
-  PositionMeasurementUpdateWithBar();
-  UpdateNavigation();
-  m.unlock();
-}
-
-void RecvFromMarker()
-{
-  tcp_client c;
-  c.start_connect(TCP_ADDRESS , TCP_PORT_MARKER);
-
-  static uint32_t nConnectionFail = 0;
-  for(;;){
-    // at 10 ~ 15HZ
-    if(!c.recv_data(MarkerHandler)){
-      if(nConnectionFail == 0){
-        std::cout << "Connection with marker failed." << std::endl;
-      }
-      nConnectionFail = (nConnectionFail + 1)%1000000;
-    }
-  }
-}
-
-void MarkerHandler(const char * src, size_t len)
-{
-  m.lock();
-  char temp[CLIENT_BUF_SIZE];
-  memcpy(temp, src, len);
-  struct FromMarker * struct_ptr = (struct FromMarker *)temp;
-
-  from_marker.timestamp = struct_ptr->timestamp;
-  from_marker.status = struct_ptr->status;
-
-  for (int i=0;i<3;i++){
-    from_marker.position[i] = struct_ptr->position[i];
-    from_marker.quaternion[i] = struct_ptr->quaternion[i];
-    from_marker.r_var[i] = struct_ptr->r_var[i];
-  }
-
-  UpdateMarkerFlag();
-  AttitudeMeasurementUpdateWithMarker();
-  PositionMeasurementUpdateWithMarker();
-  if(ENABLE_DISP_FROM_MARKER) DispFromMarker();
-  VisionLogging();
-  m.unlock();
-}
-
-void GPSHandler()
-{
-  //std::string name = "/dev/gps_fifo";
-//
-  //int flag = O_RDONLY | O_NONBLOCK;//debug
-  //int fifo_fd = open(name.c_str(), flag);
-//
-  //for(;;)
-  //{
-  //    pollin_fifo(fifo_fd);
-  //    int ioctl_bytes = 0;
-  //    //ioctl(get_ublox_fd(), FIONREAD, &ioctl_bytes);
-  //    ioctl(fifo_fd, FIONREAD, &ioctl_bytes);
-  //    int r_bytes = 0;
-  //    //std::cout << "ioctl_bytes:" << ioctl_bytes << std::endl;
-  //    while(r_bytes != ioctl_bytes)
-  //    {
-  //        unsigned char c;
-  //        //if(read(get_ublox_fd(), &c, 1)) r_bytes++;
-  //        if(read(fifo_fd, &c, 1)) r_bytes++;
-  //        printf("%x ",c);
-  //        ProcessIncomingUBloxByte(c);
-  //    }
-//
-  //    if(UBXNewDataAvailable()){
-  //      const struct UBXPayload * temp_;
-  //        temp_ = UBXPayload();
-  //        printf("\n lon:%u lat:%u height:%f v:[%f][%f][%f] stat:%u",
-  //          temp_->longitude, temp_->latitude, temp_->z,
-  //          temp_->velocity[0], temp_->velocity[1], temp_->velocity[2],
-  //          temp_->gps_status);
-  //      ClearUBXNewDataFlags();
-  //    }
-  //}
-
-  int fd = open("/dev/gps_fifo", O_RDONLY | O_NONBLOCK);
-  for(;;)
-  {
-      struct pollfd temp;
-      temp.fd = fd;
-      temp.events = POLLIN;
-      poll(&temp, POLLIN, -1);
-      unsigned char c;
-      int r = (int) read(fd, &c, 1);
-      if(r){
-        ProcessIncomingUBloxByte(c);
-        //printf("%x ",c);
-      }
-
-      if(UBXNewDataAvailable()){
-        m.lock();
-
-        const struct UBXPayload * struct_ptr;
-        struct_ptr = UBXPayload();
-        //printf("\n lon:%u lat:%u height:%f v:[%f][%f][%f] stat:%u",
-        //  struct_ptr->longitude, struct_ptr->latitude, struct_ptr->z,
-        //  struct_ptr->velocity[0], struct_ptr->velocity[1], struct_ptr->velocity[2],
-        //  struct_ptr->gps_status);
-
-        //char temp[CLIENT_BUF_SIZE];
-        //memcpy(temp, src, len);
-        //struct FromGPS * struct_ptr = (struct FromGPS *)temp;
-        from_gps.longitude = struct_ptr->longitude;
-        from_gps.latitude = struct_ptr->latitude;
-        from_gps.z = struct_ptr -> z;
-        from_gps.gps_status = struct_ptr->gps_status;
-        for (int i=0;i<3;i++){
-          from_gps.velocity[i] = struct_ptr->velocity[i];
+    ReadWPfromFile(WAYPOINT_FILENAME);
+    if (argc == 2) {
+        if (!SetRoute(atoi(argv[1]))) {
+            return -1;
         }
-        UpdateGPSPosFlag();
-        UpdateGPSVelFlag();
-        // AttitudeMeasurementUpdateWithGPSVel();
-        PositionMeasurementUpdateWithGPSPos();
-        PositionMeasurementUpdateWithGPSVel();
-        if(ENABLE_DISP_FROM_GPS) DispFromGPS();
-        GPSLogging();
-        m.unlock();
-
-        ClearUBXNewDataFlags();
-      }
-  }
-
-
-  //m.lock();
-  //char temp[CLIENT_BUF_SIZE];
-  //memcpy(temp, src, len);
-  //struct FromGPS * struct_ptr = (struct FromGPS *)temp;
-  //from_gps.longitude = struct_ptr->longitude;
-  //from_gps.latitude = struct_ptr->latitude;
-  //from_gps.gps_status = struct_ptr->gps_status;
-  //for (int i=0;i<3;i++){
-  //  from_gps.velocity[i] = struct_ptr->velocity[i];
-  //}
-  //UpdateGPSPosFlag();
-  //UpdateGPSVelFlag();
-  //// AttitudeMeasurementUpdateWithGPSVel();
-  //PositionMeasurementUpdateWithGPSPos();
-  //PositionMeasurementUpdateWithGPSVel();
-  //if(ENABLE_DISP_FROM_GPS) DispFromGPS();
-  //GPSLogging();
-  //m.unlock();
-}
-
-void RecvFromLSM()
-{
-  tcp_client c;
-  c.start_connect(TCP_ADDRESS , TCP_PORT_LSM);
-
-  static uint32_t nConnectionFail = 0;
-  for(;;){
-    // at ? HZ
-    if(!c.recv_data(LSMHandler)){
-      if(nConnectionFail == 0){
-        std::cout << "Connection with magnetometer failed." << std::endl;
-      }
-      nConnectionFail = (nConnectionFail + 1)%1000000;
     }
-  }
-}
 
-void LSMHandler(const char * src, size_t len)
-{
-  m.lock();
-  char temp[CLIENT_BUF_SIZE];
-  memcpy(temp, src, len);
-  struct FromLSM * struct_ptr = (struct FromLSM *)temp;
+    Timer Main_timer(MAIN_FREQ);
 
-  from_lsm.status = struct_ptr->status;
+    for(;;)
+    {
 
-  for (int i=0;i<3;i++){
-    from_lsm.mag[i] = struct_ptr->mag[i];
-  }
-
-  UpdateLSMFlag();
-  AttitudeMeasurementUpdateWithLSM();
-  LSMLogging();
-  m.unlock();
-}
-
-void RecvFromDP()
-{
-  ut_serial DP_comm(SERIAL_PORT_DP, SERIAL_BAUDRATE_DP);
-
-  for(;;){
-    // at 2 HZ
-    m.lock();
-    to_dp.nav_mode = to_fc.nav_mode;
-    to_dp.drone_port_mode = drone_port_mode;
-    to_dp.nav_status = to_fc.navigation_status;
-    to_dp.drone_port_status = drone_port_status;
-    for (int i = 0; i < 3; i++) {
-      to_dp.position[i] = to_fc.position[i];
-      to_dp.velocity[i] = to_fc.velocity[i];
-    }
-    for (int i = 0; i < 4; i++) {
-      to_dp.quaternion[i] = from_fc.quaternion[i];
-    }
-    m.unlock();
-    DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
-
-    if (DP_comm.recv_data(DPHandler)) {
-      switch (dp_id) {
-        case 10:
+        if(Main_timer.check())
         {
-          // do nothing
-          break;
-        }
-        case 11:
-        {
-          m.lock();
-          SetDronePortMode();
-          to_dp_set_dp_mode.drone_port_mode = drone_port_mode;
-          to_dp_set_dp_mode.drone_port_status = drone_port_status;
-          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&to_dp_set_dp_mode, sizeof(to_dp_set_dp_mode));
-          ToDPSetDronePortModeLogging();
-          m.unlock();
-          break;
-        }
-        case 12:
-        {
-          uint8_t * src;
-          size_t len;
-          GetCurrentWP(src, &len);
-          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 12, src, len);
-          break;
-        }
-        default: // 13
-        {
-          // do nothing
-          break;
-        }
-      }
-    }
-    //usleep(500000); // wait for 500 ms
-    // TODO: implement timer class
-    for(uint32_t i = 0; i < 1000000; i++){}
-  }
-}
+            std::clock_t c_start = std::clock(); //debug
+            /*
+                ORDER DO MATTER PLEASE VERIFY
+             */
 
-void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len)
-{
-  m.lock();
-  uint8_t temp[UART_DATA_BUFFER_LENGTH];
-  memcpy(temp, data_buffer, len);
+            if(!FCVector->empty())
+            {
+                from_fc = FCVector->back();     //get most recent data
+                FCVector->clear();              //remove old datas
 
-  dp_id = message_id;
+            }
 
-  switch (message_id) {
-    case 10:
-    {
-      // do nothing
-      break;
-    }
-    case 11:
-    {
-      struct FromDPSetDronePortMode * struct_ptr = (struct FromDPSetDronePortMode *)temp;
+            if(!GPSVector->empty())
+            {
+                from_gps = GPSVector->back();   //get most recent data
+                GPSVector->clear();             //remove old datas
+            }
 
-      from_dp_set_dp_mode.read_write = struct_ptr->read_write;
-      from_dp_set_dp_mode.drone_port_mode_request = struct_ptr->drone_port_mode_request;
-      drone_port_mode_request = from_dp_set_dp_mode.drone_port_mode_request;
-      FromDPSetDronePortModeLogging();
-      break;
-    }
-    case 12:
-    {
-      uint8_t * payload_ptr = (uint8_t *)temp;
-      if (*payload_ptr++) { // first payload is write data flag
-         uint8_t route_num, num_of_wps, wp_num;
-         route_num = *payload_ptr++;
-         num_of_wps = *payload_ptr++;
-         wp_num = *payload_ptr++;
-         SetCurrentWPfromDP(payload_ptr);
-      }
-      break;
-    }
-    case 13:
-    {
-      //struct FromMarker * struct_ptr = (struct FromMarker *)temp;
+            //if(!LSMVector->empty())
+            //{
+            //    from_lsm = LSMVector->back();   //get most recent data
+            //    LSMVector->clear();             //remove old datas
+            //}
+            //ORDER HAS TO BE CHECKED
+            //GPS
+            UpdateGPSPosFlag();
+            UpdateGPSVelFlag();
+            PositionMeasurementUpdateWithGPSPos();
+            PositionMeasurementUpdateWithGPSVel();
+            if(ENABLE_DISP_FROM_GPS) DispFromGPS();
+            GPSLogging();
 
-      //from_marker.timestamp = struct_ptr->timestamp;
-      //from_marker.status = struct_ptr->status;
+            //FC
+            if(ENABLE_DISP_FROM_FC) DispFromFC();
+            ToFCLogging();
+            ToFCLogging2(); // This will be removed in the future
+            FromFCLogging();
+            PositionTimeUpdate();
+            AttitudeTimeUpdate();
+            PositionMeasurementUpdateWithBar();
+            UpdateNavigation();
+            if(ENABLE_DISP_TO_FC) DispToFC();
+            FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)&to_fc, sizeof(to_fc));
+            ResetHeadingCorrectionQuat();
 
-      //for (int i=0;i<3;i++){
-      //  from_marker.position[i] = struct_ptr->position[i];
-      //  from_marker.quaternion[i] = struct_ptr->quaternion[i];
-      //  from_marker.r_var[i] = struct_ptr->r_var[i];
-      //}
+            //LSM
+            UpdateLSMFlag();
+            AttitudeMeasurementUpdateWithLSM();
+            LSMLogging();
 
-      //UpdateMarkerFlag();
-      //AttitudeMeasurementUpdateWithMarker();
-      //PositionMeasurementUpdateWithMarker();
-      //if(ENABLE_DISP_FROM_MARKER) DispFromMarker();
-      //VisionLogging();
-      //break;
-    }
-    default:
-    {
-      // do nothing
-      break;
-    }
-  }
-  m.unlock();
-}
+            }
 
-static void CopyUBloxMessage(uint8_t id)
-{
-    // TODO: do this in a more efficient way
-    switch (id)
-    {
-        case UBX_ID_POS_LLH:
-            memcpy(&ubx_pos_llh_, &data_buffer_[0], sizeof(struct UBXPosLLH));
-            status_ = ubx_pos_llh_.horizontal_accuracy < 5000;
-            new_data_bits_ |= UBX_NEW_DATA_BIT_POS_LLH;
-            //printf("\n+----------------------------+\n| LONGITUDE:[%d], LATITUDE:[%d] | \n+----------------------------+",  ubx_pos_llh_.longitude, ubx_pos_llh_.latitude);
-            //UpdatePositionToFlightCtrl(UBLOX);
-#ifdef LOG_DEBUG_TO_SD
-            // LogUBXPosLLH();
-#endif
-            break;
-        case UBX_ID_VEL_NED:
-            memcpy(&ubx_vel_ned_, &data_buffer_[0], sizeof(struct UBXVelNED));
-            new_data_bits_ |= UBX_NEW_DATA_BIT_VEL_NED;
-            //UpdateVelocityToFlightCtrl(UBLOX);
-#ifdef LOG_DEBUG_TO_SD
-            // LogUBXVelNED();
-#endif
-            break;
-        case UBX_ID_SOL:
-            memcpy(&ubx_sol_, &data_buffer_[0], sizeof(struct UBXSol));
-            new_data_bits_ |= UBX_NEW_DATA_BIT_SOL;
-            //printf("\n ***************\n GPS_fix_type [%d] \n ***************", ubx_sol_.gps_fix_type);
-#ifdef LOG_DEBUG_TO_SD
-            // LogUBXSol();
-#endif
-            break;
-        case UBX_ID_TIME_UTC:
-            memcpy(&ubx_time_utc_, &data_buffer_[0], sizeof(struct UBXTimeUTC));
-            new_data_bits_ |= UBX_NEW_DATA_BIT_TIME_UTC;
-#ifdef LOG_DEBUG_TO_SD
-            // LogUBXTimeUTC();
-#endif
-            break;
     }
 
-    //last_reception_timestamp_ = GetTimestamp();
-    //error_bits_ &= ~UBX_ERROR_BIT_STALE;
+    // dp_comm.join();
+    // gps_handler.join();
+
+    return 0;
 }

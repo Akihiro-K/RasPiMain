@@ -7,7 +7,7 @@
 //
 
 #include "helper.hpp"
-
+/*
 int ublox_fd = -1;
 
  void UART_Init(int b)
@@ -270,7 +270,7 @@ void Reader_sender(void)
           		//{
               //    std::cout<<"\n fifo write error : "<<fifo_fd;
           		//}
-              
+
               //  std::cout<<"\n Read & Write one byte";
             }
 
@@ -285,3 +285,4 @@ void run(void)
     GPS_Init();
     Reader_sender();
 }
+*/

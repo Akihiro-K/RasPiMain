@@ -16,6 +16,10 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/serial ${CMAKE_CURRENT
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/tcp ${CMAKE_CURRENT_BINARY_DIR}/tcp_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/nc ${CMAKE_CURRENT_BINARY_DIR}/nc_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/helper ${CMAKE_CURRENT_BINARY_DIR}/helper_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/Handlers ${CMAKE_CURRENT_BINARY_DIR}/Handlers_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/ublox ${CMAKE_CURRENT_BINARY_DIR}/ublox_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/timer ${CMAKE_CURRENT_BINARY_DIR}/timer_build)
+
 
 add_executable(main src/main.cpp)
-target_link_libraries(main UTSerial Serial TCPClient StateEstimator Navigator Logger Shared Disp Helper)
+target_link_libraries(main UTSerial Serial TCPClient StateEstimator Navigator Logger Shared Disp Helper Handlers Ublox Timer)

@@ -178,14 +178,14 @@ void Route_Manager::ReadFromFile(std::string filepath)
   std::ifstream ifs(filepath);
   json j_;
   ifs >> j_;
-  NRoutes = j_.size();
+  NRoutes = (int)j_.size();
   if (flag) free();
   p = new Route [NRoutes];
   for (int i = 0; i < NRoutes; i++) {
     std::ostringstream oss1;
     oss1 << "Route_" << i;
     std::string route_name = oss1.str();
-    int nwaypoints = j_[route_name.c_str()].size();
+    int nwaypoints = (int)j_[route_name.c_str()].size();
     struct WayPoint waypoints[nwaypoints];
     for (int j = 0; j < nwaypoints; j++) {
       std::ostringstream oss2;

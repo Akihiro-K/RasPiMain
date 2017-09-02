@@ -8,7 +8,7 @@
 
 #ifndef helper_hpp
 #define helper_hpp
-
+/*
 #include <stdio.h>
 #include "string.h"
 #include <iostream>
@@ -46,5 +46,5 @@ int get_ublox_fd(void);
 void Reader_sender(void);
 
 void run(void);
-
+*/
 #endif /* helper_hpp */

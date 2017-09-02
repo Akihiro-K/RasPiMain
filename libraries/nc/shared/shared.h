@@ -2,6 +2,11 @@
 #define SHARED_H_
 
 #include <iostream>
+#include <vector>
+#include <mutex>
+//#include "../../ublox/ublox.hpp"
+
+//using namespace std;
 
 #define NAV_COMMS_VERSION (1)
 
@@ -131,6 +136,79 @@ enum DPStatus {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+
+class FromGPSVector {
+    std::vector<FromGPS> vec;
+    std::mutex vector_m;
+
+    struct locker {
+        FromGPSVector& _ref;
+        locker(FromGPSVector& parent) : _ref(parent) {
+            _ref.vector_m.lock();
+        }
+        ~locker() { _ref.vector_m.unlock(); }
+
+        std::vector<FromGPS>* operator->() && { return &_ref.vec; }
+    };
+
+public:
+    locker operator->() { return {*this}; }
+};
+
+class FromFCVector {
+    std::vector<FromFlightCtrl> vec;
+    std::mutex vector_m;
+
+    struct locker {
+        FromFCVector& _ref;
+        locker(FromFCVector& parent) : _ref(parent) {
+            _ref.vector_m.lock();
+        }
+        ~locker() { _ref.vector_m.unlock(); }
+
+        std::vector<FromFlightCtrl>* operator->() && { return &_ref.vec; }
+    };
+
+public:
+    locker operator->() { return {*this}; }
+};
+
+class FromLSMVector {
+    std::vector<FromLSM> vec;
+    std::mutex vector_m;
+
+    struct locker {
+        FromLSMVector& _ref;
+        locker(FromLSMVector& parent) : _ref(parent) {
+            _ref.vector_m.lock();
+        }
+        ~locker() { _ref.vector_m.unlock(); }
+
+        std::vector<FromLSM>* operator->() && { return &_ref.vec; }
+    };
+
+public:
+    locker operator->() { return {*this}; }
+};
+
+
+class FromMarkerVector {
+    std::vector<FromMarker> vec;
+    std::mutex vector_m;
+
+    struct locker {
+        FromMarkerVector& _ref;
+        locker(FromMarkerVector& parent) : _ref(parent) {
+            _ref.vector_m.lock();
+        }
+        ~locker() { _ref.vector_m.unlock(); }
+
+        std::vector<FromMarker>* operator->() && { return &_ref.vec; }
+    };
+
+public:
+    locker operator->() { return {*this}; }
+};
 extern struct FromMarker from_marker;
 extern struct FromGPS from_gps;
 extern struct FromLSM from_lsm;
@@ -155,5 +233,14 @@ extern uint8_t drone_port_status;
 
 extern float gps_position_x; // in meters relative to first waypoint in route
 extern float gps_position_y; // in meters relative to first waypoint in route
+
+extern struct UBXPosLLH ubx_pos_llh_;
+extern struct UBXVelNED ubx_vel_ned_;
+extern struct UBXSol ubx_sol_;
+extern struct UBXTimeUTC ubx_time_utc_;
+
+extern struct UBXPayload ubx_payload_;
+
+
 
 #endif

@@ -71,21 +71,7 @@ void Serial::Open(const std::string &comport, const int baudrate)
     case 230400:
       baudrate_code = B230400;
       break;
-    case 460800:
-      baudrate_code = B460800;
-      break;
-    case 500000:
-      baudrate_code = B500000;
-      break;
-    case 576000:
-      baudrate_code = B576000;
-      break;
-    case 921600:
-      baudrate_code = B921600;
-      break;
-    case 1000000:
-      baudrate_code = B1000000;
-      break;
+  
     default :
       std::cerr << "Failed to open " << comport << ". Invalid baudrate."
       << std::endl;
@@ -126,7 +112,7 @@ int Serial::Read(uint8_t * const buffer, const int length) const
   if (id_ == -1)
     return -1;
 
-  return read(id_, buffer, length);  // Returns the number of bytes read
+  return (int)read(id_, buffer, length);  // Returns the number of bytes read
 }
 
 int Serial::SendByte(const uint8_t byte) const
@@ -140,7 +126,7 @@ int Serial::SendBuffer(const uint8_t * const buffer, const int length)
   if (id_ == -1)
     return -1;
 
-  return write(id_, buffer, length);  // Returns the number of bytes written
+  return (int)write(id_, buffer, length);  // Returns the number of bytes written
 }
 
 void Serial::Close()
