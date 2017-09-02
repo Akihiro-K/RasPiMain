@@ -1,22 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 
-add_library(Disp STATIC
+add_library(NC STATIC
   disp/disp.cpp
-)
-
-add_library(Logger STATIC
   logger/logger.cpp
-)
-
-add_library(Navigator STATIC
   navigator/navigator.cpp
-)
-
-add_library(Shared STATIC
   shared/shared.cpp
-)
-
-add_library(StateEstimator STATIC
   stateestimator/stateestimator.cpp
 )
 
