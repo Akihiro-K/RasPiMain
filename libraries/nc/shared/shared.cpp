@@ -26,3 +26,5 @@ uint8_t drone_port_status = DPStatusModeInProgress;
 
 float gps_position_x = 0; // in meters relative to first waypoint in route
 float gps_position_y = 0; // in meters relative to first waypoint in route
+
+const char TCP_ADDRESS[] = "127.0.0.1"; // common for all server/client

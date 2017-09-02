@@ -16,7 +16,8 @@
 #define TCP_PORT_LSM (80)
 
 extern FromLSMVector   LSMVector;
-const char TCP_ADDRESS[] = "127.0.0.1"; // common for all server/client
+
+//const char TCP_ADDRESS[] = "127.0.0.1"; // common for all server/client
 
 void RecvFromLSM();
 void LSMHandler(const char * src, size_t len); //refactored

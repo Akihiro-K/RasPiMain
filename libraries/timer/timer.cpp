@@ -13,7 +13,7 @@ bool Timer::check(void)
 {
     bool retval = false;
     std::chrono::high_resolution_clock::time_point now_t = std::chrono::high_resolution_clock::now();
-    double ellapsed = std::chrono::duration_cast<std::chrono::microseconds>(now_t - this->start_t).count();
+    double ellapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now_t - this->start_t).count();
     if(ellapsed >= this->timeout)
     {
         this->start_t = now_t;
@@ -34,6 +34,6 @@ double Timer::get_timeout(void)
 double Timer::time_since_last_check(void)
 {
   std::chrono::high_resolution_clock::time_point now_t = std::chrono::high_resolution_clock::now();
-  double ellapsed = std::chrono::duration_cast<std::chrono::microseconds>(now_t-this->start_t).count();
+  double ellapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now_t-this->start_t).count();
   return ellapsed;
 }

@@ -29,9 +29,6 @@ struct UBXPayload ubx_payload_;
 
 void ProcessIncomingUBloxByte(uint8_t byte)
 {
-    
-    
-    
     switch (bytes_processed)
     {
         case 0:  // Sync char 1
@@ -53,12 +50,12 @@ void ProcessIncomingUBloxByte(uint8_t byte)
              #define UBX_ID_SOL (0x06)
              #define UBX_ID_TIME_UTC (0x21)
              */
-            if(id == UBX_ID_POS_LLH)printf("\n UBX_ID_POS_LLH");
-            else if(id == UBX_ID_VEL_NED)printf("\n UBX_ID_VEL_NED");
-            else if(id == UBX_ID_SOL)printf("\n UBX_ID_SOL");
-            else if(id == UBX_ID_TIME_UTC)printf("\n UBX_ID_TIME_UTC");
-            else printf("\n UNKNOWN_ID %x", id);
-            
+            if(id == UBX_ID_POS_LLH)printf(" UBX_ID_POS_LLH\n");
+            else if(id == UBX_ID_VEL_NED)printf(" UBX_ID_VEL_NED\n");
+            else if(id == UBX_ID_SOL)printf(" UBX_ID_SOL\n");
+            else if(id == UBX_ID_TIME_UTC)printf(" UBX_ID_TIME_UTC\n");
+            else printf(" UNKNOWN_ID %x\n", id);
+
             break;
         case 4:  // Payload length (lower byte)
             if (byte > UBLOX_DATA_BUFFER_LENGTH) goto RESET;
@@ -73,7 +70,7 @@ void ProcessIncomingUBloxByte(uint8_t byte)
             }
             else if (bytes_processed == (6 + payload_length))  // Checksum A
             {
-                
+
             }
             else  // Checksum B
             {
@@ -84,7 +81,7 @@ void ProcessIncomingUBloxByte(uint8_t byte)
     }
     bytes_processed++;
     return;
-    
+
 RESET:
     bytes_processed = 0;
 }
@@ -96,7 +93,7 @@ RESET:
 void run(void)
 {
     int fd = open("/dev/gps_fifo", O_RDONLY | O_NONBLOCK);
-    
+
     for(;;)
     {
         struct pollfd temp;
@@ -106,7 +103,7 @@ void run(void)
         unsigned char c;
         int r = (int) read(fd, &c, 1);
         if(r)ProcessIncomingUBloxByte(c);
-        
+
     }
 }
 
@@ -120,37 +117,25 @@ void CopyUBloxMessage(uint8_t id)
             memcpy(&ubx_pos_llh_, &data_buffer_[0], sizeof(struct UBXPosLLH));
             status_ = ubx_pos_llh_.horizontal_accuracy < 5000;
             new_data_bits_ |= UBX_NEW_DATA_BIT_POS_LLH;
-            printf("\n+----------------------------+\n| LONGITUDE:[%d], LATITUDE:[%d] | \n+----------------------------+",  ubx_pos_llh_.longitude, ubx_pos_llh_.latitude);
+            printf("+----------------------------+\n| LONGITUDE:[%d], LATITUDE:[%d] | \n+----------------------------+\n",  ubx_pos_llh_.longitude, ubx_pos_llh_.latitude);
             //UpdatePositionToFlightCtrl(UBLOX);
-#ifdef LOG_DEBUG_TO_SD
-            // LogUBXPosLLH();
-#endif
             break;
         case UBX_ID_VEL_NED:
             memcpy(&ubx_vel_ned_, &data_buffer_[0], sizeof(struct UBXVelNED));
             new_data_bits_ |= UBX_NEW_DATA_BIT_VEL_NED;
             //UpdateVelocityToFlightCtrl(UBLOX);
-#ifdef LOG_DEBUG_TO_SD
-            // LogUBXVelNED();
-#endif
             break;
         case UBX_ID_SOL:
             memcpy(&ubx_sol_, &data_buffer_[0], sizeof(struct UBXSol));
             new_data_bits_ |= UBX_NEW_DATA_BIT_SOL;
-            printf("\n ***************\n GPS_fix_type [%d] \n ***************", ubx_sol_.gps_fix_type);
-#ifdef LOG_DEBUG_TO_SD
-            // LogUBXSol();
-#endif
+            printf(" ***************\n GPS_fix_type [%d] \n ***************\n", ubx_sol_.gps_fix_type);
             break;
         case UBX_ID_TIME_UTC:
             memcpy(&ubx_time_utc_, &data_buffer_[0], sizeof(struct UBXTimeUTC));
             new_data_bits_ |= UBX_NEW_DATA_BIT_TIME_UTC;
-#ifdef LOG_DEBUG_TO_SD
-            // LogUBXTimeUTC();
-#endif
             break;
     }
-    
+
     //last_reception_timestamp_ = GetTimestamp();
     //error_bits_ &= ~UBX_ERROR_BIT_STALE;
 }
@@ -180,4 +165,3 @@ void ClearUBXNewDataFlags(void)
     new_data_bits_ &= ~UBX_NEW_DATA_BIT_POS_LLH;
     new_data_bits_ &= ~UBX_NEW_DATA_BIT_VEL_NED;
 }
-

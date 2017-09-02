@@ -22,4 +22,4 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/timer ${CMAKE_CURRENT_
 
 
 add_executable(main src/main.cpp)
-target_link_libraries(main UTSerial Serial TCPClient StateEstimator Navigator Logger Shared Disp Helper Handlers Ublox Timer)
+target_link_libraries(main Handlers UTSerial Serial StateEstimator Navigator Logger Shared Disp Helper Ublox Timer TCPClient)

@@ -31,10 +31,10 @@ void GPSHandler()
 
             const struct UBXPayload * struct_ptr;
             struct_ptr = UBXPayload();
-            printf("\n lon:%u lat:%u height:%f v:[%f][%f][%f] stat:%u",
-                   struct_ptr->longitude, struct_ptr->latitude, struct_ptr->z,
-                   struct_ptr->velocity[0], struct_ptr->velocity[1], struct_ptr->velocity[2],
-                   struct_ptr->gps_status);
+            //printf("\n lon:%u lat:%u height:%f v:[%f][%f][%f] stat:%u",
+            //       struct_ptr->longitude, struct_ptr->latitude, struct_ptr->z,
+            //       struct_ptr->velocity[0], struct_ptr->velocity[1], struct_ptr->velocity[2],
+            //       struct_ptr->gps_status);
 
             FromGPS temp;
             temp.longitude = struct_ptr->longitude;

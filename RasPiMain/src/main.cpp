@@ -10,10 +10,8 @@
 #define SERIAL_BAUDRATE_FC (57600)
 #define MAIN_FREQ 64 // hz
 
-#define TCP_PORT_MARKER (8080)
-
 #define ENABLE_DISP_FROM_FC (1)
-#define ENABLE_DISP_TO_FC (1)
+#define ENABLE_DISP_TO_FC (0)
 #define ENABLE_DISP_FROM_MARKER (1)
 #define ENABLE_DISP_FROM_GPS (1)
 
@@ -28,6 +26,7 @@ int main(int argc, char const *argv[])
     ut_serial FC_comm(SERIAL_PORT_FC, SERIAL_BAUDRATE_FC);
     std::thread dp_comm(&RecvFromDP);
     std::thread gps_handler(&GPSHandler);
+    std::thread mkr_handler(&MarkerHandler);
 
     ReadWPfromFile(WAYPOINT_FILENAME);
     if (argc == 2) {
@@ -74,6 +73,19 @@ int main(int argc, char const *argv[])
                 PositionMeasurementUpdateWithGPSVel();
                 if(ENABLE_DISP_FROM_GPS) DispFromGPS();
                 GPSLogging();
+            }
+
+            if(!MarkerVector->empty())
+            {
+                from_marker = MarkerVector->back();   //get most recent data
+                MarkerVector->clear();             //remove old datas
+
+                //Marker
+                UpdateMarkerFlag();
+                AttitudeMeasurementUpdateWithMarker();
+                PositionMeasurementUpdateWithMarker();
+                if(ENABLE_DISP_FROM_MARKER) DispFromMarker();
+                VisionLogging();
             }
 
             //if(!LSMVector->empty())

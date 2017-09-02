@@ -36,9 +36,6 @@
 
 #define UBX_FRESHNESS_LIMIT (500)  // millisends
 
-
-
-
 struct UBXPosLLH
 {
     uint32_t gps_ms_time_of_week;
@@ -118,9 +115,6 @@ struct UBXPayload {
     float velocity[3]; // [m/s]
     uint8_t gps_status; // 3: pos & vel OK 2: only pos OK 1: only vel OK 0: unavailable
 } __attribute__((packed));
-
-
- 
 
 void ProcessIncomingUBloxByte(uint8_t byte);
 

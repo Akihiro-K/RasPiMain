@@ -24,7 +24,7 @@ bool tcp_client::start_connect(std::string address, int port)
     perror("Connection failed");
     return false;
   }
-  
+
     return true;
 }
 
@@ -43,7 +43,7 @@ bool tcp_client::recv_data(std::function<void (const char *, size_t)> handler)
 {
   if( recv(sock , buffer , sizeof(buffer) , 0) < 0)
   {
-    perror("Recv failed");
+    // perror("Recv failed");
     return false;
   }
 

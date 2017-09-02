@@ -234,6 +234,8 @@ extern uint8_t drone_port_status;
 extern float gps_position_x; // in meters relative to first waypoint in route
 extern float gps_position_y; // in meters relative to first waypoint in route
 
+extern const char TCP_ADDRESS[];
+
 extern struct UBXPosLLH ubx_pos_llh_;
 extern struct UBXVelNED ubx_vel_ned_;
 extern struct UBXSol ubx_sol_;
