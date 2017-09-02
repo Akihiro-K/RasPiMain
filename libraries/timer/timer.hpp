@@ -19,7 +19,7 @@
 class Timer {
     double timeout;
     std::chrono::time_point<std::chrono::high_resolution_clock> start_t;
-    
+
 public:
     Timer(int freq)
     {
@@ -28,11 +28,12 @@ public:
     }
     ~Timer()
     {
-        
+
     }
-    
+
     bool check(void);
     double set_timeout(double t);
     double get_timeout(void);
+    double time_since_last_check(void);
 };
 #endif /* timer_hpp */

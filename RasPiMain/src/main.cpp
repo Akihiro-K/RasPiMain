@@ -36,17 +36,15 @@ int main(int argc, char const *argv[])
         }
     }
 
-
     Timer Main_timer(MAIN_FREQ);
 
     for(;;)
     {
         if(Main_timer.check())
         {
-            std::cout << "New timer" << std::endl;
             std::clock_t c_start = std::clock(); //debug
 
-            FC_comm.recv_data(FCHandler); // process new bytes and push back
+            //FC_comm.recv_data(FCHandler); // process new bytes and push back
 
             if(!FCVector->empty())
             {
