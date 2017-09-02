@@ -4,7 +4,6 @@
 
 #include <thread>
 #include <mutex>
-#include <unistd.h> // usleep
 
 ////
 #include <iostream>
@@ -447,13 +446,14 @@ void RecvFromMarker()
   tcp_client c;
   c.start_connect(TCP_ADDRESS , TCP_PORT_MARKER);
 
+  static uint32_t nConnectionFail = 0;
   for(;;){
     // at 10 ~ 15HZ
-    if(c.recv_data(MarkerHandler)){
-      usleep(5000); // wait 5 ms
-    }else{
-      cout << "Connection with marker failed." << endl;
-      usleep(1000000);
+    if(!c.recv_data(MarkerHandler)){
+      if(nConnectionFail == 0){
+        cout << "Connection with marker failed." << endl;
+      }
+      nConnectionFail = (nConnectionFail + 1)%1000000;
     }
   }
 }
@@ -484,7 +484,6 @@ void MarkerHandler(const char * src, size_t len)
 
 void GPSHandler()
 {
-  usleep(1000000); // Wait for RecvFromGPS to start
   //std::string name = "/dev/gps_fifo";
 //
   //int flag = O_RDONLY | O_NONBLOCK;//debug
@@ -591,9 +590,15 @@ void RecvFromLSM()
   tcp_client c;
   c.start_connect(TCP_ADDRESS , TCP_PORT_LSM);
 
+  static uint32_t nConnectionFail = 0;
   for(;;){
-    c.recv_data(LSMHandler); // at HZ
-    usleep(5000); // wait 5 ms
+    // at ? HZ
+    if(!c.recv_data(LSMHandler)){
+      if(nConnectionFail == 0){
+        cout << "Connection with magnetometer failed." << endl;
+      }
+      nConnectionFail = (nConnectionFail + 1)%1000000;
+    }
   }
 }
 
@@ -670,7 +675,9 @@ void RecvFromDP()
         }
       }
     }
-    usleep(500000); // wait for 500 ms
+    //usleep(500000); // wait for 500 ms
+    // TODO: implement timer class
+    for(uint32_t i = 0; i < 1000000; i++){}
   }
 }
 
