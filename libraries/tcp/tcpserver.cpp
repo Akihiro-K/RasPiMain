@@ -8,7 +8,7 @@ bool tcp_server::start_listen(int port)
     perror("socket failed");
     return false;
   }
-    
+
   // Forcefully attaching socket to the port
   int opt = 1;
   if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
@@ -20,9 +20,9 @@ bool tcp_server::start_listen(int port)
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
   address.sin_port = htons(port);
-    
+
   // Forcefully attaching socket to the port 8080
-  if (bind(server_fd, (struct sockaddr *)&address, 
+  if (bind(server_fd, (struct sockaddr *)&address,
                                 sizeof(address))<0)
   {
     perror("bind failed");
@@ -40,14 +40,14 @@ bool tcp_server::start_listen(int port)
 bool tcp_server::start_accept()
 {
   int addrlen = sizeof(address);
-  if ((new_socket = accept(server_fd, (struct sockaddr *)&address, 
+  if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
                       (socklen_t*)&addrlen))<0)
   {
     perror("accept");
     return false;
   }
 
-  return true; 
+  return true;
 }
 
 bool tcp_server::send_data(const char * src, size_t len)
@@ -57,11 +57,11 @@ bool tcp_server::send_data(const char * src, size_t len)
     perror("Send failed");
     return false;
   }
-    
+
   return true;
 }
 
-bool tcp_server::recv_data(function<void (const char *, size_t)> handler)
+bool tcp_server::recv_data(std::function<void (const char *, size_t)> handler)
 {
   if( recv(new_socket , buffer , sizeof(buffer) , 0) < 0)
   {

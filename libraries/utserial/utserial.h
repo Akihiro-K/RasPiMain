@@ -26,8 +26,6 @@ enum UARTRxMode {
   UART_RX_MODE_UT_ONGOING,
 };
 
-using namespace std;
-
 class ut_serial : public Serial
 {
 private:
@@ -39,14 +37,14 @@ private:
   int received_nb_signals;
   uint8_t new_data_flag;
   void TerimalSignalHandler(int);
-  enum UARTRxMode UTSerialRx(uint8_t, uint8_t *, function<void (uint8_t, uint8_t, const uint8_t *, size_t)>);
+  enum UARTRxMode UTSerialRx(uint8_t, uint8_t *, std::function<void (uint8_t, uint8_t, const uint8_t *, size_t)>);
 
 public:
-  ut_serial(string dev, int baud) : received_sigterm(0),received_nb_signals(0),rx_mode(UART_RX_MODE_IDLE),new_data_flag(0)
+  ut_serial(std::string dev, int baud) : received_sigterm(0),received_nb_signals(0),rx_mode(UART_RX_MODE_IDLE),new_data_flag(0)
       {Serial::Open(dev.c_str(), baud);};
   ~ut_serial() {Serial::Close();};
   bool send_data(uint8_t, uint8_t, const uint8_t *, size_t);
-  bool recv_data(function<void (uint8_t, uint8_t, const uint8_t *, size_t)>);
+  bool recv_data(std::function<void (uint8_t, uint8_t, const uint8_t *, size_t)>);
 };
 
 #endif //UTSERIAL_H_

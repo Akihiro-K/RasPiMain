@@ -14,8 +14,6 @@
 
 #define CLIENT_BUF_SIZE 64
 
-using namespace std;
-
 class tcp_client
 {
 private:
@@ -26,9 +24,9 @@ private:
 public:
   tcp_client() : sock(-1) {};
   ~tcp_client() {close(sock);};
-  bool start_connect(string, int);
+  bool start_connect(std::string, int);
   bool send_data(const char *, size_t);
-  bool recv_data(function<void (const char *, size_t)>);   
+  bool recv_data(std::function<void (const char *, size_t)>);
 };
 
 #endif // MYTCPCLIENT_H_

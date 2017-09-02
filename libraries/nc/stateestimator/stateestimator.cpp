@@ -258,7 +258,7 @@ void AttitudeMeasurementUpdateWithMarker()
     to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
     to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
 
-    if (isnan(to_fc.quat0)||isnan(to_fc.quatz)) {
+    if (std::isnan(to_fc.quat0)||std::isnan(to_fc.quatz)) {
       to_fc.quat0 = 1;
       to_fc.quatz = 0;
       for (int i = 0; i < 4; i++) {
@@ -330,7 +330,7 @@ void AttitudeMeasurementUpdateWithLSM()
     to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
     to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
 
-    if (isnan(to_fc.quat0)||isnan(to_fc.quatz)) {
+    if (std::isnan(to_fc.quat0)||std::isnan(to_fc.quatz)) {
       to_fc.quat0 = 1;
       to_fc.quatz = 0;
       for (int i = 0; i < 4; i++) {
@@ -397,7 +397,7 @@ void AttitudeMeasurementUpdateWithGPSVel()
     // to_fc.quat0 = dq_.w() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
     // to_fc.quatz = dq_.z() / sqrt(dq_.w()*dq_.w()+dq_.z()*dq_.z());
 
-    // if (isnan(to_fc.quat0)||isnan(to_fc.quatz)) {
+    // if (std::isnan(to_fc.quat0)||std::isnan(to_fc.quatz)) {
     //   to_fc.quat0 = 1;
     //   to_fc.quatz = 0;
     //   for (int i = 0; i < 4; i++) {

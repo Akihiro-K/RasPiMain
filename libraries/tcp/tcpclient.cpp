@@ -1,6 +1,6 @@
 #include "tcpclient.h"
 
-bool tcp_client::start_connect(string address, int port)
+bool tcp_client::start_connect(std::string address, int port)
 {
   if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
   {
@@ -37,7 +37,7 @@ bool tcp_client::send_data(const char * src, size_t len)
   return true;
 }
 
-bool tcp_client::recv_data(function<void (const char *, size_t)> handler)
+bool tcp_client::recv_data(std::function<void (const char *, size_t)> handler)
 {
   if( recv(sock , buffer , sizeof(buffer) , 0) < 0)
   {

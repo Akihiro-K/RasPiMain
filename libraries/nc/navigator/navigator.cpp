@@ -18,7 +18,7 @@ static float hold_position[3] = {0, 0, 0};
 static uint16_t reached_time = 0;
 static uint8_t wait_start_flag = 0;
 
-void ReadWPfromFile(string filepath)
+void ReadWPfromFile(std::string filepath)
 {
   manager.ReadFromFile(filepath.c_str());
 }

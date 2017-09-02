@@ -3,7 +3,7 @@
 
 #include "../shared/shared.h"
 
-void ReadWPfromFile(string filepath);
+void ReadWPfromFile(std::string filepath);
 
 void SetCurrentWPfromDP(const uint8_t * wp_ptr);
 

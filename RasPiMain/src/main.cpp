@@ -451,7 +451,7 @@ void RecvFromMarker()
     // at 10 ~ 15HZ
     if(!c.recv_data(MarkerHandler)){
       if(nConnectionFail == 0){
-        cout << "Connection with marker failed." << endl;
+        std::cout << "Connection with marker failed." << std::endl;
       }
       nConnectionFail = (nConnectionFail + 1)%1000000;
     }
@@ -496,7 +496,7 @@ void GPSHandler()
   //    //ioctl(get_ublox_fd(), FIONREAD, &ioctl_bytes);
   //    ioctl(fifo_fd, FIONREAD, &ioctl_bytes);
   //    int r_bytes = 0;
-  //    //cout << "ioctl_bytes:" << ioctl_bytes << endl;
+  //    //std::cout << "ioctl_bytes:" << ioctl_bytes << std::endl;
   //    while(r_bytes != ioctl_bytes)
   //    {
   //        unsigned char c;
@@ -595,7 +595,7 @@ void RecvFromLSM()
     // at ? HZ
     if(!c.recv_data(LSMHandler)){
       if(nConnectionFail == 0){
-        cout << "Connection with magnetometer failed." << endl;
+        std::cout << "Connection with magnetometer failed." << std::endl;
       }
       nConnectionFail = (nConnectionFail + 1)%1000000;
     }

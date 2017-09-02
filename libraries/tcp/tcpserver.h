@@ -14,8 +14,6 @@
 
 #define SERVER_BUF_SIZE 16
 
-using namespace std;
-
 class tcp_server
 {
 private:
@@ -30,7 +28,7 @@ public:
   bool start_listen(int);
   bool start_accept();
   bool send_data(const char *, size_t);
-  bool recv_data(function<void (const char *, size_t)>);           
+  bool recv_data(std::function<void (const char *, size_t)>);
 };
 
 #endif // MYTCPSERVER_H_

@@ -7,7 +7,7 @@ void ut_serial::TerimalSignalHandler(int sig)
   if (received_nb_signals > 3) exit(123);
 }
 
-enum UARTRxMode ut_serial::UTSerialRx(uint8_t byte, uint8_t * data_buffer, function<void (uint8_t, uint8_t, const uint8_t *, size_t)> handler)
+enum UARTRxMode ut_serial::UTSerialRx(uint8_t byte, uint8_t * data_buffer, std::function<void (uint8_t, uint8_t, const uint8_t *, size_t)> handler)
 {
   static uint8_t * rx_ptr = 0;
   static uint8_t bytes_processed = 0, length = 0;
@@ -86,14 +86,14 @@ bool ut_serial::send_data(uint8_t component_id, uint8_t message_id,
 
   ////////////////////////////////////////////////////////////////////////////////
   if(!Serial::SendBuffer(tx_buffer, UT_HEADER_LENGTH + length + sizeof(crc))) {
-    cout << "Error in sending data" << endl;
+    std::cout << "Error in sending data" << std::endl;
     return false;
   }
 
   return true;
 }
 
-bool ut_serial::recv_data(function<void (uint8_t, uint8_t, const uint8_t *, size_t)> handler)
+bool ut_serial::recv_data(std::function<void (uint8_t, uint8_t, const uint8_t *, size_t)> handler)
 {
   while (Serial::Read(&rx_byte, 1))
   {
@@ -115,4 +115,3 @@ bool ut_serial::recv_data(function<void (uint8_t, uint8_t, const uint8_t *, size
   }
   return false;
 }
-

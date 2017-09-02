@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <iostream>
 
-using namespace std;
 using json = nlohmann::json;
 
 // =============================================================================
@@ -86,9 +85,9 @@ private:
   void free();
 public:
   Route_Manager() : flag(0) {};
-  Route_Manager(string filepath);
+  Route_Manager(std::string filepath);
   ~Route_Manager();
-  void ReadFromFile(string filepath);
+  void ReadFromFile(std::string filepath);
   int GetNRoutes();
   Route &operator [](int index);
   const Route &operator [](int index) const;
@@ -158,7 +157,7 @@ const struct WayPoint &Route::operator [](int index) const
 }
 
 
-Route_Manager::Route_Manager(string filepath)
+Route_Manager::Route_Manager(std::string filepath)
 {
   flag = 0;
   ReadFromFile(filepath);
@@ -174,24 +173,24 @@ void Route_Manager::free()
   delete[] p;
 }
 
-void Route_Manager::ReadFromFile(string filepath)
+void Route_Manager::ReadFromFile(std::string filepath)
 {
-  ifstream ifs(filepath);
+  std::ifstream ifs(filepath);
   json j_;
   ifs >> j_;
   NRoutes = j_.size();
   if (flag) free();
   p = new Route [NRoutes];
   for (int i = 0; i < NRoutes; i++) {
-    ostringstream oss1;
+    std::ostringstream oss1;
     oss1 << "Route_" << i;
-    string route_name = oss1.str();
+    std::string route_name = oss1.str();
     int nwaypoints = j_[route_name.c_str()].size();
     struct WayPoint waypoints[nwaypoints];
     for (int j = 0; j < nwaypoints; j++) {
-      ostringstream oss2;
+      std::ostringstream oss2;
       oss2 << "WP_" << j;
-      string wp_name = oss2.str();
+      std::string wp_name = oss2.str();
       waypoints[j].wait_ms = j_[route_name.c_str()][wp_name.c_str()]["wait_ms"];
       waypoints[j].target_longitude = j_[route_name.c_str()][wp_name.c_str()]["target_longitude"];
       waypoints[j].target_latitude = j_[route_name.c_str()][wp_name.c_str()]["target_latitude"];
