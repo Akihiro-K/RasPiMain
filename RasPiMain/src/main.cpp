@@ -55,6 +55,7 @@ int main(int argc, char const *argv[])
                 ToFCLogging();
                 ToFCLogging2(); // This will be removed in the future
                 FromFCLogging();
+                NavigatorLogging();
                 PositionTimeUpdate();
                 AttitudeTimeUpdate();
                 PositionMeasurementUpdateWithBar();

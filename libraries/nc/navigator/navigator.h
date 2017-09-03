@@ -15,6 +15,8 @@ int GetCurrentWPNum();
 
 int GetCurrentRouteNum();
 
+const float * GetPositionRelOrigin();
+
 void UpdateNavigation();
 
 void SetDronePortMode();

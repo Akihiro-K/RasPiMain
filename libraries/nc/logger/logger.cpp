@@ -2,6 +2,8 @@
 #include <fstream>
 #include <sys/time.h>
 
+#include "../navigator/navigator.h"
+
 static struct timeval tv;
 static std::ofstream fout("../output_data/log.csv", std::ios::out);
 static std::ofstream fout2("../output_data/tofc.csv", std::ios::out);
@@ -95,4 +97,14 @@ void ToFCLogging2()
   fout2 << to_fc.transit_vel << ",";
   fout2 << to_fc.target_heading << ",";
   fout2 << to_fc.heading_rate << std::endl;
+}
+
+void NavigatorLogging(){
+  gettimeofday(&tv, NULL);
+  uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
+  fout << LogIDNavigator << "," << timestamp << ",";
+  fout << GetCurrentRouteNum() << "," << GetCurrentWPNum();
+  fout << GetPositionRelOrigin()[0] << ",";
+  fout << GetPositionRelOrigin()[1] << ",";
+  fout << GetPositionRelOrigin()[2] << std::endl;
 }

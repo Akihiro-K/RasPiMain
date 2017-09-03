@@ -72,6 +72,10 @@ public:
   void GetTargetPosition(const int cur_wp_num, float target_position[3]);
   void GetPosition(const int32_t longitude, const int32_t latitude, float *x_position, float *y_position);
   int GetNWaypoints();
+  float Latitude0();
+  float Longitude0();
+  float MeterPerEm7DegLat();
+  float MeterPerEm7DegLon();
   struct WayPoint &operator [](int index);
   const struct WayPoint &operator [](int index) const;
 };
@@ -144,6 +148,23 @@ void Route::GetPosition(const int32_t longitude, const int32_t latitude, float *
 int Route::GetNWaypoints()
 {
   return NWaypoints;
+}
+
+float Route::Latitude0(){
+  return latitude_0;
+}
+
+float Route::Longitude0(){
+  return longitude_0;
+}
+
+
+float Route::MeterPerEm7DegLat(){
+  return meter_per_em7_deg_lat;
+}
+
+float Route::MeterPerEm7DegLon(){
+  return meter_per_em7_deg_lon;
 }
 
 struct WayPoint &Route::operator [](int index)

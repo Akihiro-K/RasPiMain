@@ -59,6 +59,15 @@ int GetCurrentRouteNum()
   return cur_route_num;
 }
 
+const float * GetPositionRelOrigin()
+{
+  static float xy[2] = {
+    float(from_gps.latitude - manager[cur_route_num].Latitude0()) * manager[cur_route_num].MeterPerEm7DegLat(), // x
+    float(from_gps.longitude - manager[cur_route_num].Longitude0()) * manager[cur_route_num].MeterPerEm7DegLon()  //y
+  };
+  return xy;
+}
+
 void UpdateNavigation()
 {
 // =============================================================================

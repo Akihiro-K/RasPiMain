@@ -93,6 +93,7 @@ enum Sensor {
   LogIDFromFC = 5,
   LogIDFromDPSetDronePortMode = 6,
   LogIDToDPSetDronePortMode = 7,
+  LogIDNavigator = 8,
 };
 
 enum NavMode {

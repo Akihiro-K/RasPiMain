@@ -21,4 +21,6 @@ void ToDPSetDronePortModeLogging();
 
 void ToFCLogging2(); // This will be removed in the future
 
+void NavigatorLogging();
+
 #endif
