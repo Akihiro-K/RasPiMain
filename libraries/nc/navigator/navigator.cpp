@@ -1,7 +1,7 @@
 #include "navigator.h"
 #include "waypoint.hpp"
 
-#define DEFAULT_TRANSIT_SPEED (1)  // m/s
+#define DEFAULT_TRANSIT_SPEED (0.5)  // m/s
 #define DEFAULT_HEADING (0) // rad
 #define DEFAULT_HEADING_RATE (0.3)  // rad/s
 #define DEFAULT_HOLD_ALTITUDE (1.5) // m
@@ -260,10 +260,23 @@ void UpdateNavigation()
     }
     case NAV_MODE_HOLD:
     {
+      float delta = sqrt((to_fc.position[0]-hold_position[0])*
+                      (to_fc.position[0]-hold_position[0])+
+                      (to_fc.position[1]-hold_position[1])*
+                      (to_fc.position[1]-hold_position[1])+
+                      (to_fc.position[2]-hold_position[2])*
+                      (to_fc.position[2]-hold_position[2]));
       for (int i = 0; i < 3; i++) {
+
         to_fc.target_position[i] = hold_position[i];
       }
-      to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
+      if(delta < 1.0f){
+        to_fc.transit_vel = 0.1;
+      }else if(delta < 3.0){
+        to_fc.transit_vel = 0.3;
+      }else{
+        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
+      }
       to_fc.target_heading = DEFAULT_HEADING;
       to_fc.heading_rate = DEFAULT_HEADING_RATE;
       break;
