@@ -11,7 +11,7 @@
 #define MAIN_FREQ 64 // hz
 
 #define ENABLE_DISP_FROM_FC (0)
-#define ENABLE_DISP_TO_FC (0)
+#define ENABLE_DISP_TO_FC (1)
 #define ENABLE_DISP_FROM_MARKER (0)
 #define ENABLE_DISP_FROM_GPS (0)
 

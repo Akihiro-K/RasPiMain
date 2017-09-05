@@ -122,7 +122,7 @@ void Route::SetWPs(struct WayPoint *waypoints_, int nwaypoints)
   // Conversion from deg to meter
   longitude_0 = waypoints_[0].target_longitude;
   latitude_0 = waypoints_[0].target_latitude;
-  double Phi = latitude_0 * M_PI/180;
+  double Phi = 38.0f * M_PI/180;
   meter_per_em7_deg_lat = 0.0111132954 - 0.0000559822 * cos(2*Phi) + 0.0000001175 * cos(4*Phi) - 0.00000000023 * cos(6*Phi);
   meter_per_em7_deg_lon = 0.011141284 * cos(Phi) - 0.00000935 * cos(3 * Phi) + 0.0000000118 * cos(5 * Phi);
   for (int i = 0; i < NWaypoints; i++) {
