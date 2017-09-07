@@ -4,9 +4,6 @@
 #include <iostream>
 #include <vector>
 #include <mutex>
-//#include "../../ublox/ublox.hpp"
-
-//using namespace std;
 
 #define NAV_COMMS_VERSION (1)
 

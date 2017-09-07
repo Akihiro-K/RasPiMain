@@ -260,23 +260,10 @@ void UpdateNavigation()
     }
     case NAV_MODE_HOLD:
     {
-      float delta = sqrt((to_fc.position[0]-hold_position[0])*
-                      (to_fc.position[0]-hold_position[0])+
-                      (to_fc.position[1]-hold_position[1])*
-                      (to_fc.position[1]-hold_position[1])+
-                      (to_fc.position[2]-hold_position[2])*
-                      (to_fc.position[2]-hold_position[2]));
       for (int i = 0; i < 3; i++) {
-
         to_fc.target_position[i] = hold_position[i];
       }
-      if(delta < 1.0f){
-        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
-      }else if(delta < 3.0){
-        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
-      }else{
-        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
-      }
+      to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
       to_fc.target_heading = DEFAULT_HEADING;
       to_fc.heading_rate = DEFAULT_HEADING_RATE;
       break;
