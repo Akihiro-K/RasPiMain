@@ -1,11 +1,11 @@
 {
   "Route_0": {
     "WP_0": {
-      "wait_ms": 20000,
-      "target_longitude": 1400520500,
-      "target_latitude": 361637200,
+      "wait_ms": 10000,
+      "target_longitude": 1380823660,
+      "target_latitude": 357787980,
       "target_altitude": 5,
-      "transit_speed": 0.5,
+      "transit_speed": 2.0,
       "radius": 5,
       "target_heading": 0,
       "heading_rate": 0.2,
@@ -13,8 +13,8 @@
     },
     "WP_1": {
       "wait_ms": 5000,
-      "target_longitude": 1400521500,
-      "target_latitude": 361641000,
+      "target_longitude": 1380830890,
+      "target_latitude": 357790450,
       "target_altitude": 5,
       "transit_speed": 0.5,
       "radius": 5,

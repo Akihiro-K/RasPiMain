@@ -36,18 +36,18 @@ void GPSHandler()
             //       struct_ptr->velocity[0], struct_ptr->velocity[1], struct_ptr->velocity[2],
             //       struct_ptr->gps_status);
 
-            FromGPS temp;
-            temp.longitude = struct_ptr->longitude;
-            temp.latitude = struct_ptr->latitude;
-            temp.z = struct_ptr -> z;
-            temp.gps_status = struct_ptr->gps_status;
+            FromGPS temp_s;
+            temp_s.longitude = struct_ptr->longitude;
+            temp_s.latitude = struct_ptr->latitude;
+            temp_s.z = struct_ptr -> z;
+            temp_s.gps_status = struct_ptr->gps_status;
             for (int i=0;i<3;i++)
             {
-                temp.velocity[i] = struct_ptr->velocity[i];
+                temp_s.velocity[i] = struct_ptr->velocity[i];
             }
 
 
-            GPSVector->push_back(temp); //put the fresh frame in the vector
+            GPSVector->push_back(temp_s); //put the fresh frame in the vector
 
 
             ClearUBXNewDataFlags();

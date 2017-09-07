@@ -1,7 +1,7 @@
 #include "navigator.h"
 #include "waypoint.hpp"
 
-#define DEFAULT_TRANSIT_SPEED (0.5)  // m/s
+#define DEFAULT_TRANSIT_SPEED (1)  // m/s
 #define DEFAULT_HEADING (0) // rad
 #define DEFAULT_HEADING_RATE (0.3)  // rad/s
 #define DEFAULT_HOLD_ALTITUDE (1.5) // m
@@ -271,9 +271,9 @@ void UpdateNavigation()
         to_fc.target_position[i] = hold_position[i];
       }
       if(delta < 1.0f){
-        to_fc.transit_vel = 0.1;
+        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
       }else if(delta < 3.0){
-        to_fc.transit_vel = 0.3;
+        to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
       }else{
         to_fc.transit_vel = DEFAULT_TRANSIT_SPEED;
       }

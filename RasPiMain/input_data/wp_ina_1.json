@@ -1,0 +1,160 @@
+{
+  "Route_0": {
+    "WP_0": {
+      "wait_ms": 10000,
+      "target_longitude": 1380833960,
+      "target_latitude": 358101020,
+      "target_altitude": 30,
+      "transit_speed": 1,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_1": {
+      "wait_ms": 2000,
+      "target_longitude": 1380824260,
+      "target_latitude": 358100870,
+      "target_altitude": 30,
+      "transit_speed": 1,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_2": {
+      "wait_ms": 2000,
+      "target_longitude": 1380821660,
+      "target_latitude": 358097090,
+      "target_altitude": 30,
+      "transit_speed": 1,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_3": {
+      "wait_ms": 2000,
+      "target_longitude": 1380820130,
+      "target_latitude": 358082970,
+      "target_altitude": 30,
+      "transit_speed": 1,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_4": {
+      "wait_ms": 2000,
+      "target_longitude": 1380821470,
+      "target_latitude": 358082860,
+      "target_altitude": 30,
+      "transit_speed": 0.5,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_5": {
+      "wait_ms": 10000,
+      "target_longitude": 1380821470,
+      "target_latitude": 358082860,
+      "target_altitude": 10,
+      "transit_speed": 0.5,
+      "radius": 1,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_6": {
+      "wait_ms": 2000,
+      "target_longitude": 1380821470,
+      "target_latitude": 358082860,
+      "target_altitude": 3,
+      "transit_speed": 0.5,
+      "radius": 1,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    }
+  },
+  "Route_1": {
+    "WP_0": {
+      "wait_ms": 2000,
+      "target_longitude": 1380821470,
+      "target_latitude": 358082860,
+      "target_altitude": 30,
+      "transit_speed": 1,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_1": {
+      "wait_ms": 2000,
+      "target_longitude": 1380820130,
+      "target_latitude": 358082970,
+      "target_altitude": 30,
+      "transit_speed": 1,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_2": {
+      "wait_ms": 2000,
+      "target_longitude": 1380821660,
+      "target_latitude": 358097090,
+      "target_altitude": 30,
+      "transit_speed": 1,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_3": {
+      "wait_ms": 2000,
+      "target_longitude": 1380824260,
+      "target_latitude": 358100870,
+      "target_altitude": 30,
+      "transit_speed": 1,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_4": {
+      "wait_ms": 10000,
+      "target_longitude": 1380833960,
+      "target_latitude": 358101020,
+      "target_altitude": 30,
+      "transit_speed": 0.5,
+      "radius": 5,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_5": {
+      "wait_ms": 10000,
+      "target_longitude": 1380833960,
+      "target_latitude": 358101020,
+      "target_altitude": 10,
+      "transit_speed": 0.5,
+      "radius": 1,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    },
+    "WP_6": {
+      "wait_ms": 10000,
+      "target_longitude": 1380833960,
+      "target_latitude": 358101020,
+      "target_altitude": 3,
+      "transit_speed": 0.5,
+      "radius": 1,
+      "target_heading": 0,
+      "heading_rate": 0.2,
+      "heading_range": 0.3
+    }
+  }
+}

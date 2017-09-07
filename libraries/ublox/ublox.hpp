@@ -17,7 +17,7 @@
 #include <unistd.h>			//Used for UART
 #include <fcntl.h>			//Used for UART
 #include <termios.h>        //Used for UART
-#include <math.h>
+#include <cmath>
 #include <sys/ioctl.h>
 #include "string.h"
 #include "poll.h"
