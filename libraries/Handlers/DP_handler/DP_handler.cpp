@@ -37,7 +37,7 @@ void RecvFromDP()
             {
                 to_dp.quaternion[i] = from_fc.quaternion[i];
             }
-            DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
+            //DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
         }
 
         if(send_dp_set_dp_mode_response_flag){

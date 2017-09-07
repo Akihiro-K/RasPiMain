@@ -16,7 +16,7 @@
 #define ENABLE_DISP_FROM_GPS (0)
 
 const char SERIAL_PORT_FC[] = "/dev/ttyAMA0";
-const char WAYPOINT_FILENAME[] = "../input_data/wp.json";
+const char WAYPOINT_FILENAME[] = "../input_data/wp_ina_2.json";
 
 //==============================================================================
 
