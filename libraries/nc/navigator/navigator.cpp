@@ -1,4 +1,4 @@
-#include "navigator.h"
+#include "../nc.h"
 #include "waypoint.hpp"
 
 #define DEFAULT_TRANSIT_SPEED (1)  // m/s
@@ -18,12 +18,12 @@ static float hold_position[3] = {0, 0, 0};
 static uint16_t reached_time = 0;
 static uint8_t wait_start_flag = 0;
 
-void ReadWPfromFile(std::string filepath)
+void NC::ReadWPfromFile(std::string filepath)
 {
   manager.ReadFromFile(filepath.c_str());
 }
 
-void SetCurrentWPfromDP(const uint8_t * wp_ptr)
+void NC::SetCurrentWPfromDP(const uint8_t * wp_ptr)
 {
   // TODO: Implement waypoint upload from DP.
   // This function is not in accordance with the specs.
@@ -31,7 +31,7 @@ void SetCurrentWPfromDP(const uint8_t * wp_ptr)
   manager[cur_route_num][cur_wp_num] = *struct_ptr;
 }
 
-bool SetRoute(int route_num_)
+bool NC::SetRoute(int route_num_)
 {
   if (route_num_ + 1 > manager.GetNRoutes()) {
     // invalid route number
@@ -42,24 +42,24 @@ bool SetRoute(int route_num_)
   }
 }
 
-void GetCurrentWP(uint8_t * src, size_t * len)
+void NC::GetCurrentWP(uint8_t * src, size_t * len)
 {
   struct WayPoint * struct_ptr = &manager[cur_route_num][cur_wp_num];
   src = (uint8_t *)struct_ptr;
   *len = sizeof(manager[cur_route_num][cur_wp_num]);
 }
 
-int GetCurrentWPNum()
+int NC::GetCurrentWPNum()
 {
   return cur_wp_num;
 }
 
-int GetCurrentRouteNum()
+int NC::GetCurrentRouteNum()
 {
   return cur_route_num;
 }
 
-const float * GetPositionRelOrigin()
+const float * NC::GetPositionRelOrigin()
 {
   static float xy[2] = {
     float(from_gps.latitude - manager[cur_route_num].Latitude0()) * manager[cur_route_num].MeterPerEm7DegLat(), // x
@@ -68,7 +68,7 @@ const float * GetPositionRelOrigin()
   return xy;
 }
 
-void UpdateNavigation()
+void NC::UpdateNavigation()
 {
 // =============================================================================
 // Navigation Status Switching Algorithm:
@@ -347,7 +347,7 @@ void UpdateNavigation()
   }
 }
 
-void SetDronePortMode()
+void NC::SetDronePortMode()
 {
 // =============================================================================
 // From DP request
@@ -416,7 +416,7 @@ void SetDronePortMode()
   }
 }
 
-void UpdateMarkerFlag()
+void NC::UpdateMarkerFlag()
 {
   if (from_marker.status) {
     marker_flag = 1;
@@ -425,20 +425,20 @@ void UpdateMarkerFlag()
   }
 }
 
-void UpdateGPSPosFlag()
+void NC::UpdateGPSPosFlag()
 {
   if (from_gps.gps_status&0x02) {
     gps_pos_flag = 1;
 
     // TODO: Move this to GPS handler in main
     manager[cur_route_num].GetPosition(from_gps.longitude, from_gps.latitude,
-      &gps_position_x, &gps_position_y);
+      &gps_position_meter[0], &gps_position_meter[1]);
   } else {
     gps_pos_flag = 0;
   }
 }
 
-void UpdateGPSVelFlag()
+void NC::UpdateGPSVelFlag()
 {
   if (from_gps.gps_status&0x01) {
     gps_vel_flag = 1;
@@ -447,7 +447,7 @@ void UpdateGPSVelFlag()
   }
 }
 
-void UpdateLSMFlag()
+void NC::UpdateLSMFlag()
 {
   if (from_lsm.status) {
     lsm_flag = 1;

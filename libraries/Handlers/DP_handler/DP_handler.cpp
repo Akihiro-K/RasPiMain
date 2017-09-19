@@ -12,6 +12,8 @@ FromDPSetDronePortModeVector    DPSetDronePortModeVector;
 
 static bool send_dp_set_dp_mode_response_flag = false;
 
+extern NC nc;
+
 void RecvFromDP()
 {
     ut_serial DP_comm(SERIAL_PORT_DP, SERIAL_BAUDRATE_DP);
@@ -24,24 +26,11 @@ void RecvFromDP()
         // at 2 HZ
         if(DP_Timer.check())
         {
-            to_dp.nav_mode = to_fc.nav_mode;
-            to_dp.drone_port_mode = drone_port_mode;
-            to_dp.nav_status = to_fc.navigation_status;
-            to_dp.drone_port_status = drone_port_status;
-            for (int i = 0; i < 3; i++)
-            {
-                to_dp.position[i] = to_fc.position[i];
-                to_dp.velocity[i] = to_fc.velocity[i];
-            }
-            for (int i = 0; i < 4; i++)
-            {
-                to_dp.quaternion[i] = from_fc.quaternion[i];
-            }
-            //DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)&to_dp, sizeof(to_dp));
+          //DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 10, (uint8_t *)nc.PayloadToDP, sizeof(*nc.PayloadToDP));
         }
 
         if(send_dp_set_dp_mode_response_flag){
-          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)&to_dp_set_dp_mode, sizeof(to_dp_set_dp_mode));
+          DP_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 11, (uint8_t *)nc.PayloadToDPSetDPMode(), sizeof(*nc.PayloadToDPSetDPMode()));
 
           send_dp_set_dp_mode_response_flag = false;
         }

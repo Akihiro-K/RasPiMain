@@ -4,7 +4,6 @@ add_library(NC STATIC
   disp/disp.cpp
   logger/logger.cpp
   navigator/navigator.cpp
-  shared/shared.cpp
   stateestimator/stateestimator.cpp
 )
 

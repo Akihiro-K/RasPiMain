@@ -1,19 +1,17 @@
-#include "logger.h"
+#include "../nc.h"
 #include <fstream>
 #include <sys/time.h>
-
-#include "../navigator/navigator.h"
 
 static struct timeval tv;
 static std::ofstream fout("../output_data/log.csv", std::ios::out);
 static std::ofstream fout2("../output_data/tofc.csv", std::ios::out);
 
-void InitLogging()
+void NC::InitLogging()
 {
   timerclear(&tv);
 }
 
-void ToFCLogging()
+void NC::ToFCLogging()
 {
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
@@ -28,7 +26,7 @@ void ToFCLogging()
   fout << to_fc.heading_rate << std::endl;
 }
 
-void FromFCLogging()
+void NC::FromFCLogging()
 {
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
@@ -40,7 +38,7 @@ void FromFCLogging()
   fout << from_fc.pressure_alt << std::endl;
 }
 
-void VisionLogging()
+void NC::VisionLogging()
 {
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
@@ -51,7 +49,7 @@ void VisionLogging()
   fout << unsigned(from_marker.status) << std::endl;
 }
 
-void GPSLogging()
+void NC::GPSLogging()
 {
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
@@ -61,7 +59,7 @@ void GPSLogging()
   fout << unsigned(from_gps.gps_status) << std::endl;
 }
 
-void LSMLogging()
+void NC::LSMLogging()
 {
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
@@ -70,21 +68,21 @@ void LSMLogging()
   fout << unsigned(from_lsm.status) << std::endl;
 }
 
-void FromDPSetDronePortModeLogging(){
+void NC::FromDPSetDronePortModeLogging(){
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
   fout << LogIDFromDPSetDronePortMode << "," << timestamp << ",";
   fout << unsigned(from_dp_set_dp_mode.read_write) << "," << unsigned(from_dp_set_dp_mode.drone_port_mode_request) << std::endl;
 }
 
-void ToDPSetDronePortModeLogging(){
+void NC::ToDPSetDronePortModeLogging(){
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
   fout << LogIDToDPSetDronePortMode << "," << timestamp << ",";
   fout << unsigned(to_dp_set_dp_mode.drone_port_mode) << "," << unsigned(to_dp_set_dp_mode.drone_port_status) << std::endl;
 }
 
-void ToFCLogging2()
+void NC::ToFCLogging2()
 {
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
@@ -99,7 +97,7 @@ void ToFCLogging2()
   fout2 << to_fc.heading_rate << std::endl;
 }
 
-void NavigatorLogging(){
+void NC::NavigatorLogging(){
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
   fout << LogIDNavigator << "," << timestamp << ",";

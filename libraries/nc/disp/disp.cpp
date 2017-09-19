@@ -1,8 +1,8 @@
-#include "disp.h"
+#include "../nc.h"
 #include <iostream>
 #include <cmath>
 
-void DispFromFC()
+void NC::DispFromFC()
 {
 #ifndef FC_DEBUG_MODE
   std::cout << "***************FROM FC***************" << std::endl;
@@ -19,7 +19,7 @@ void DispFromFC()
 #endif
 }
 
-void DispToFC()
+void NC::DispToFC()
 {
   std::cout << "****************TO FC****************" << std::endl;
   std::cout << "Nav_Mode: " << unsigned(to_fc.nav_mode) << std::endl;
@@ -30,7 +30,7 @@ void DispToFC()
   std::cout << "Target Position: " << to_fc.target_position[0] << "\t" << to_fc.target_position[1] << "\t" << to_fc.target_position[2] << std::endl;
 }
 
-void DispFromMarker()
+void NC::DispFromMarker()
 {
   std::cout << "*************FROM MARKER*************" << std::endl;
   std::cout << "Position: " << from_marker.position[0] << "\t" << from_marker.position[1] << "\t" << from_marker.position[2] << std::endl;
@@ -40,22 +40,22 @@ void DispFromMarker()
   std::cout << "Status: " << unsigned(from_marker.status) << std::endl;
 }
 
-void DispFromGPS()
+void NC::DispFromGPS()
 {
   std::cout << "**************FROM  GPS**************" << std::endl;
-  std::cout << "Position: " << gps_position_x << "\t" << gps_position_y << "\t" << from_gps.z << std::endl;
+  std::cout << "Position: " << gps_position_meter[0] << "\t" << gps_position_meter[1] << "\t" << from_gps.z << std::endl;
   std::cout << "Velocity: " << from_gps.velocity[0] << "\t" << from_gps.velocity[1] << "\t" << from_gps.velocity[2] << std::endl;
   std::cout << "Status: " << unsigned(from_gps.gps_status) << std::endl;
 }
 
-void DispFromLSM()
+void NC::DispFromLSM()
 {
   std::cout << "**************FROM  LSM**************" << std::endl;
   std::cout << "Mag: " << from_lsm.mag[0] << "\t" << from_lsm.mag[1] << "\t" << from_lsm.mag[2] << std::endl;
   std::cout << "Status: " << unsigned(from_lsm.status) << std::endl;
 }
 
-void DispFromDP()
+void NC::DispFromDP()
 {
 
 }

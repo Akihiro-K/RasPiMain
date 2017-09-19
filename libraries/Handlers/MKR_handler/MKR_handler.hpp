@@ -6,8 +6,7 @@
 #include <iostream>
 #include "../../../libraries/tcp/tcpclient.h"
 #include "../../../libraries/timer/timer.hpp"
-#include "../../../libraries/nc/shared/shared.h"
-
+#include "../../../libraries/nc/nc.h"
 
 #define TCP_PORT_MARKER (8080)
 

@@ -19,8 +19,8 @@
 #include <sys/ioctl.h>
 #include "string.h"
 #include "poll.h"
-#include "../../../libraries/nc/shared/shared.h"
 #include "../../../libraries/ublox/ublox.hpp"
+#include "../../../libraries/nc/nc.h"
 
 extern FromGPSVector   GPSVector;
 

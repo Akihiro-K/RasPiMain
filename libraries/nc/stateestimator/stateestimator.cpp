@@ -1,4 +1,4 @@
-#include "stateestimator.h"
+#include "../nc.h"
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 
@@ -18,7 +18,7 @@ static MatrixXf P_pos=MatrixXf::Zero(6,6);
 static float quat[4] = {0,0,0,0};
 static Matrix3f P_att = Matrix3f::Zero();
 
-void PositionTimeUpdate()
+void NC::PositionTimeUpdate()
 {
   float dt = 1.0/64;
 
@@ -74,7 +74,7 @@ void PositionTimeUpdate()
   }
 }
 
-void PositionMeasurementUpdateWithMarker()
+void NC::PositionMeasurementUpdateWithMarker()
 {
   static uint8_t init_marker_flag = 0;
 
@@ -112,10 +112,10 @@ void PositionMeasurementUpdateWithMarker()
   }
 }
 
-void PositionMeasurementUpdateWithGPSPos()
+void NC::PositionMeasurementUpdateWithGPSPos()
 {
   if (gps_pos_flag) {
-    Vector2f z(gps_position_x, gps_position_y);
+    Vector2f z(gps_position_meter[0], gps_position_meter[1]);
     MatrixXf H(2,6);
     H << 1, 0, 0, 0, 0, 0,
         0, 1, 0, 0, 0, 0;
@@ -137,7 +137,7 @@ void PositionMeasurementUpdateWithGPSPos()
   }
 }
 
-void PositionMeasurementUpdateWithGPSVel()
+void NC::PositionMeasurementUpdateWithGPSVel()
 {
   if (gps_vel_flag) {
     Vector2f z(from_gps.velocity[0], from_gps.velocity[1]);
@@ -162,7 +162,7 @@ void PositionMeasurementUpdateWithGPSVel()
   }
 }
 
-void PositionMeasurementUpdateWithBar()
+void NC::PositionMeasurementUpdateWithBar()
 {
   VectorXf z(1);
   // pressure_alt: upward positive, z: downward positive
@@ -185,7 +185,7 @@ void PositionMeasurementUpdateWithBar()
   }
 }
 
-void AttitudeTimeUpdate()
+void NC::AttitudeTimeUpdate()
 {
   Matrix3f A;
   A << 0, from_fc.gyro[2], -from_fc.gyro[1],
@@ -204,7 +204,7 @@ void AttitudeTimeUpdate()
   }
 }
 
-void AttitudeMeasurementUpdateWithMarker()
+void NC::AttitudeMeasurementUpdateWithMarker()
 {
   if (marker_flag) {
     Quaternionf q_marker(sqrt(1-from_marker.quaternion[0]*from_marker.quaternion[0]-from_marker.quaternion[1]*from_marker.quaternion[1]-from_marker.quaternion[2]*from_marker.quaternion[2]),
@@ -271,7 +271,7 @@ void AttitudeMeasurementUpdateWithMarker()
   }
 }
 
-void AttitudeMeasurementUpdateWithLSM()
+void NC::AttitudeMeasurementUpdateWithLSM()
 {
   if (lsm_flag) {
     Vector3f z_meas(from_lsm.mag[0], from_lsm.mag[1], from_lsm.mag[2]);
@@ -343,7 +343,7 @@ void AttitudeMeasurementUpdateWithLSM()
   }
 }
 
-void AttitudeMeasurementUpdateWithGPSVel()
+void NC::AttitudeMeasurementUpdateWithGPSVel()
 {
   if (gps_vel_flag) {
     // Vector3f z_meas(from_gps.velocity[0], from_gps.velocity[1], 0);
@@ -410,7 +410,7 @@ void AttitudeMeasurementUpdateWithGPSVel()
   }
 }
 
-void ResetHeadingCorrectionQuat()
+void NC::ResetHeadingCorrectionQuat()
 {
   if(to_fc.quat0 != 1){
     // measurement update performed in the previous timestep

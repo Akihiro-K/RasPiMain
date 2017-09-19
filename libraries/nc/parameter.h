@@ -1,13 +1,13 @@
-#ifndef SHARED_H_
-#define SHARED_H_
+#ifndef PARAMETER_H_
+#define PARAMETER_H_
 
 #include <iostream>
 #include <vector>
 #include <mutex>
 
 #define NAV_COMMS_VERSION (1)
+#define TCP_ADDRESS ("127.0.0.1")
 
-////////////////////////////////////////////////////////////////////////////////
 struct FromMarker {
   uint32_t timestamp; // microseconds
   float position[3]; // meter
@@ -80,7 +80,6 @@ struct ToDPSetDronePortMode {
   uint8_t drone_port_status;
 } __attribute__((packed));
 
-////////////////////////////////////////////////////////////////////////////////
 enum Sensor {
   LogIDVision = 0,
   LogIDToFC = 1,
@@ -132,8 +131,6 @@ enum DPStatus {
   DPStatusModeInProgress = 0,
   DPStatusEndOfMode = 1,
 };
-
-////////////////////////////////////////////////////////////////////////////////
 
 class FromGPSVector {
     std::vector<FromGPS> vec;
@@ -189,7 +186,6 @@ public:
     locker operator->() { return {*this}; }
 };
 
-
 class FromMarkerVector {
     std::vector<FromMarker> vec;
     std::mutex vector_m;
@@ -226,41 +222,4 @@ public:
     locker operator->() { return {*this}; }
 };
 
-extern struct FromMarker from_marker;
-extern struct FromGPS from_gps;
-extern struct FromLSM from_lsm;
-
-extern struct ToFlightCtrl to_fc;
-extern struct FromFlightCtrl from_fc;
-extern struct ForDebug for_debug;
-extern struct ToDronePort to_dp;
-extern struct FromDPSetDronePortMode from_dp_set_dp_mode; // set drone port mode
-extern struct ToDPSetDronePortMode to_dp_set_dp_mode; // response to set drone port mode
-
-extern uint8_t marker_flag;
-extern uint8_t gps_pos_flag;
-extern uint8_t gps_vel_flag;
-extern uint8_t lsm_flag;
-
-// TODO: replace these variables with accessors
-extern enum NavMode nav_mode_;
-extern uint8_t drone_port_mode_request;
-extern uint8_t drone_port_mode; // actual state in response to dp request
-extern uint8_t drone_port_status;
-
-// TODO: replace these variables with accessors
-extern float gps_position_x; // in meters relative to first waypoint in route
-extern float gps_position_y; // in meters relative to first waypoint in route
-
-extern const char TCP_ADDRESS[];
-
-extern struct UBXPosLLH ubx_pos_llh_;
-extern struct UBXVelNED ubx_vel_ned_;
-extern struct UBXSol ubx_sol_;
-extern struct UBXTimeUTC ubx_time_utc_;
-
-extern struct UBXPayload ubx_payload_;
-
-
-
-#endif
+#endif // PARAMETER_H_
