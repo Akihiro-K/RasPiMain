@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <vector>
 
 using json = nlohmann::json;
 
@@ -56,26 +57,15 @@ struct WayPoint {
 class Route
 {
 private:
-  struct WayPoint *p;
+  struct WayPoint *waypoints;
   int NWaypoints;
-  int flag;
-  int32_t latitude_0; // [10^-7 deg]
-  int32_t longitude_0; // [10^-7 deg]
-  float meter_per_em7_deg_lat;
-  float meter_per_em7_deg_lon;
   void free();
 public:
-  Route() : flag(0) {};
+  Route(){};
   Route(struct WayPoint *waypoints_, int nwaypoints);
   ~Route();
   void SetWPs(struct WayPoint *waypoints_, int nwaypoints);
-  void GetTargetPosition(const int cur_wp_num, float target_position[3]);
-  void GetPosition(const int32_t longitude, const int32_t latitude, float *x_position, float *y_position);
   int GetNWaypoints();
-  float Latitude0();
-  float Longitude0();
-  float MeterPerEm7DegLat();
-  float MeterPerEm7DegLon();
   struct WayPoint &operator [](int index);
   const struct WayPoint &operator [](int index) const;
 };
@@ -83,23 +73,34 @@ public:
 class Route_Manager
 {
 private:
-  struct Route *p;
+  struct Route *routes;
   int NRoutes;
-  int flag;
+  int current_route_number;
+  int current_waypoint_number;
+  int32_t longitude_0;
+  int32_t latitude_0;
+  float meter_per_em7_deg_lat;
+  float meter_per_em7_deg_lon;
   void free();
+  void UpdateScaleFactors();
 public:
-  Route_Manager() : flag(0) {};
+  Route_Manager();
   Route_Manager(std::string filepath);
   ~Route_Manager();
   void ReadFromFile(std::string filepath);
   int GetNRoutes();
   Route &operator [](int index);
   const Route &operator [](int index) const;
+  struct WayPoint* CurrentWaypoint();
+  bool SetRouteNumber(int route_num_);
+  std::vector<float> LatLonToXY(int32_t latitude, int32_t longitude);
+  std::vector<float> TargetPosition();
+  bool IsLastWaypoint();
+  bool IncrementWaypointNumber();
 };
 
 Route::Route(struct WayPoint *waypoints_, int nwaypoints)
 {
-  flag = 0;
   SetWPs(waypoints_, nwaypoints);
 }
 
@@ -110,39 +111,20 @@ Route::~Route()
 
 void Route::free()
 {
-  delete[] p;
+  delete[] waypoints;
 }
 
 void Route::SetWPs(struct WayPoint *waypoints_, int nwaypoints)
 {
   NWaypoints = nwaypoints;
-  if(flag) free();
-  p = new struct WayPoint[NWaypoints];
+  static int memclear_flag = 0;
+  if(memclear_flag) free();
+  waypoints = new struct WayPoint[NWaypoints];
 
-  // Conversion from deg to meter
-  longitude_0 = waypoints_[0].target_longitude;
-  latitude_0 = waypoints_[0].target_latitude;
-  double Phi = 38.0f * M_PI/180;
-  meter_per_em7_deg_lat = 0.0111132954 - 0.0000559822 * cos(2*Phi) + 0.0000001175 * cos(4*Phi) - 0.00000000023 * cos(6*Phi);
-  meter_per_em7_deg_lon = 0.011141284 * cos(Phi) - 0.00000935 * cos(3 * Phi) + 0.0000000118 * cos(5 * Phi);
   for (int i = 0; i < NWaypoints; i++) {
-    p[i] = waypoints_[i];
+    waypoints[i] = waypoints_[i];
   }
-  flag = 1;
-}
-
-void Route::GetTargetPosition(const int cur_wp_num, float target_position[3])
-{
-  // NED coordinates
-  target_position[0] = float(p[cur_wp_num].target_latitude - latitude_0) * meter_per_em7_deg_lat;
-  target_position[1] = float(p[cur_wp_num].target_longitude - longitude_0) * meter_per_em7_deg_lon;
-  target_position[2] = -p[cur_wp_num].target_altitude;
-}
-
-void Route::GetPosition(const int32_t longitude, const int32_t latitude, float *x_position, float *y_position)
-{
-  *x_position = float(latitude - latitude_0) * meter_per_em7_deg_lat;
-  *y_position = float(longitude - longitude_0) * meter_per_em7_deg_lon;
+  memclear_flag = 1;
 }
 
 int Route::GetNWaypoints()
@@ -150,37 +132,26 @@ int Route::GetNWaypoints()
   return NWaypoints;
 }
 
-float Route::Latitude0(){
-  return latitude_0;
-}
-
-float Route::Longitude0(){
-  return longitude_0;
-}
-
-
-float Route::MeterPerEm7DegLat(){
-  return meter_per_em7_deg_lat;
-}
-
-float Route::MeterPerEm7DegLon(){
-  return meter_per_em7_deg_lon;
-}
-
 struct WayPoint &Route::operator [](int index)
 {
-  return p[index];
+  return waypoints[index];
 }
 
 const struct WayPoint &Route::operator [](int index) const
 {
-  return p[index];
+  return waypoints[index];
 }
 
+Route_Manager::Route_Manager()
+{
+  current_route_number = 0;
+  current_waypoint_number = 0;
+}
 
 Route_Manager::Route_Manager(std::string filepath)
 {
-  flag = 0;
+  current_route_number = 0;
+  current_waypoint_number = 0;
   ReadFromFile(filepath);
 }
 
@@ -191,7 +162,7 @@ Route_Manager::~Route_Manager()
 
 void Route_Manager::free()
 {
-  delete[] p;
+  delete[] routes;
 }
 
 void Route_Manager::ReadFromFile(std::string filepath)
@@ -200,8 +171,9 @@ void Route_Manager::ReadFromFile(std::string filepath)
   json j_;
   ifs >> j_;
   NRoutes = (int)j_.size();
-  if (flag) free();
-  p = new Route [NRoutes];
+  static int memclear_flag = 0;
+  if (memclear_flag) free();
+  routes = new Route [NRoutes];
   for (int i = 0; i < NRoutes; i++) {
     std::ostringstream oss1;
     oss1 << "Route_" << i;
@@ -222,22 +194,86 @@ void Route_Manager::ReadFromFile(std::string filepath)
       waypoints[j].heading_rate = j_[route_name.c_str()][wp_name.c_str()]["heading_rate"];
       waypoints[j].heading_range =j_[route_name.c_str()][wp_name.c_str()]["heading_range"];
     }
-    p[i].SetWPs(waypoints, nwaypoints);
+    routes[i].SetWPs(waypoints, nwaypoints);
   }
-  flag = 1;
+  memclear_flag = 1;
 }
 Route &Route_Manager::operator [](int index)
 {
-  return p[index];
+  return routes[index];
 }
 const Route &Route_Manager::operator [](int index) const
 {
-  return p[index];
+  return routes[index];
 }
 
 int Route_Manager::GetNRoutes()
 {
   return NRoutes;
+}
+
+struct WayPoint* Route_Manager::CurrentWaypoint(){
+  return &routes[current_route_number][current_waypoint_number];
+}
+
+bool Route_Manager::SetRouteNumber(int route_num_)
+{
+  if (route_num_ + 1 > GetNRoutes()) {
+    // invalid route number
+    return false;
+  } else {
+    current_route_number = route_num_;
+    return true;
+  }
+}
+
+void Route_Manager::UpdateScaleFactors(){
+  static int route_number_pv = -1;
+  static int waypoint_number_pv = -1;
+
+  if((current_route_number != route_number_pv) ||
+    (current_waypoint_number != waypoint_number_pv))
+  {
+    longitude_0 = CurrentWaypoint()->target_longitude;
+    latitude_0 = CurrentWaypoint()->target_latitude;
+    double phi = double(latitude_0)/10000000.0 * M_PI/180.0;
+    meter_per_em7_deg_lat = 0.0111132954 - 0.0000559822 * cos(2*phi) + 0.0000001175 * cos(4*phi) - 0.00000000023 * cos(6*phi);
+    meter_per_em7_deg_lon = 0.011141284 * cos(phi) - 0.00000935 * cos(3 * phi) + 0.0000000118 * cos(5 * phi);
+  }
+
+  route_number_pv = current_route_number;
+  waypoint_number_pv = current_waypoint_number;
+}
+
+std::vector<float> Route_Manager::LatLonToXY(int32_t latitude, int32_t longitude){
+  UpdateScaleFactors();
+  float x = float(latitude - latitude_0) * meter_per_em7_deg_lat;
+  float y = float(longitude - longitude_0) * meter_per_em7_deg_lon;
+  std::vector<float> position_xy{x, y};
+  return position_xy;
+}
+
+std::vector<float> Route_Manager::TargetPosition(){
+  UpdateScaleFactors();
+  // NED coordinates
+  float target_x = float(CurrentWaypoint()->target_latitude - latitude_0) * meter_per_em7_deg_lat;
+  float target_y = float(CurrentWaypoint()->target_longitude - longitude_0) * meter_per_em7_deg_lon;
+  float target_z = -CurrentWaypoint()->target_altitude;
+  std::vector<float> target_position_xyz{target_x, target_y, target_z};
+  return target_position_xyz;
+}
+
+bool Route_Manager::IsLastWaypoint(){
+  return (current_waypoint_number == routes[current_route_number].GetNWaypoints() - 1);
+}
+
+bool Route_Manager::IncrementWaypointNumber(){
+  if(IsLastWaypoint()){
+    return false;
+  }else{
+    current_waypoint_number++;
+    return true;
+  }
 }
 
 #endif // WAYPOINT_H_

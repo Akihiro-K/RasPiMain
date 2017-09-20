@@ -30,7 +30,7 @@ int main(int argc, char const *argv[])
 
     ReadWPfromFile(WAYPOINT_FILENAME);
     if (argc == 2) {
-        if (!SetRoute(atoi(argv[1]))) {
+        if (!SetRouteNumber(atoi(argv[1]))) {
             return -1;
         }
     }
@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
 
     for(;;)
     {
-
+      
         FC_comm.recv_data(FCHandler); // process new bytes and push back
 
         if(!FCVector->empty())

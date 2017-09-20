@@ -103,8 +103,5 @@ void NavigatorLogging(){
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
   fout << LogIDNavigator << "," << timestamp << ",";
-  fout << GetCurrentRouteNum() << "," << GetCurrentWPNum();
-  fout << GetPositionRelOrigin()[0] << ",";
-  fout << GetPositionRelOrigin()[1] << ",";
-  fout << GetPositionRelOrigin()[2] << std::endl;
+  fout << std::endl;
 }

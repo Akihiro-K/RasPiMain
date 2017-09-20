@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "navigator.h"
 #include "waypoint.hpp"
 
@@ -11,9 +13,6 @@
 
 static Route_Manager manager;
 
-static uint8_t cur_route_num = 0;
-static uint8_t cur_wp_num = 0;
-
 static float hold_position[3] = {0, 0, 0};
 static uint16_t reached_time = 0;
 static uint8_t wait_start_flag = 0;
@@ -23,49 +22,16 @@ void ReadWPfromFile(std::string filepath)
   manager.ReadFromFile(filepath.c_str());
 }
 
-void SetCurrentWPfromDP(const uint8_t * wp_ptr)
-{
-  // TODO: Implement waypoint upload from DP.
-  // This function is not in accordance with the specs.
-  struct WayPoint * struct_ptr = (struct WayPoint *)wp_ptr;
-  manager[cur_route_num][cur_wp_num] = *struct_ptr;
-}
+//void SetCurrentWPfromDP(const uint8_t * wp_ptr)
+//{
+//  // TODO: Implement waypoint upload from DP.
+//  // This function is not in accordance with the specs.
+//  struct WayPoint * struct_ptr = (struct WayPoint *)wp_ptr;
+//  manager[cur_route_num][cur_wp_num] = *struct_ptr;
+//}
 
-bool SetRoute(int route_num_)
-{
-  if (route_num_ + 1 > manager.GetNRoutes()) {
-    // invalid route number
-    return false;
-  } else {
-    cur_route_num = route_num_;
-    return true;
-  }
-}
-
-void GetCurrentWP(uint8_t * src, size_t * len)
-{
-  struct WayPoint * struct_ptr = &manager[cur_route_num][cur_wp_num];
-  src = (uint8_t *)struct_ptr;
-  *len = sizeof(manager[cur_route_num][cur_wp_num]);
-}
-
-int GetCurrentWPNum()
-{
-  return cur_wp_num;
-}
-
-int GetCurrentRouteNum()
-{
-  return cur_route_num;
-}
-
-const float * GetPositionRelOrigin()
-{
-  static float xy[2] = {
-    float(from_gps.latitude - manager[cur_route_num].Latitude0()) * manager[cur_route_num].MeterPerEm7DegLat(), // x
-    float(from_gps.longitude - manager[cur_route_num].Longitude0()) * manager[cur_route_num].MeterPerEm7DegLon()  //y
-  };
-  return xy;
+bool SetRouteNumber(int route_num_){
+  manager.SetRouteNumber(route_num_);
 }
 
 void UpdateNavigation()
@@ -223,36 +189,37 @@ void UpdateNavigation()
         default: // NCWaypoint
         {
           float delta_pos, delta_heading, cur_heading;
-          manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
-          delta_pos = sqrt((to_fc.position[0]-to_fc.target_position[0])*
-                          (to_fc.position[0]-to_fc.target_position[0])+
-                          (to_fc.position[1]-to_fc.target_position[1])*
-                          (to_fc.position[1]-to_fc.target_position[1])+
-                          (to_fc.position[2]-to_fc.target_position[2])*
-                          (to_fc.position[2]-to_fc.target_position[2]));
+          std::vector<float> target_position = manager.TargetPosition();
+          delta_pos = sqrt((to_fc.position[0]-target_position[0])*
+                          (to_fc.position[0]-target_position[0])+
+                          (to_fc.position[1]-target_position[1])*
+                          (to_fc.position[1]-target_position[1])+
+                          (to_fc.position[2]-target_position[2])*
+                          (to_fc.position[2]-target_position[2]));
           cur_heading = 2 * acos(from_fc.quaternion[0]/
                             sqrt(from_fc.quaternion[0]*from_fc.quaternion[0]+
                                 from_fc.quaternion[3]*from_fc.quaternion[3]));
-          delta_heading = abs(cur_heading-manager[cur_route_num][cur_wp_num].target_heading);
-          if ((delta_pos < manager[cur_route_num][cur_wp_num].radius)&&
-              (delta_heading < manager[cur_route_num][cur_wp_num].heading_range)&&(!wait_start_flag)) {
+          delta_heading = abs(cur_heading-manager.CurrentWaypoint()->target_heading);
+          if ((delta_pos < manager.CurrentWaypoint()->radius)&&
+              (delta_heading < manager.CurrentWaypoint()->heading_range)&&(!wait_start_flag)) {
             reached_time = from_fc.timestamp;
             wait_start_flag = 1;
           }
           if (wait_start_flag) {
             uint16_t dt = from_fc.timestamp - reached_time;
-            if (dt > manager[cur_route_num][cur_wp_num].wait_ms) {
-              uint8_t isLastWaypoint = (cur_wp_num == manager[cur_route_num].GetNWaypoints() - 1);
-              if (!isLastWaypoint) {
-                cur_wp_num++;
+            if (dt > manager.CurrentWaypoint()->wait_ms) {
+              if (!manager.IsLastWaypoint()) {
+                manager.IncrementWaypointNumber();
               }
               wait_start_flag = 0;
             }
           }
-          manager[cur_route_num].GetTargetPosition(cur_wp_num, to_fc.target_position);
-          to_fc.transit_vel = manager[cur_route_num][cur_wp_num].transit_speed;
-          to_fc.target_heading = manager[cur_route_num][cur_wp_num].target_heading;
-          to_fc.heading_rate = manager[cur_route_num][cur_wp_num].heading_rate;
+          to_fc.target_position[0] = target_position[0];
+          to_fc.target_position[1] = target_position[1];
+          to_fc.target_position[2] = target_position[2];
+          to_fc.transit_vel = manager.CurrentWaypoint()->transit_speed;
+          to_fc.target_heading = manager.CurrentWaypoint()->target_heading;
+          to_fc.heading_rate = manager.CurrentWaypoint()->heading_rate;
           break;
         }
       }
@@ -299,15 +266,14 @@ void UpdateNavigation()
     }
     case DPWaypoint:
     {
-      uint8_t isLastWaypoint = (cur_wp_num == manager[cur_route_num].GetNWaypoints() - 1);
       float delta = sqrt((to_fc.position[0]-to_fc.target_position[0])*
                       (to_fc.position[0]-to_fc.target_position[0])+
                       (to_fc.position[1]-to_fc.target_position[1])*
                       (to_fc.position[1]-to_fc.target_position[1])+
                       (to_fc.position[2]-to_fc.target_position[2])*
                       (to_fc.position[2]-to_fc.target_position[2]));
-      uint8_t isWithinRadius = (delta < manager[cur_route_num][cur_wp_num].radius);
-      if(isLastWaypoint && isWithinRadius){
+      uint8_t isWithinRadius = (delta < manager.CurrentWaypoint()->radius);
+      if(!manager.IsLastWaypoint() && isWithinRadius){
         drone_port_status = DPStatusEndOfMode;
       }else{
         // If the drone moves out of the radius,
@@ -431,8 +397,9 @@ void UpdateGPSPosFlag()
     gps_pos_flag = 1;
 
     // TODO: Move this to GPS handler in main
-    manager[cur_route_num].GetPosition(from_gps.longitude, from_gps.latitude,
-      &gps_position_x, &gps_position_y);
+    std::vector<float> position_xy = manager.LatLonToXY(from_gps.latitude, from_gps.longitude);
+    gps_position_x = position_xy[0];
+    gps_position_y = position_xy[1];
   } else {
     gps_pos_flag = 0;
   }
