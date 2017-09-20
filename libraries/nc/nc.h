@@ -2,9 +2,17 @@
 #define NC_H_
 
 #include "parameter.h"
+#include "navigator/waypoint.h"
+
+#include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Geometry>
+
+using namespace Eigen;
 
 class NC {
 private:
+//==============================================================================
+// Buffer
   struct FromMarker from_marker;
   struct FromGPS from_gps;
   struct FromLSM from_lsm;
@@ -15,6 +23,8 @@ private:
   struct FromDPSetDronePortMode from_dp_set_dp_mode;
   struct ToDPSetDronePortMode to_dp_set_dp_mode;
 
+//==============================================================================
+// Navigator
   enum NavMode nav_mode_;
   uint8_t drone_port_mode_request;
   uint8_t drone_port_mode;
@@ -26,6 +36,21 @@ private:
   uint8_t lsm_flag;
 
   float gps_position_meter[2];
+
+  float hold_position[3];
+  uint16_t reached_time;
+  uint8_t wait_start_flag;
+
+  Route_Manager manager;
+
+//==============================================================================
+// State Estimator
+  VectorXf x; // [x y z u v w]T
+  Vector3f u; // acc_ned
+  MatrixXf P_pos;
+  float quat[4];
+  Matrix3f P_att;
+
 public:
   explicit NC() {
     from_marker = {0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 0};
@@ -43,6 +68,19 @@ public:
     drone_port_status = DPStatusModeInProgress;
     gps_position_meter[0] = 0;
     gps_position_meter[1] = 0;
+    hold_position[0] = 0;
+    hold_position[1] = 0;
+    hold_position[2] = -1.0;
+    reached_time = 0;
+    wait_start_flag = 0;
+    x = VectorXf::Zero(6);
+    u = Vector3f::Zero();
+    P_pos = MatrixXf::Zero(6,6);
+    quat[0] = 1;
+    quat[1] = 0;
+    quat[2] = 0;
+    quat[3] = 0;
+    P_att = Matrix3f::Zero();
   }
   void SetFCBuffer(struct FromFlightCtrl from_fc_) {
     from_fc = from_fc_;
@@ -104,12 +142,8 @@ public:
 //==============================================================================
 // Navigator
   void ReadWPfromFile(std::string filepath);
-  void SetCurrentWPfromDP(const uint8_t * wp_ptr);
-  bool SetRoute(int route_num_);
-  void GetCurrentWP(uint8_t * src, size_t * len);
-  int GetCurrentWPNum();
-  int GetCurrentRouteNum();
-  const float * GetPositionRelOrigin();
+  //void SetCurrentWPfromDP(const uint8_t * wp_ptr);
+  bool SetRouteNumber(int route_num_);
   void UpdateNavigation();
   void SetDronePortMode();
   void UpdateMarkerFlag();

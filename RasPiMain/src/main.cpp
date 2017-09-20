@@ -33,7 +33,7 @@ int main(int argc, char const *argv[])
 
   nc.ReadWPfromFile(WAYPOINT_FILENAME);
   if (argc == 2) {
-      if (!nc.SetRoute(atoi(argv[1]))) {
+      if (!nc.SetRouteNumber(atoi(argv[1]))) {
         return -1;
       }
   }

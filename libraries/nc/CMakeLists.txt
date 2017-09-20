@@ -4,6 +4,7 @@ add_library(NC STATIC
   disp/disp.cpp
   logger/logger.cpp
   navigator/navigator.cpp
+  navigator/waypoint.cpp
   stateestimator/stateestimator.cpp
 )
 
