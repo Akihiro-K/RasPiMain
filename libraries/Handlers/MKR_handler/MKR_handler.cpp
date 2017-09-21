@@ -1,7 +1,7 @@
 
 #include "MKR_handler.hpp"
 
-FromMarkerVector   MarkerVector;
+SafeVector<FromMarker>  MarkerVector;
 
 Timer MarkerNotConnected_timer(1); // 1 Hz warning
 

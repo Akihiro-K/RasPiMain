@@ -107,6 +107,13 @@ enum NavStatusBits {
   POSITION_RESET_REQUEST = 1<<4,
 };
 
+enum NavSensorBits {
+  NAV_SENSOR_VISION = 1<<0,
+  NAV_SENSOR_GPSPOS = 1<<1,
+  NAV_SENSOR_GPSVEL = 1<<2,
+  NAV_SENSOR_LSM = 1<<3,
+};
+
 enum FlightCtrlStateBits {
   FC_STATE_BIT_MOTORS_INHIBITED = 1<<0,
   FC_STATE_BIT_INITIALIZED = 1<<1,
@@ -132,94 +139,23 @@ enum DPStatus {
   DPStatusEndOfMode = 1,
 };
 
-class FromGPSVector {
-    std::vector<FromGPS> vec;
-    std::mutex vector_m;
+template <class T>
+class SafeVector {
+  std::vector<T> vec;
+  std::mutex vector_m;
 
-    struct locker {
-        FromGPSVector& _ref;
-        locker(FromGPSVector& parent) : _ref(parent) {
-            _ref.vector_m.lock();
-        }
-        ~locker() { _ref.vector_m.unlock(); }
+  struct locker {
+    SafeVector& _ref;
+    locker(SafeVector& parent) : _ref(parent) {
+      _ref.vector_m.lock();
+    }
+    ~locker() { _ref.vector_m.unlock(); }
 
-        std::vector<FromGPS>* operator->() && { return &_ref.vec; }
-    };
-
-public:
-    locker operator->() { return {*this}; }
-};
-
-class FromFCVector {
-    std::vector<FromFlightCtrl> vec;
-    std::mutex vector_m;
-
-    struct locker {
-        FromFCVector& _ref;
-        locker(FromFCVector& parent) : _ref(parent) {
-            _ref.vector_m.lock();
-        }
-        ~locker() { _ref.vector_m.unlock(); }
-
-        std::vector<FromFlightCtrl>* operator->() && { return &_ref.vec; }
-    };
+    std::vector<T>* operator->() && { return &_ref.vec; }
+  };
 
 public:
-    locker operator->() { return {*this}; }
-};
-
-class FromLSMVector {
-    std::vector<FromLSM> vec;
-    std::mutex vector_m;
-
-    struct locker {
-        FromLSMVector& _ref;
-        locker(FromLSMVector& parent) : _ref(parent) {
-            _ref.vector_m.lock();
-        }
-        ~locker() { _ref.vector_m.unlock(); }
-
-        std::vector<FromLSM>* operator->() && { return &_ref.vec; }
-    };
-
-public:
-    locker operator->() { return {*this}; }
-};
-
-class FromMarkerVector {
-    std::vector<FromMarker> vec;
-    std::mutex vector_m;
-
-    struct locker {
-        FromMarkerVector& _ref;
-        locker(FromMarkerVector& parent) : _ref(parent) {
-            _ref.vector_m.lock();
-        }
-        ~locker() { _ref.vector_m.unlock(); }
-
-        std::vector<FromMarker>* operator->() && { return &_ref.vec; }
-    };
-
-public:
-    locker operator->() { return {*this}; }
-};
-
-class FromDPSetDronePortModeVector {
-    std::vector<FromDPSetDronePortMode> vec;
-    std::mutex vector_m;
-
-    struct locker {
-        FromDPSetDronePortModeVector& _ref;
-        locker(FromDPSetDronePortModeVector& parent) : _ref(parent) {
-            _ref.vector_m.lock();
-        }
-        ~locker() { _ref.vector_m.unlock(); }
-
-        std::vector<FromDPSetDronePortMode>* operator->() && { return &_ref.vec; }
-    };
-
-public:
-    locker operator->() { return {*this}; }
+  locker operator->() { return {*this}; }
 };
 
 #endif // PARAMETER_H_

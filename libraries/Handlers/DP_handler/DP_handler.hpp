@@ -22,7 +22,7 @@
 
 const char SERIAL_PORT_DP[] = "/dev/ttyUSB_DP";
 
-extern FromDPSetDronePortModeVector DPSetDronePortModeVector;
+extern SafeVector<FromDPSetDronePortMode> DPSetDronePortModeVector;
 
 void RecvFromDP();
 void DPHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);

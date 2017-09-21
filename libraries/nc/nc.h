@@ -30,10 +30,7 @@ private:
   uint8_t drone_port_mode;
   uint8_t drone_port_status;
 
-  uint8_t marker_flag;
-  uint8_t gps_pos_flag;
-  uint8_t gps_vel_flag;
-  uint8_t lsm_flag;
+  uint8_t sensor_flag;
 
   float gps_position_meter[2];
 
@@ -62,10 +59,11 @@ public:
     to_dp = {0, 0, 0, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0, 0}};
     from_dp_set_dp_mode = {0, NCWaypoint};
     to_dp_set_dp_mode = {0, 0};
-    NavMode nav_mode_ = NAV_MODE_OFF;
+    nav_mode_ = NAV_MODE_OFF;
     drone_port_mode_request = NCWaypoint;
     drone_port_mode = NCWaypoint;
     drone_port_status = DPStatusModeInProgress;
+    sensor_flag = 0;
     gps_position_meter[0] = 0;
     gps_position_meter[1] = 0;
     hold_position[0] = 0;

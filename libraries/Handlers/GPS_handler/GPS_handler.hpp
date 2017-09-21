@@ -22,7 +22,7 @@
 #include "../../../libraries/ublox/ublox.hpp"
 #include "../../../libraries/nc/nc.h"
 
-extern FromGPSVector   GPSVector;
+extern SafeVector<FromGPS>  GPSVector;
 
 void GPSHandler(); //refactored
 

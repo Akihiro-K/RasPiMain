@@ -33,10 +33,10 @@ void NC::UpdateNavigation()
 // =============================================================================
 // Navigation Status Switching Algorithm:
 
-  static uint8_t marker_flag_for_nav = marker_flag;
+  static uint8_t marker_flag_for_nav = (sensor_flag&NAV_SENSOR_VISION);
 
   static uint8_t marker_notdetected_count = 0;
-  if (marker_flag) {
+  if (sensor_flag&NAV_SENSOR_VISION) {
     marker_notdetected_count = 0;
     marker_flag_for_nav = 1;
   } else {
@@ -49,21 +49,21 @@ void NC::UpdateNavigation()
 
   /* Heading part */
   // no heading
-  if (marker_flag_for_nav||lsm_flag||gps_vel_flag) {
+  if (marker_flag_for_nav||(sensor_flag&NAV_SENSOR_LSM)||(sensor_flag&NAV_SENSOR_GPSVEL)) {
     to_fc.navigation_status |= HeadingOK;
   } else {
     to_fc.navigation_status &= ~HeadingOK;
   }
 
   /* Position part */
-  if (marker_flag_for_nav||gps_pos_flag) {
+  if (marker_flag_for_nav||(sensor_flag&NAV_SENSOR_GPSPOS)) {
     to_fc.navigation_status |= PositionOK;
   } else {
     to_fc.navigation_status &= ~PositionOK;
   }
 
   /* Velocity part */
-  if (marker_flag_for_nav||gps_vel_flag) {
+  if (marker_flag_for_nav||(sensor_flag&NAV_SENSOR_GPSVEL)) {
     to_fc.navigation_status |= VelocityOK;
   } else {
     to_fc.navigation_status &= ~VelocityOK;
@@ -379,40 +379,40 @@ void NC::SetDronePortMode()
 void NC::UpdateMarkerFlag()
 {
   if (from_marker.status) {
-    marker_flag = 1;
+    sensor_flag |= NAV_SENSOR_VISION;
   } else {
-    marker_flag = 0;
+    sensor_flag &= ~NAV_SENSOR_VISION;
   }
 }
 
 void NC::UpdateGPSPosFlag()
 {
   if (from_gps.gps_status&0x02) {
-    gps_pos_flag = 1;
+    sensor_flag |= NAV_SENSOR_GPSPOS;
 
     // TODO: Move this to GPS handler in main
     std::vector<float> position_xy = manager.LatLonToXY(from_gps.latitude, from_gps.longitude);
     gps_position_meter[0] = position_xy[0];
     gps_position_meter[1] = position_xy[1];
   } else {
-    gps_pos_flag = 0;
+    sensor_flag &= ~NAV_SENSOR_GPSPOS;
   }
 }
 
 void NC::UpdateGPSVelFlag()
 {
   if (from_gps.gps_status&0x01) {
-    gps_vel_flag = 1;
+    sensor_flag |= NAV_SENSOR_GPSVEL;
   } else {
-    gps_vel_flag = 0;
+    sensor_flag &= ~NAV_SENSOR_GPSVEL;
   }
 }
 
 void NC::UpdateLSMFlag()
 {
   if (from_lsm.status) {
-    lsm_flag = 1;
+    sensor_flag |= NAV_SENSOR_LSM;
   } else {
-    lsm_flag = 0;
+    sensor_flag &= ~NAV_SENSOR_LSM;
   }
 }

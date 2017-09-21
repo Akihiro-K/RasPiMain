@@ -10,7 +10,7 @@
 
 #define TCP_PORT_MARKER (8080)
 
-extern FromMarkerVector   MarkerVector;
+extern SafeVector<FromMarker>  MarkerVector;
 
 void MarkerHandler(); //refactored
 

@@ -8,7 +8,7 @@
 
 // TODO: remove this in the future
 #define SERIAL_BAUDRATE_FC (57600)
-#define MAIN_FREQ 64 // hz
+#define MAIN_FREQ (64) // hz
 
 #define ENABLE_DISP_FROM_FC (0)
 #define ENABLE_DISP_TO_FC (1)
@@ -117,9 +117,9 @@ int main(int argc, char const *argv[])
     }
   }
 
-
-  // dp_comm.join();
-  // gps_handler.join();
+  dp_comm.join();
+  gps_handler.join();
+  mkr_handler.join();
 
   return 0;
 }

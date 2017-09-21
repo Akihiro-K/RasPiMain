@@ -8,7 +8,7 @@
 
 #include "LSM_handler.hpp"
 
-FromLSMVector   LSMVector;
+SafeVector<FromLSM>  LSMVector;
 
 
 void RecvFromLSM()

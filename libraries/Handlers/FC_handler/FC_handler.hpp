@@ -13,7 +13,7 @@
 #include "../../../libraries/utserial/utserial.h"
 #include "../../../libraries/nc/nc.h"
 
-extern FromFCVector FCVector;
+extern SafeVector<FromFlightCtrl> FCVector;
 
 void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_buffer, size_t len);
 

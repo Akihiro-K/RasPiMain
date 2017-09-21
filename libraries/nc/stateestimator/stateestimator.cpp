@@ -67,7 +67,7 @@ void NC::PositionMeasurementUpdateWithMarker()
 {
   static uint8_t init_marker_flag = 0;
 
-  if (marker_flag) {
+  if (sensor_flag&NAV_SENSOR_VISION) {
     // when marker is detected for the first time
     // position is initialized to raw reading from marker
     if (!init_marker_flag) {
@@ -103,7 +103,7 @@ void NC::PositionMeasurementUpdateWithMarker()
 
 void NC::PositionMeasurementUpdateWithGPSPos()
 {
-  if (gps_pos_flag) {
+  if (sensor_flag&NAV_SENSOR_GPSPOS) {
     Vector2f z(gps_position_meter[0], gps_position_meter[1]);
     MatrixXf H(2,6);
     H << 1, 0, 0, 0, 0, 0,
@@ -128,7 +128,7 @@ void NC::PositionMeasurementUpdateWithGPSPos()
 
 void NC::PositionMeasurementUpdateWithGPSVel()
 {
-  if (gps_vel_flag) {
+  if (sensor_flag&NAV_SENSOR_GPSVEL) {
     Vector2f z(from_gps.velocity[0], from_gps.velocity[1]);
     MatrixXf H(2,6);
     H << 0, 0, 0, 1, 0, 0,
@@ -195,7 +195,7 @@ void NC::AttitudeTimeUpdate()
 
 void NC::AttitudeMeasurementUpdateWithMarker()
 {
-  if (marker_flag) {
+  if (sensor_flag&NAV_SENSOR_VISION) {
     Quaternionf q_marker(sqrt(1-from_marker.quaternion[0]*from_marker.quaternion[0]-from_marker.quaternion[1]*from_marker.quaternion[1]-from_marker.quaternion[2]*from_marker.quaternion[2]),
     from_marker.quaternion[0], from_marker.quaternion[1], from_marker.quaternion[2]);
     Matrix3f DCM = (q_marker.toRotationMatrix()).transpose(); // inertial to body
@@ -262,7 +262,7 @@ void NC::AttitudeMeasurementUpdateWithMarker()
 
 void NC::AttitudeMeasurementUpdateWithLSM()
 {
-  if (lsm_flag) {
+  if (sensor_flag&NAV_SENSOR_LSM) {
     Vector3f z_meas(from_lsm.mag[0], from_lsm.mag[1], from_lsm.mag[2]);
 
     float initial_heading = 0.0; // TODO: create a function that defines initial heading (in radians)
@@ -334,7 +334,7 @@ void NC::AttitudeMeasurementUpdateWithLSM()
 
 void NC::AttitudeMeasurementUpdateWithGPSVel()
 {
-  if (gps_vel_flag) {
+  if (sensor_flag&NAV_SENSOR_GPSVEL) {
     // Vector3f z_meas(from_gps.velocity[0], from_gps.velocity[1], 0);
     // z_meas.normalize();
 
