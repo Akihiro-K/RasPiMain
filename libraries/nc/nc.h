@@ -93,6 +93,23 @@ public:
     from_dp_set_dp_mode = from_dp_set_dp_mode_;
     drone_port_mode = from_dp_set_dp_mode.drone_port_mode_request;
   }
+  // accessor for adctrl
+  std::vector<float> ToFCTargetPosition(){
+    std::vector<float> tp = {to_fc.target_position[0],to_fc.target_position[1],
+      to_fc.target_position[2]};
+    return tp;
+  }
+  // accessor for adctrl
+  void SetToFCTargetPosition(std::vector<float> tp){
+    to_fc.target_position[0] = tp[0];
+    to_fc.target_position[1] = tp[1];
+    to_fc.target_position[2] = tp[2];
+  }
+  // accessor for adctrl
+  std::vector<float> ZStates(){
+    std::vector<float> zstates = {u[2],to_fc.velocity[2],to_fc.position[2]};
+    return zstates;
+  }
   struct ToFlightCtrl* PayloadToFC() {
     return &to_fc;
   }

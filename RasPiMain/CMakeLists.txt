@@ -9,7 +9,7 @@ if(FC_DEBUG)
 endif()
 
 find_package(Eigen3 REQUIRED)
-include_directories(EIGEN3_INCLUDE_DIR)
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/utserial ${CMAKE_CURRENT_BINARY_DIR}/utserial_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/serial ${CMAKE_CURRENT_BINARY_DIR}/serial_build)
@@ -18,6 +18,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/nc ${CMAKE_CURRENT_BIN
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/Handlers ${CMAKE_CURRENT_BINARY_DIR}/Handlers_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/ublox ${CMAKE_CURRENT_BINARY_DIR}/ublox_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/timer ${CMAKE_CURRENT_BINARY_DIR}/timer_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/adctrl ${CMAKE_CURRENT_BINARY_DIR}/adctrl_build)
 
 add_executable(main src/main.cpp)
-target_link_libraries(main Handlers UTSerial Serial NC Ublox Timer TCPClient)
+target_link_libraries(main Handlers UTSerial Serial NC Ublox Timer TCPClient Adctrl)

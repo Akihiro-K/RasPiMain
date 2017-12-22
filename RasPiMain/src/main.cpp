@@ -1,6 +1,7 @@
 
 #include "../../libraries/Handlers/handlers.h"
 #include "../../libraries/timer/timer.hpp"
+#include "../../libraries/adctrl/adctrl.h"
 
 #include <thread>
 #include <mutex>
@@ -14,6 +15,8 @@
 #define ENABLE_DISP_TO_FC (1)
 #define ENABLE_DISP_FROM_MARKER (0)
 #define ENABLE_DISP_FROM_GPS (0)
+
+#define ENABLE_ADAPTIVE_CONTROL (0)
 
 const char SERIAL_PORT_FC[] = "/dev/ttyAMA0";
 const char WAYPOINT_FILENAME[] = "../input_data/wp_ina_2.json";
@@ -114,7 +117,22 @@ int main(int argc, char const *argv[])
       }
 
       // Update navigation to generate payload to FC
-      nc.UpdateNavigation();
+      if(ENABLE_ADAPTIVE_CONTROL){
+        static L1 l1z = ReadL1Params("../input_data/l1z.json");
+
+        nc.UpdateNavigation();
+        std::vector<float> zstates = nc.ZStates();
+        std::vector<float> target_position = nc.ToFCTargetPosition();
+
+        Eigen::VectorXf observation_vector(3);
+        observation_vector << zstates[0],zstates[1],zstates[2];
+        float z_ad = l1z.update(observation_vector,target_position[2]);
+        target_position[2] = z_ad; // adaptive target position
+
+        nc.SetToFCTargetPosition(target_position);
+      }else{
+        nc.UpdateNavigation();
+      }
 
       // Send data to FC
       if(ENABLE_DISP_TO_FC) nc.DispToFC();
