@@ -56,11 +56,12 @@ int main(int argc, char const *argv[])
       nc.ToFCLogging2(); // This will be removed in the future
       nc.FromFCLogging();
       nc.NavigatorLogging();
+      // Update state estimate using data from FC
       nc.PositionTimeUpdate();
       nc.AttitudeTimeUpdate();
       nc.PositionMeasurementUpdateWithBar();
-      nc.UpdateNavigation();
 
+      // Refine state estimate using data from GPS
       if(!GPSVector->empty())
       {
         nc.SetGPSBuffer(GPSVector->back());   //get most recent data
@@ -75,6 +76,7 @@ int main(int argc, char const *argv[])
         nc.GPSLogging();
       }
 
+      // Refine state estimate using data from marker
       if(!MarkerVector->empty())
       {
         nc.SetMarkerBuffer(MarkerVector->back());   //get most recent data
@@ -88,17 +90,6 @@ int main(int argc, char const *argv[])
         nc.VisionLogging();
       }
 
-      if(!DPSetDronePortModeVector->empty())
-      {
-        nc.SetDPBuffer(DPSetDronePortModeVector->back());   //get most recent data
-        DPSetDronePortModeVector->clear();             //remove old datas
-
-        nc.SetDronePortMode();
-        SendDPSetDronePortModeResponse();
-        nc.FromDPSetDronePortModeLogging();
-        nc.ToDPSetDronePortModeLogging();
-      }
-
       //if(!LSMVector->empty())
       //{
       //    from_lsm = LSMVector->back();   //get most recent data
@@ -110,7 +101,22 @@ int main(int argc, char const *argv[])
       //    LSMLogging();
       //}
 
-      // To FC
+      // Receive command from drone port
+      if(!DPSetDronePortModeVector->empty())
+      {
+        nc.SetDPBuffer(DPSetDronePortModeVector->back());   //get most recent data
+        DPSetDronePortModeVector->clear();             //remove old datas
+
+        nc.SetDronePortMode();
+        SendDPSetDronePortModeResponse();
+        nc.FromDPSetDronePortModeLogging();
+        nc.ToDPSetDronePortModeLogging();
+      }
+
+      // Update navigation to generate payload to FC
+      nc.UpdateNavigation();
+
+      // Send data to FC
       if(ENABLE_DISP_TO_FC) nc.DispToFC();
       FC_comm.send_data(UT_SERIAL_COMPONENT_ID_RASPI, 1, (uint8_t *)nc.PayloadToFC(), sizeof(*nc.PayloadToFC()));
       nc.ResetHeadingCorrectionQuat();
