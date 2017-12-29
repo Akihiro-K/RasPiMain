@@ -49,6 +49,17 @@ void NC::VisionLogging()
   fout << unsigned(from_marker.status) << std::endl;
 }
 
+void NC::FromPayloadLogging()
+{
+  gettimeofday(&tv, NULL);
+  uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
+  fout << LogIDFromPayload << "," << timestamp << ",";
+  fout << from_payload.position[0] << "," << from_payload.position[1] << ","<< from_payload.position[2] <<",";
+  fout << from_payload.quaternion[0] << ","<< from_payload.quaternion[1] << "," << from_payload.quaternion[2] <<",";
+  fout << from_payload.r_var[0] <<","<< from_payload.r_var[1] << "," << from_payload.r_var[2] << ",";
+  fout << unsigned(from_payload.status) << std::endl;
+}
+
 void NC::GPSLogging()
 {
   gettimeofday(&tv, NULL);

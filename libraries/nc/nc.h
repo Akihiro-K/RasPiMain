@@ -164,6 +164,7 @@ public:
   void ToDPSetDronePortModeLogging();
   void ToFCLogging2(); // This will be removed in the future
   void NavigatorLogging();
+  void FromPayloadLogging(); // suspended payload
 
 //==============================================================================
 // Navigator
