@@ -102,6 +102,7 @@ int main(int argc, char const *argv[])
         // Execute Kalman filter on payload states: [theta phidot phi]T
         nc.PayloadStatesKalmanUpdate();
         nc.FromPayloadLogging();
+        nc.PayloadStatesLogging();
       }
 
       //if(!LSMVector->empty())

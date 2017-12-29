@@ -178,6 +178,7 @@ public:
   void ToFCLogging2(); // This will be removed in the future
   void NavigatorLogging();
   void FromPayloadLogging(); // suspended payload
+  void PayloadStatesLogging(); // suspended payload
 
 //==============================================================================
 // Navigator
