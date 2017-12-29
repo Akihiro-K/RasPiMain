@@ -416,8 +416,8 @@ void NC::PayloadStatesKalmanUpdate()
   float theta = 2*quat[2]; // pitch angle (control input for kalman filter)
   float xpr = -from_payload.position[0]; // x position of payload relative to aircraft
   float zpr = -from_payload.position[2]; // z position of payload relative to aircraft
-  VectorXf phi_meas(1);
-  phi_meas << std::atan2(xpr,zpr); // measured swing angle of payload (measurement for kalman filter)
+  VectorXf beta_meas(1);
+  beta_meas << std::atan2(xpr,zpr); // swing angle of payload about y axis (measurement for kalman filter)
 
   // Parameters: dt, sqwn (square of natural frequency (rad^2/s^2))
   float sqwn = 0.6125;
@@ -428,9 +428,9 @@ void NC::PayloadStatesKalmanUpdate()
     dt = 0.1; // exception for first time
   }
 
-  VectorXf x_phi = VectorXf::Zero(2); // [phidot phi]T
-  x_phi << payload_states[1],
-            payload_states[2];
+  VectorXf x_beta = VectorXf::Zero(2); // [betadot beta]T
+  x_beta << x_swing_states[1],
+            x_swing_states[2];
   MatrixXf A(2,2);
   A << 1, sqwn*dt,
         dt, 0;
@@ -443,13 +443,13 @@ void NC::PayloadStatesKalmanUpdate()
   K << 0.5149,
         0.3194;
 
-  x_phi = A*x_phi + B*theta; // Time update (discrete time)
-  x_phi += K*(phi_meas-C*x_phi); // Measurement update (discrete time)
+  x_beta = A*x_beta + B*theta; // Time update (discrete time)
+  x_beta += K*(beta_meas-C*x_beta); // Measurement update (discrete time)
 
   // Store data
-  payload_states[0] = theta;
-  payload_states[1] = x_phi[0];
-  payload_states[2] = x_phi[1];
+  x_swing_states[0] = theta;
+  x_swing_states[1] = x_beta[0];
+  x_swing_states[2] = x_beta[1];
 
   // update static variables
   t_ms_prev = t_ms;

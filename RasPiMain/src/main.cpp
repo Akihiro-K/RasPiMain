@@ -143,6 +143,7 @@ int main(int argc, char const *argv[])
         float z_ad = l1z.update(observation_vector,target_position[2]);
 
         // Baseline x swing control
+        Eigen::Vector3f xpmstates = nc.XPMStates();
 
         // Set adaptive target position
         target_position[2] = z_ad;

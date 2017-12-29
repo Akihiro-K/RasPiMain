@@ -48,7 +48,7 @@ private:
   MatrixXf P_pos;
   float quat[4];
   Matrix3f P_att;
-  Vector3f payload_states; // [theta phidot phi]T
+  Vector3f x_swing_states; // [theta betadot beta]T
 
 public:
   explicit NC() {
@@ -82,7 +82,7 @@ public:
     quat[2] = 0;
     quat[3] = 0;
     P_att = Matrix3f::Zero();
-    payload_states = Vector3f::Zero();
+    x_swing_states = Vector3f::Zero();
   }
   void SetFCBuffer(struct FromFlightCtrl from_fc_) {
     from_fc = from_fc_;
@@ -118,8 +118,11 @@ public:
     return zstates;
   }
   // accessor for adctrl
-  Vector3f PayloadStates(){
-    return payload_states;
+  VectorXf XPMStates(){
+    VectorXf xpmstates(5); // [theta,betadot,beta,u,x]T
+    xpmstates << x_swing_states[0],x_swing_states[1], x_swing_states[2],
+      x[3], x[0];
+    return xpmstates;
   }
   struct ToFlightCtrl* PayloadToFC() {
     return &to_fc;
