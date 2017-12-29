@@ -14,6 +14,7 @@ private:
 //==============================================================================
 // Buffer
   struct FromMarker from_marker;
+  struct FromMarker from_payload; // suspended payload
   struct FromGPS from_gps;
   struct FromLSM from_lsm;
   struct ToFlightCtrl to_fc;
@@ -47,10 +48,12 @@ private:
   MatrixXf P_pos;
   float quat[4];
   Matrix3f P_att;
+  Vector3f payload_states; // [theta phidot phi]T
 
 public:
   explicit NC() {
     from_marker = {0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 0};
+    from_payload = {0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, 0}; // suspended payload
     from_gps = {0,0,0,{0,0,0},0};
     from_lsm = {{0,0,0},0};
     to_fc = {NAV_COMMS_VERSION, 0, 0, {0, 0, 0}, {0, 0, 0}, 1, 0, {0, 0, -0.8}, 0.5, 0, 0.3};
@@ -79,6 +82,7 @@ public:
     quat[2] = 0;
     quat[3] = 0;
     P_att = Matrix3f::Zero();
+    payload_states = Vector3f::Zero();
   }
   void SetFCBuffer(struct FromFlightCtrl from_fc_) {
     from_fc = from_fc_;
@@ -88,6 +92,9 @@ public:
   }
   void SetMarkerBuffer(struct FromMarker from_marker_) {
     from_marker = from_marker_;
+  }
+  void SetPayloadBuffer(struct FromMarker from_payload_) {
+    from_payload = from_payload_;
   }
   void SetDPBuffer(struct FromDPSetDronePortMode from_dp_set_dp_mode_) {
     from_dp_set_dp_mode = from_dp_set_dp_mode_;
@@ -109,6 +116,10 @@ public:
   std::vector<float> ZStates(){
     std::vector<float> zstates = {u[2],to_fc.velocity[2],to_fc.position[2]};
     return zstates;
+  }
+  // accessor for adctrl
+  Vector3f PayloadStates(){
+    return payload_states;
   }
   struct ToFlightCtrl* PayloadToFC() {
     return &to_fc;
@@ -178,6 +189,7 @@ public:
   void AttitudeMeasurementUpdateWithLSM();
   void AttitudeMeasurementUpdateWithGPSVel();
   void ResetHeadingCorrectionQuat();
+  void PayloadStatesKalmanUpdate();
 };
 
 #endif // NC_H_

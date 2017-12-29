@@ -5,6 +5,7 @@ add_library(Handlers STATIC
   GPS_handler/GPS_handler.cpp
   LSM_handler/LSM_handler.cpp
   MKR_handler/MKR_handler.cpp
+  PL_handler/PL_handler.cpp
 )
 
 include(CheckCXXCompilerFlag)

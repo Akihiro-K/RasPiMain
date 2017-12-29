@@ -33,6 +33,7 @@ int main(int argc, char const *argv[])
   std::thread dp_comm(&RecvFromDP);
   std::thread gps_handler(&GPSHandler);
   std::thread mkr_handler(&MarkerHandler);
+  std::thread pl_handler(&PayloadHandler);
 
   nc.ReadWPfromFile(WAYPOINT_FILENAME);
   if (argc == 2) {
@@ -93,6 +94,15 @@ int main(int argc, char const *argv[])
         nc.VisionLogging();
       }
 
+      if(!PayloadVector->empty())
+      {
+        nc.SetPayloadBuffer(PayloadVector->back());
+        PayloadVector->clear();
+
+        // Execute Kalman filter on payload states: [theta phidot phi]T
+        nc.PayloadStatesKalmanUpdate();
+      }
+
       //if(!LSMVector->empty())
       //{
       //    from_lsm = LSMVector->back();   //get most recent data
@@ -116,22 +126,26 @@ int main(int argc, char const *argv[])
         nc.ToDPSetDronePortModeLogging();
       }
 
+      nc.UpdateNavigation();
+
       // Update navigation to generate payload to FC
       if(ENABLE_ADAPTIVE_CONTROL){
         static L1 l1z = ReadL1Params("../input_data/l1z.json");
 
-        nc.UpdateNavigation();
-        std::vector<float> zstates = nc.ZStates();
+        // Obtain nominal target position
         std::vector<float> target_position = nc.ToFCTargetPosition();
 
+        // L1 z control
+        std::vector<float> zstates = nc.ZStates();
         Eigen::VectorXf observation_vector(3);
         observation_vector << zstates[0],zstates[1],zstates[2];
         float z_ad = l1z.update(observation_vector,target_position[2]);
-        target_position[2] = z_ad; // adaptive target position
 
+        // Baseline x swing control
+
+        // Set adaptive target position
+        target_position[2] = z_ad;
         nc.SetToFCTargetPosition(target_position);
-      }else{
-        nc.UpdateNavigation();
       }
 
       // Send data to FC
