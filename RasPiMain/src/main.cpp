@@ -52,7 +52,7 @@ int main(int argc, char const *argv[])
     if(!FCVector->empty())
     {
       nc.SetFCBuffer(FCVector->back());     //get most recent data
-      FCVector->clear();              //remove old datas
+      FCVector->clear();              //remove old data
 
       // From FC
       if(ENABLE_DISP_FROM_FC) nc.DispFromFC();
@@ -69,7 +69,7 @@ int main(int argc, char const *argv[])
       if(!GPSVector->empty())
       {
         nc.SetGPSBuffer(GPSVector->back());   //get most recent data
-        GPSVector->clear();             //remove old datas
+        GPSVector->clear();             //remove old data
 
         //GPS
         nc.UpdateGPSPosFlag();
@@ -84,7 +84,7 @@ int main(int argc, char const *argv[])
       if(!MarkerVector->empty())
       {
         nc.SetMarkerBuffer(MarkerVector->back());   //get most recent data
-        MarkerVector->clear();             //remove old datas
+        MarkerVector->clear();             //remove old data
 
         //Marker
         nc.UpdateMarkerFlag();
@@ -107,7 +107,7 @@ int main(int argc, char const *argv[])
       //if(!LSMVector->empty())
       //{
       //    from_lsm = LSMVector->back();   //get most recent data
-      //    LSMVector->clear();             //remove old datas
+      //    LSMVector->clear();             //remove old data
       //
       //    //LSM
       //    UpdateLSMFlag();
@@ -119,7 +119,7 @@ int main(int argc, char const *argv[])
       if(!DPSetDronePortModeVector->empty())
       {
         nc.SetDPBuffer(DPSetDronePortModeVector->back());   //get most recent data
-        DPSetDronePortModeVector->clear();             //remove old datas
+        DPSetDronePortModeVector->clear();             //remove old data
 
         nc.SetDronePortMode();
         SendDPSetDronePortModeResponse();
@@ -127,9 +127,9 @@ int main(int argc, char const *argv[])
         nc.ToDPSetDronePortModeLogging();
       }
 
+      // Update navigation to generate payload to FC
       nc.UpdateNavigation();
 
-      // Update navigation to generate payload to FC
       if(ENABLE_ADAPTIVE_CONTROL){
         static L1 l1z = ReadL1Params("../input_data/l1z.json");
 

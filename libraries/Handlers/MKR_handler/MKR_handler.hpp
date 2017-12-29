@@ -8,8 +8,6 @@
 #include "../../../libraries/timer/timer.hpp"
 #include "../../../libraries/nc/nc.h"
 
-#define TCP_PORT_MARKER (8080)
-
 extern SafeVector<FromMarker>  MarkerVector;
 
 void MarkerHandler(); //refactored

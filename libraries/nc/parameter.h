@@ -7,6 +7,8 @@
 
 #define NAV_COMMS_VERSION (1)
 #define TCP_ADDRESS ("127.0.0.1")
+#define TCP_PORT_MARKER (8080)
+#define TCP_PORT_PAYLOAD (8081)
 
 struct FromMarker {
   uint32_t timestamp; // microseconds
