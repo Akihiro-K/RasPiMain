@@ -410,14 +410,18 @@ void NC::ResetHeadingCorrectionQuat()
 
 void NC::PayloadStatesKalmanUpdate()
 {
-  // This filter assumes that pitch angle is filtered beforehand.
+  // This filter assumes that attitude is filtered beforehand.
   // Make sure that AttitudeMeasurementUpdate is called before this.
 
-  float theta = 2*quat[2]; // pitch angle (control input for kalman filter)
+  float theta = 2*quat[2]; // pitch angle
+  float phi = 2*quat[1]; // roll angle
   float xpr = -from_payload.position[0]; // x position of payload relative to aircraft
+  float ypr = -from_payload.position[1]; // y position of payload relative to aircraft
   float zpr = -from_payload.position[2]; // z position of payload relative to aircraft
   VectorXf beta_meas(1);
   beta_meas << std::atan2(xpr,zpr); // swing angle of payload about y axis (measurement for kalman filter)
+  VectorXf alpha_meas(1);
+  alpha_meas << std::atan2(-ypr,zpr); // swing angle of payload about x axis (measurement for kalman filter)
 
   // Parameters: dt, sqwn (square of natural frequency (rad^2/s^2))
   float sqwn = 0.6125;
@@ -431,6 +435,9 @@ void NC::PayloadStatesKalmanUpdate()
   VectorXf x_beta = VectorXf::Zero(2); // [betadot beta]T
   x_beta << x_swing_states[1],
             x_swing_states[2];
+  VectorXf x_alpha = VectorXf::Zero(2); // [alphadot alpha]T
+  x_alpha << y_swing_states[1],
+             y_swing_states[2];
   MatrixXf A(2,2);
   A << 1, sqwn*dt,
         dt, 0;
@@ -446,10 +453,16 @@ void NC::PayloadStatesKalmanUpdate()
   x_beta = A*x_beta + B*theta; // Time update (discrete time)
   x_beta += K*(beta_meas-C*x_beta); // Measurement update (discrete time)
 
+  x_alpha = A*x_alpha + B*phi; // Time update (discrete time)
+  x_alpha += K*(alpha_meas-C*x_alpha); // Measurement update (discrete time)
+
   // Store data
   x_swing_states[0] = theta;
   x_swing_states[1] = x_beta[0];
   x_swing_states[2] = x_beta[1];
+  y_swing_states[0] = phi;
+  y_swing_states[1] = x_alpha[0];
+  y_swing_states[2] = x_alpha[1];
 
   // update static variables
   t_ms_prev = t_ms;

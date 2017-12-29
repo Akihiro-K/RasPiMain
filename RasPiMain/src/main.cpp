@@ -144,6 +144,7 @@ int main(int argc, char const *argv[])
 
         // Baseline x swing control
         Eigen::Vector3f xpmstates = nc.XPMStates();
+        Eigen::Vector3f ypmstates = nc.YPMStates();
 
         // Set adaptive target position
         target_position[2] = z_ad;
