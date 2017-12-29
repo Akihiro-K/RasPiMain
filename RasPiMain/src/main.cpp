@@ -19,7 +19,7 @@
 #define ENABLE_ADAPTIVE_CONTROL (0)
 
 const char SERIAL_PORT_FC[] = "/dev/ttyAMA0";
-const char WAYPOINT_FILENAME[] = "../input_data/wp_ina_2.json";
+const char WAYPOINT_FILENAME[] = "../input_data/wp_vertical.json";
 
 NC nc;
 
