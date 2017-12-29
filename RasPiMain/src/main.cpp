@@ -102,7 +102,6 @@ int main(int argc, char const *argv[])
         // Execute Kalman filter on payload states: [theta phidot phi]T
         nc.PayloadStatesKalmanUpdate();
         nc.FromPayloadLogging();
-        nc.PayloadStatesLogging();
       }
 
       //if(!LSMVector->empty())
@@ -139,15 +138,31 @@ int main(int argc, char const *argv[])
 
         // L1 z control
         VectorXf zstates = nc.ZStates();
-        float z_ad = l1z.update(zstates,target_position[2]);
+        float z_target = l1z.update(zstates,target_position[2]);
 
-        // Baseline x swing control
-        Eigen::Vector3f xpmstates = nc.XPMStates();
-        Eigen::Vector3f ypmstates = nc.YPMStates();
+        // Baseline swing control
+        Eigen::VectorXf xpmstates = nc.XPMStates();
+        Eigen::VectorXf ypmstates = nc.YPMStates();
+        Eigen::VectorXf Kp(5);
+        Kp << 1.04, 0.20, 0.27, -0.39, -0.22;
+        xpmstates[4] -= target_position[0]; // subtract target to get error
+        ypmstates[4] -= target_position[1]; // subtract target to get error
+        float theta_cmd = -Kp.dot(xpmstates);
+        float phi_cmd = -Kp.dot(ypmstates);
+        // control inversion: convert attitude commands to position commands
+        float kuprime = -0.17, kxprime = -0.12;
+        float x_target = target_position[0] + (theta_cmd + kuprime*xpmstates[3])/kxprime;
+        float kvprime = 0.17, kyprime = 0.12;
+        float y_target = target_position[1] + (phi_cmd + kvprime*ypmstates[3])/kyprime;
 
         // Set adaptive target position
-        target_position[2] = z_ad;
+        target_position[0] = x_target;
+        target_position[1] = y_target;
+        target_position[2] = z_target;
         nc.SetToFCTargetPosition(target_position);
+
+        // Save data to log
+        nc.PayloadStatesLogging(theta_cmd,x_target,phi_cmd,y_target);
       }
 
       // Send data to FC

@@ -60,14 +60,16 @@ void NC::FromPayloadLogging()
   fout << unsigned(from_payload.status) << std::endl;
 }
 
-void NC::PayloadStatesLogging(){
+void NC::PayloadStatesLogging(float theta_cmd, float x_target, float phi_cmd, float y_target){
   VectorXf xpm = XPMStates();
   VectorXf ypm = YPMStates();
   gettimeofday(&tv, NULL);
   uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
   fout << LogIDPayloadStates << "," << timestamp << ",";
   fout << xpm[0] << "," << xpm[1] << "," << xpm[2] << "," << xpm[3] << "," << xpm[4] << ",";
-  fout << ypm[0] << "," << ypm[1] << "," << ypm[2] << "," << ypm[3] << "," << ypm[4];
+  fout << theta_cmd << "," << x_target << ",";
+  fout << ypm[0] << "," << ypm[1] << "," << ypm[2] << "," << ypm[3] << "," << ypm[4] << ",";
+  fout << phi_cmd << "," << y_target << ",";
   fout << std::endl;
 }
 

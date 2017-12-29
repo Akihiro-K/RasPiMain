@@ -178,7 +178,7 @@ public:
   void ToFCLogging2(); // This will be removed in the future
   void NavigatorLogging();
   void FromPayloadLogging(); // suspended payload
-  void PayloadStatesLogging(); // suspended payload
+  void PayloadStatesLogging(float theta_cmd, float x_target, float phi_cmd, float y_target); // suspended payload
 
 //==============================================================================
 // Navigator
