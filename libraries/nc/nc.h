@@ -115,8 +115,9 @@ public:
     to_fc.target_position[2] = tp[2];
   }
   // accessor for adctrl
-  std::vector<float> ZStates(){
-    std::vector<float> zstates = {u[2],to_fc.velocity[2],to_fc.position[2]};
+  VectorXf ZStates(){
+    VectorXf zstates(3);
+    zstates << u[2],to_fc.velocity[2],to_fc.position[2];
     return zstates;
   }
   // accessor for adctrl

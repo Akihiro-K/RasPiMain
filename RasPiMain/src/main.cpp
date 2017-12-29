@@ -137,10 +137,8 @@ int main(int argc, char const *argv[])
         std::vector<float> target_position = nc.ToFCTargetPosition();
 
         // L1 z control
-        std::vector<float> zstates = nc.ZStates();
-        Eigen::VectorXf observation_vector(3);
-        observation_vector << zstates[0],zstates[1],zstates[2];
-        float z_ad = l1z.update(observation_vector,target_position[2]);
+        VectorXf zstates = nc.ZStates();
+        float z_ad = l1z.update(zstates,target_position[2]);
 
         // Baseline x swing control
         Eigen::Vector3f xpmstates = nc.XPMStates();
