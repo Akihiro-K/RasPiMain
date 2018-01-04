@@ -179,6 +179,7 @@ public:
   void NavigatorLogging();
   void FromPayloadLogging(); // suspended payload
   void PayloadStatesLogging(float theta_cmd, float x_target, float phi_cmd, float y_target); // suspended payload
+  void AdctrlLogging(VectorXf zstates,float z_target_orig,float z_target);
 
 //==============================================================================
 // Navigator

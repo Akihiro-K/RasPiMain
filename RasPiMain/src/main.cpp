@@ -138,6 +138,7 @@ int main(int argc, char const *argv[])
 
         // L1 z control
         VectorXf zstates = nc.ZStates();
+        float z_target_orig = target_position[2];
         float z_target = l1z.update(zstates,target_position[2]);
 
         // Baseline swing control
@@ -163,6 +164,7 @@ int main(int argc, char const *argv[])
 
         // Save data to log
         nc.PayloadStatesLogging(theta_cmd,x_target,phi_cmd,y_target);
+        nc.AdctrlLogging(zstates,z_target_orig,z_target);
       }
 
       // Send data to FC

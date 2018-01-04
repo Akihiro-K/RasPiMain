@@ -94,6 +94,7 @@ enum Sensor {
   LogIDNavigator = 8,
   LogIDFromPayload = 9,
   LogIDPayloadStates = 10,
+  LogIDAdctrl = 11,
 };
 
 enum NavMode {

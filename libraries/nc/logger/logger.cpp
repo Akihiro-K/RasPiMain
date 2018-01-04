@@ -131,3 +131,11 @@ void NC::NavigatorLogging(){
   // fout << GetPositionRelOrigin()[2];
   fout << std::endl;
 }
+
+void NC::AdctrlLogging(VectorXf zstates,float z_target_orig,float z_target){
+  gettimeofday(&tv, NULL);
+  uint32_t timestamp = (tv.tv_sec % 1000) * 1000000 + tv.tv_usec;
+  fout << LogIDAdctrl << "," << timestamp << ",";
+  fout << zstates[0] << "," << zstates[1] << "," << zstates[2] << ",";
+  fout << z_target_orig << "," << z_target << std::endl;
+}
