@@ -14,6 +14,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/utserial ${CMAKE_CURRENT_BINARY_DIR}/utserial_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/serial ${CMAKE_CURRENT_BINARY_DIR}/serial_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/tcp ${CMAKE_CURRENT_BINARY_DIR}/tcp_build)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/fifo ${CMAKE_CURRENT_BINARY_DIR}/fifo_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/nc ${CMAKE_CURRENT_BINARY_DIR}/nc_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/Handlers ${CMAKE_CURRENT_BINARY_DIR}/Handlers_build)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/ublox ${CMAKE_CURRENT_BINARY_DIR}/ublox_build)
@@ -21,4 +22,4 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/timer ${CMAKE_CURRENT_
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../libraries/adctrl ${CMAKE_CURRENT_BINARY_DIR}/adctrl_build)
 
 add_executable(main src/main.cpp)
-target_link_libraries(main Handlers UTSerial Serial NC Ublox Timer TCPClient Adctrl)
+target_link_libraries(main Handlers UTSerial Serial NC Ublox Timer TCPClient FIFO Adctrl)
