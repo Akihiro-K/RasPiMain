@@ -18,6 +18,7 @@ void PayloadHandler()
   //tcp_client c;
   //c.start_connect(TCP_ADDRESS, TCP_PORT_PAYLOAD);
   UTFIFOReader fr = UTFIFOReader("/dev/payload_fifo");
+  fr.flush();
   for(;;)
   {
     //bool connected = c.recv_data(PushbackNewPayloadData);

@@ -18,6 +18,7 @@ void MarkerHandler()
   //tcp_client c;
   //c.start_connect(TCP_ADDRESS, TCP_PORT_MARKER);
   UTFIFOReader fr = UTFIFOReader("/dev/marker_fifo");
+  fr.flush();
   for(;;)
   {
     //bool connected = c.recv_data(PushbackNewMarkerData);
