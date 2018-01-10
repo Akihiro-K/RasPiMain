@@ -16,7 +16,7 @@
 #define ENABLE_DISP_FROM_MARKER (0)
 #define ENABLE_DISP_FROM_GPS (0)
 
-#define ENABLE_ADAPTIVE_CONTROL (0)
+#define ENABLE_ADAPTIVE_CONTROL (1)
 
 const char SERIAL_PORT_FC[] = "/dev/ttyAMA0";
 const char WAYPOINT_FILENAME[] = "../input_data/wp_vertical.json";
@@ -63,7 +63,7 @@ int main(int argc, char const *argv[])
       // Update state estimate using data from FC
       nc.PositionTimeUpdate();
       nc.AttitudeTimeUpdate();
-      nc.PositionMeasurementUpdateWithBar();
+      //nc.PositionMeasurementUpdateWithBar();
 
       // Refine state estimate using data from GPS
       if(!GPSVector->empty())
@@ -131,41 +131,56 @@ int main(int argc, char const *argv[])
       nc.UpdateNavigation();
 
       if(ENABLE_ADAPTIVE_CONTROL){
-        static L1 l1z = ReadL1Params("../input_data/l1z.json");
+        //static L1 l1z = ReadL1Params("../input_data/l1z.json");
 
         // Obtain nominal target position
         std::vector<float> target_position = nc.ToFCTargetPosition();
 
         // L1 z control
-        VectorXf zstates = nc.ZStates();
-        float z_target_orig = target_position[2];
-        float z_target = l1z.update(zstates,target_position[2]);
+        //VectorXf zstates = nc.ZStates();
+        //float z_target_orig = target_position[2];
+        //float z_target = l1z.update(zstates,target_position[2]);
 
         // Baseline swing control
         Eigen::VectorXf xpmstates = nc.XPMStates();
         Eigen::VectorXf ypmstates = nc.YPMStates();
-        Eigen::VectorXf Kp(5);
+        Eigen::VectorXf Kpx(5), Kpy(5);
         Kpx << 0.6871, 0.1303, 0.0237, -0.2367, -0.1195;
         Kpy << 0.6871, 0.1303, 0.0237, 0.2367, 0.1195;
         xpmstates[4] -= target_position[0]; // subtract target to get error
         ypmstates[4] -= target_position[1]; // subtract target to get error
         float theta_cmd = -Kpx.dot(xpmstates);
         float phi_cmd = -Kpy.dot(ypmstates);
+        if(theta_cmd > 0.2){
+          theta_cmd = 0.2;
+        }else{
+          if(theta_cmd < -0.2){
+            theta_cmd = -0.2;
+          }
+        }
+        if(phi_cmd > 0.2){
+          phi_cmd = 0.2;
+        }else{
+          if(phi_cmd < -0.2){
+            phi_cmd = -0.2;
+          }
+        }
+
         // control inversion: convert attitude commands to position commands
         float kuprime = -0.17, kxprime = -0.12;
-        float x_target = target_position[0] + (theta_cmd + kuprime*xpmstates[3])/kxprime;
+        float x_target = xpmstates[4] + (theta_cmd + kuprime*xpmstates[3])/kxprime;
         float kvprime = 0.17, kyprime = 0.12;
-        float y_target = target_position[1] + (phi_cmd + kvprime*ypmstates[3])/kyprime;
+        float y_target = ypmstates[4] + (phi_cmd + kvprime*ypmstates[3])/kyprime;
 
         // Set adaptive target position
         target_position[0] = x_target;
         target_position[1] = y_target;
-        target_position[2] = z_target;
+        //target_position[2] = z_target;
         nc.SetToFCTargetPosition(target_position);
 
         // Save data to log
         nc.PayloadStatesLogging(theta_cmd,x_target,phi_cmd,y_target);
-        nc.AdctrlLogging(zstates,z_target_orig,z_target);
+        //nc.AdctrlLogging(zstates,z_target_orig,z_target);
       }
 
       // Send data to FC

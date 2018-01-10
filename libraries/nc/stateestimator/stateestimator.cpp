@@ -410,6 +410,11 @@ void NC::ResetHeadingCorrectionQuat()
 
 void NC::PayloadStatesKalmanUpdate()
 {
+  if(from_payload.status == 0){
+    return;
+  }
+
+  std::cout << "PayloadStatesKalmanUpdate called" << std::endl;
   // This filter assumes that attitude is filtered beforehand.
   // Make sure that AttitudeMeasurementUpdate is called before this.
 
@@ -424,12 +429,12 @@ void NC::PayloadStatesKalmanUpdate()
   alpha_meas << std::atan2(-ypr,zpr); // swing angle of payload about x axis (measurement for kalman filter)
 
   // Parameters: dt, sqwn (square of natural frequency (rad^2/s^2))
-  float sqwn = 0.6125;
+  float sqwn = 10.98;
   static uint32_t t_ms_prev = 0;
   uint32_t t_ms = from_payload.timestamp;
   float dt = (t_ms - t_ms_prev)/1000000.0;
-  if(t_ms_prev == 0){
-    dt = 0.1; // exception for first time
+  if(dt > 0.1){
+    dt = 0.1;
   }
 
   VectorXf x_beta = VectorXf::Zero(2); // [betadot beta]T
@@ -439,16 +444,16 @@ void NC::PayloadStatesKalmanUpdate()
   x_alpha << y_swing_states[1],
              y_swing_states[2];
   MatrixXf A(2,2);
-  A << 1, sqwn*dt,
-        dt, 0;
+  A << 1, -sqwn*dt,
+        dt, 1;
   MatrixXf B(2,1);
   B << sqwn*dt,
         0;
   MatrixXf C(1,2);
   C << 0, 1;
   MatrixXf K(2,1);
-  K << 0.5149,
-        0.3194;
+  K << 0.9098,
+        0.4224;
 
   x_beta = A*x_beta + B*theta; // Time update (discrete time)
   x_beta += K*(beta_meas-C*x_beta); // Measurement update (discrete time)
