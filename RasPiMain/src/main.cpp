@@ -145,11 +145,12 @@ int main(int argc, char const *argv[])
         Eigen::VectorXf xpmstates = nc.XPMStates();
         Eigen::VectorXf ypmstates = nc.YPMStates();
         Eigen::VectorXf Kp(5);
-        Kp << 1.04, 0.20, 0.27, -0.39, -0.22;
+        Kpx << 0.6871, 0.1303, 0.0237, -0.2367, -0.1195;
+        Kpy << 0.6871, 0.1303, 0.0237, 0.2367, 0.1195;
         xpmstates[4] -= target_position[0]; // subtract target to get error
         ypmstates[4] -= target_position[1]; // subtract target to get error
-        float theta_cmd = -Kp.dot(xpmstates);
-        float phi_cmd = -Kp.dot(ypmstates);
+        float theta_cmd = -Kpx.dot(xpmstates);
+        float phi_cmd = -Kpy.dot(ypmstates);
         // control inversion: convert attitude commands to position commands
         float kuprime = -0.17, kxprime = -0.12;
         float x_target = target_position[0] + (theta_cmd + kuprime*xpmstates[3])/kxprime;
