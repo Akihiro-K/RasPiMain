@@ -16,7 +16,6 @@ void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
   memcpy(temp, data_buffer, len);
   FromFlightCtrl temp_s;
 
-#ifndef FC_DEBUG_MODE
   struct FromFlightCtrl * struct_ptr = (struct FromFlightCtrl *)temp;
 
   temp_s.timestamp = struct_ptr->timestamp;
@@ -29,15 +28,11 @@ void FCHandler(uint8_t component_id, uint8_t message_id, const uint8_t * data_bu
   for (int i = 0; i < 4; i++) {
     temp_s.quaternion[i] = struct_ptr->quaternion[i];
   }
-#else
-  struct ForDebug * struct_ptr = (struct ForDebug *)temp;
-  for (int i = 0; i < 3; i++) {
-    for_debug.accelerometer[i] = struct_ptr->accelerometer[i];
-    for_debug.gyro[i] = struct_ptr->gyro[i];
-  }
-  for (int i = 0; i < 4; i++) {
-    for_debug.motor_setpoint[i] = struct_ptr->motor_setpoint[i];
-  }
+#ifdef FC_DEBUG_MODE
+  temp_s.g_b_cmd[0] = struct_ptr->g_b_cmd[0];
+  temp_s.g_b_cmd[1] = struct_ptr->g_b_cmd[1];
+  temp_s.g_b_cmd_ad[0] = struct_ptr->g_b_cmd_ad[0];
+  temp_s.g_b_cmd_ad[1] = struct_ptr->g_b_cmd_ad[1];
 #endif
 
   FCVector->push_back(temp_s); //put the fresh frame in the vector

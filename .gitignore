@@ -1,5 +1,6 @@
 /*.csv
 /RasPiMain/build
+/RasPiMain/debug
 #/RasPiMain/input_data
 /RasPiMain/output_data
 /.vscode

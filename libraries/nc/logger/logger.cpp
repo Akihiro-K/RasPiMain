@@ -35,7 +35,11 @@ void NC::FromFCLogging()
   fout << from_fc.accelerometer[0] << "," << from_fc.accelerometer[1] << "," << from_fc.accelerometer[2] << ",";
   fout << from_fc.gyro[0] << "," << from_fc.gyro[1] << "," << from_fc.gyro[2] <<",";
   fout << from_fc.quaternion[0] << "," << from_fc.quaternion[1] << "," << from_fc.quaternion[2] << "," << from_fc.quaternion[3] <<",";
-  fout << from_fc.pressure_alt << std::endl;
+  fout << from_fc.pressure_alt;
+#ifdef FC_DEBUG_MODE
+  fout << "," << from_fc.g_b_cmd[0] << "," << from_fc.g_b_cmd[1] << "," << from_fc.g_b_cmd_ad[0] << "," << from_fc.g_b_cmd_ad[1];
+#endif
+  fout << std::endl;
 }
 
 void NC::VisionLogging()

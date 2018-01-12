@@ -4,18 +4,15 @@
 
 void NC::DispFromFC()
 {
-#ifndef FC_DEBUG_MODE
   std::cout << "***************FROM FC***************" << std::endl;
   std::cout << "Nav_Mode: " << unsigned(from_fc.nav_mode_request) << std::endl;
   std::cout << "Acc: " << from_fc.accelerometer[0] << "\t" << from_fc.accelerometer[1] << "\t" << from_fc.accelerometer[2] << std::endl;
   std::cout << "Gyro: " << from_fc.gyro[0] << "\t" << from_fc.gyro[1] << "\t" << from_fc.gyro[2] << std::endl;
   std::cout << "Quat: " << from_fc.quaternion[0] << "\t" << from_fc.quaternion[1] << "\t" << from_fc.quaternion[2] << "\t" << from_fc.quaternion[3] << std::endl;
   std::cout << "Pres_Alt: " << from_fc.pressure_alt << std::endl;
-#else
-  std::cout << "***************FCDEBUG***************" << std::endl;
-  std::cout << "SetPts: " << for_debug.motor_setpoint[0] << "\t" << for_debug.motor_setpoint[1] << "\t" << for_debug.motor_setpoint[2] << "\t" << for_debug.motor_setpoint[3] << std::endl;
-  std::cout << "Acc: " << for_debug.accelerometer[0] << "\t" << for_debug.accelerometer[1] << "\t" << for_debug.accelerometer[2] << std::endl;
-  std::cout << "Gyro: " << for_debug.gyro[0] << "\t" << for_debug.gyro[1] << "\t" << for_debug.gyro[2] << std::endl;
+#ifdef FC_DEBUG_MODE
+  std::cout << "gbcmd: " << from_fc.g_b_cmd[0] << "\t" << from_fc.g_b_cmd[1] << std::endl;
+  std::cout << "gbcmdad: " << from_fc.g_b_cmd_ad[0] << "\t" << from_fc.g_b_cmd_ad[1] << std::endl;
 #endif
 }
 

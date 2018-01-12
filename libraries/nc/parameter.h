@@ -61,16 +61,13 @@ struct FromFlightCtrl {
   uint8_t flightctrl_state;
   float accelerometer[3];
   float gyro[3];
-  // float g_b_cmd[2];
   float quaternion[4];
   float pressure_alt;
+#ifdef FC_DEBUG_MODE
+  float g_b_cmd[2];
+  float g_b_cmd_ad[2];
+#endif
 } __attribute__((packed));
-
-struct ForDebug{
-  uint16_t motor_setpoint[4];
-  float accelerometer[3];
-  float gyro[3];
-}__attribute__((packed));
 
 struct FromDPSetDronePortMode{
   uint8_t read_write; // 0: read-only, 1: write
@@ -87,7 +84,7 @@ enum Sensor {
   LogIDToFC = 1,
   LogIDGPS = 2,
   LogIDLSM = 3,
-  LogIDFCDebug = 4,
+  LogIDFCDebug = 4, // TODO: delete
   LogIDFromFC = 5,
   LogIDFromDPSetDronePortMode = 6,
   LogIDToDPSetDronePortMode = 7,

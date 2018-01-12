@@ -19,7 +19,6 @@ private:
   struct FromLSM from_lsm;
   struct ToFlightCtrl to_fc;
   struct FromFlightCtrl from_fc;
-  struct ForDebug for_debug;
   struct ToDronePort to_dp;
   struct FromDPSetDronePortMode from_dp_set_dp_mode;
   struct ToDPSetDronePortMode to_dp_set_dp_mode;
@@ -58,8 +57,11 @@ public:
     from_gps = {0,0,0,{0,0,0},0};
     from_lsm = {{0,0,0},0};
     to_fc = {NAV_COMMS_VERSION, 0, 0, {0, 0, 0}, {0, 0, 0}, 1, 0, {0, 0, -0.8}, 0.5, 0, 0.3};
+#ifndef FC_DEBUG_MODE
     from_fc = {0, 0, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0, 0}, 0};
-    for_debug = {{0,0,0,0}, {0,0,0}, {0,0,0}};
+#else
+    from_fc = {0, 0, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0, 0}, 0, {0, 0}, {0, 0}};
+#endif
     to_dp = {0, 0, 0, 0, {0, 0, 0}, {0, 0, 0}, {0, 0, 0, 0}};
     from_dp_set_dp_mode = {0, NCWaypoint};
     to_dp_set_dp_mode = {0, 0};
