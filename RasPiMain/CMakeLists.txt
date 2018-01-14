@@ -3,7 +3,7 @@ project(main)
 SET(CMAKE_MODULE_PATH ${CMAKE_INSTALL_PREFIX}/lib/cmake/ )
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11 -pthread")
 
-option(FC_DEBUG "FC Debug Mode" OFF)
+option(FC_DEBUG "FC Debug Mode" ON)
 if(FC_DEBUG)
   add_definitions(-DFC_DEBUG_MODE)
 endif()

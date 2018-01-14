@@ -420,9 +420,38 @@ void NC::PayloadStatesKalmanUpdate()
 
   float theta = 2*quat[2]; // pitch angle
   float phi = 2*quat[1]; // roll angle
-  float xpr = -from_payload.position[0]; // x position of payload relative to aircraft
-  float ypr = -from_payload.position[1]; // y position of payload relative to aircraft
-  float zpr = -from_payload.position[2]; // z position of payload relative to aircraft
+
+  float qwoc = sqrt(1
+    -from_marker.quaternion[0]*from_marker.quaternion[0]
+    -from_marker.quaternion[1]*from_marker.quaternion[1]
+    -from_marker.quaternion[2]*from_marker.quaternion[2]);
+  float qwpc = sqrt(1
+    -from_payload.quaternion[0]*from_payload.quaternion[0]
+    -from_payload.quaternion[1]*from_payload.quaternion[1]
+    -from_payload.quaternion[2]*from_payload.quaternion[2]);
+
+  Quaternionf qoc(qwoc,from_marker.quaternion[0],from_marker.quaternion[1],from_marker.quaternion[2]);
+  Quaternionf qpc(qwpc,from_payload.quaternion[0],from_payload.quaternion[1],from_payload.quaternion[2]);
+
+  Vector3f Toc(from_marker.position[0],from_marker.position[1],from_marker.position[2]);
+  Vector3f Tpc(from_payload.position[0],from_payload.position[1],from_payload.position[2]);
+
+  // Get rotation matrix from origin to payload
+  Matrix3f Roc = qoc.toRotationMatrix(); // origin to camera
+  Matrix3f Rpc = qpc.toRotationMatrix(); // payload to camera
+  Matrix3f Rop = Rpc.transpose()*Roc; // origin to payload
+
+  // Get translation vector from origin to payload (in inertial frame)
+  Vector3f Top = Rpc.transpose()*(Toc-Tpc); // origin to payload
+
+  Vector3f rel_pos = Top - Toc; // payload position relative to camera in inertial frame
+
+  float xpr = rel_pos[0]; // x position of payload relative to aircraft
+  float ypr = rel_pos[1]; // y position of payload relative to aircraft
+  float zpr = rel_pos[2]; // z position of payload relative to aircraft
+
+  std::cout << "x:" << xpr << "\ty:" << ypr << "\tz:" << zpr << std::endl;
+
   VectorXf beta_meas(1);
   beta_meas << std::atan2(xpr,zpr); // swing angle of payload about y axis (measurement for kalman filter)
   VectorXf alpha_meas(1);
