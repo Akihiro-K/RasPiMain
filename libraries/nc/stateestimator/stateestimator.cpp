@@ -414,42 +414,34 @@ void NC::PayloadStatesKalmanUpdate()
     return;
   }
 
-  std::cout << "PayloadStatesKalmanUpdate called" << std::endl;
   // This filter assumes that attitude is filtered beforehand.
   // Make sure that AttitudeMeasurementUpdate is called before this.
 
   float theta = 2*quat[2]; // pitch angle
   float phi = 2*quat[1]; // roll angle
 
-  float qwoc = sqrt(1
-    -from_marker.quaternion[0]*from_marker.quaternion[0]
-    -from_marker.quaternion[1]*from_marker.quaternion[1]
-    -from_marker.quaternion[2]*from_marker.quaternion[2]);
   float qwpc = sqrt(1
     -from_payload.quaternion[0]*from_payload.quaternion[0]
     -from_payload.quaternion[1]*from_payload.quaternion[1]
     -from_payload.quaternion[2]*from_payload.quaternion[2]);
 
-  Quaternionf qoc(qwoc,from_marker.quaternion[0],from_marker.quaternion[1],from_marker.quaternion[2]);
   Quaternionf qpc(qwpc,from_payload.quaternion[0],from_payload.quaternion[1],from_payload.quaternion[2]);
 
-  Vector3f Toc(from_marker.position[0],from_marker.position[1],from_marker.position[2]);
   Vector3f Tpc(from_payload.position[0],from_payload.position[1],from_payload.position[2]);
 
   // Get rotation matrix from origin to payload
-  Matrix3f Roc = qoc.toRotationMatrix(); // origin to camera
   Matrix3f Rpc = qpc.toRotationMatrix(); // payload to camera
-  Matrix3f Rop = Rpc.transpose()*Roc; // origin to payload
 
-  // Get translation vector from origin to payload (in inertial frame)
-  Vector3f Top = Rpc.transpose()*(Toc-Tpc); // origin to payload
+  Vector3f relative_position_in_b_frame = -Rpc.transpose()*Tpc; // translation from camera to payload
+  Matrix3f Cbi = Quaternionf(quat[0],quat[1],quat[2],quat[3]).toRotationMatrix(); //  b->i coordinate transform matrix
+  Vector3f relative_position = Cbi*relative_position_in_b_frame;
+  float xpr = relative_position[0];
+  float ypr = relative_position[1];
+  float zpr = relative_position[2];
 
-  Vector3f rel_pos = Top - Toc; // payload position relative to camera in inertial frame
-
-  float xpr = rel_pos[0]; // x position of payload relative to aircraft
-  float ypr = rel_pos[1]; // y position of payload relative to aircraft
-  float zpr = rel_pos[2]; // z position of payload relative to aircraft
-
+  if (std::isnan(xpr) || std::isnan(ypr) || std::isnan(zpr)){
+    return;
+  }
   std::cout << "x:" << xpr << "\ty:" << ypr << "\tz:" << zpr << std::endl;
 
   VectorXf beta_meas(1);

@@ -30,8 +30,8 @@ int main(int argc, char const *argv[])
   nc.InitLogging();
 
   ut_serial FC_comm(SERIAL_PORT_FC, SERIAL_BAUDRATE_FC);
-  std::thread dp_comm(&RecvFromDP);
-  std::thread gps_handler(&GPSHandler);
+  //std::thread dp_comm(&RecvFromDP);
+  //std::thread gps_handler(&GPSHandler);
   std::thread mkr_handler(&MarkerHandler);
   std::thread pl_handler(&PayloadHandler);
 
@@ -94,15 +94,15 @@ int main(int argc, char const *argv[])
         nc.VisionLogging();
       }
 
-      if(!PayloadVector->empty())
-      {
-        nc.SetPayloadBuffer(PayloadVector->back());
-        PayloadVector->clear();
+      //if(!PayloadVector->empty())
+      //{
+      //  nc.SetPayloadBuffer(PayloadVector->back());
+      //  PayloadVector->clear();
 
-        // Execute Kalman filter on payload states: [theta phidot phi]T
-        nc.PayloadStatesKalmanUpdate();
-        nc.FromPayloadLogging();
-      }
+      //  // Execute Kalman filter on payload states: [theta phidot phi]T
+      //  nc.PayloadStatesKalmanUpdate();
+      //  nc.FromPayloadLogging();
+      //}
 
       //if(!LSMVector->empty())
       //{
@@ -140,46 +140,57 @@ int main(int argc, char const *argv[])
         //VectorXf zstates = nc.ZStates();
         //float z_target_orig = target_position[2];
         //float z_target = l1z.update(zstates,target_position[2]);
-
-        // Baseline swing control
-        Eigen::VectorXf xpmstates = nc.XPMStates();
-        Eigen::VectorXf ypmstates = nc.YPMStates();
-        Eigen::VectorXf Kpx(5), Kpy(5);
-        Kpx << 0.6871, 0.1303, 0.0237, -0.2367, -0.1195;
-        Kpy << 0.6871, 0.1303, 0.0237, 0.2367, 0.1195;
-        xpmstates[4] -= target_position[0]; // subtract target to get error
-        ypmstates[4] -= target_position[1]; // subtract target to get error
-        float theta_cmd = -Kpx.dot(xpmstates);
-        float phi_cmd = -Kpy.dot(ypmstates);
-        if(theta_cmd > 0.2){
-          theta_cmd = 0.2;
-        }else{
-          if(theta_cmd < -0.2){
-            theta_cmd = -0.2;
-          }
-        }
-        if(phi_cmd > 0.2){
-          phi_cmd = 0.2;
-        }else{
-          if(phi_cmd < -0.2){
-            phi_cmd = -0.2;
-          }
-        }
-
-        // control inversion: convert attitude commands to position commands
-        float kuprime = -0.17, kxprime = -0.12;
-        float x_target = xpmstates[4] + (theta_cmd + kuprime*xpmstates[3])/kxprime;
-        float kvprime = 0.17, kyprime = 0.12;
-        float y_target = ypmstates[4] + (phi_cmd + kvprime*ypmstates[3])/kyprime;
-
-        // Set adaptive target position
-        target_position[0] = x_target;
-        target_position[1] = y_target;
         //target_position[2] = z_target;
-        nc.SetToFCTargetPosition(target_position);
+
+        if(!PayloadVector->empty()){
+          nc.SetPayloadBuffer(PayloadVector->back());
+          PayloadVector->clear();
+
+          nc.PayloadStatesKalmanUpdate();
+          nc.FromPayloadLogging();
+
+          // Baseline swing control
+          Eigen::VectorXf xpmstates = nc.XPMStates();
+          Eigen::VectorXf ypmstates = nc.YPMStates();
+          Eigen::VectorXf Kpx(5), Kpy(5);
+          Kpx << 0.6871, 0.1303, 0.0237, -0.2367, -0.1195;
+          Kpy << 0.6871, 0.1303, 0.0237, 0.2367, 0.1195;
+          xpmstates[4] -= target_position[0]; // subtract target to get error
+          ypmstates[4] -= target_position[1]; // subtract target to get error
+          float theta_cmd = -Kpx.dot(xpmstates);
+          float phi_cmd = -Kpy.dot(ypmstates);
+          if(theta_cmd > 0.2){
+            theta_cmd = 0.2;
+          }else{
+            if(theta_cmd < -0.2){
+              theta_cmd = -0.2;
+            }
+          }
+          if(phi_cmd > 0.2){
+            phi_cmd = 0.2;
+          }else{
+            if(phi_cmd < -0.2){
+              phi_cmd = -0.2;
+            }
+          }
+
+          // control inversion: convert attitude commands to position commands
+          float kuprime = -0.17, kxprime = -0.12;
+          float x_target = xpmstates[4] + (theta_cmd + kuprime*xpmstates[3])/kxprime;
+          float kvprime = 0.17, kyprime = 0.12;
+          float y_target = ypmstates[4] + (phi_cmd + kvprime*ypmstates[3])/kyprime;
+
+          // Set adaptive target position
+          target_position[0] = x_target;
+          target_position[1] = y_target;
+
+          // Save data to log
+          nc.PayloadStatesLogging(theta_cmd,x_target,phi_cmd,y_target);
+        }
+
+        //nc.SetToFCTargetPosition(target_position);
 
         // Save data to log
-        nc.PayloadStatesLogging(theta_cmd,x_target,phi_cmd,y_target);
         //nc.AdctrlLogging(zstates,z_target_orig,z_target);
       }
 
@@ -190,8 +201,8 @@ int main(int argc, char const *argv[])
     }
   }
 
-  dp_comm.join();
-  gps_handler.join();
+  //dp_comm.join();
+  //gps_handler.join();
   mkr_handler.join();
 
   return 0;
